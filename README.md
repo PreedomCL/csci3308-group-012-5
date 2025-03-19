@@ -10,6 +10,18 @@ Tudr is an application that matches students to tutors. Both potential students 
 - Joe Hoertig-Paulus
 - Nick Meagher
 
+## Merge Request Process
+- git commit -m "commit your changes"
+- git checkout main
+- git pull
+- git checkout -
+- git merge main
+- RESOVLE MERGE CONFLICTS and RETEST
+- git add <files>
+- git commit -m "Resolved merge"
+- git push
+- open pull request in Github
+
 ## Technology Stack
 - Node.js
 - Express
