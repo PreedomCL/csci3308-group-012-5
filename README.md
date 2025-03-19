@@ -12,7 +12,7 @@ Tudr is an application that matches students to tutors. Both potential students 
 
 ## Merge Request Process
 - git fetch origin
-- git merge origin/<your-branch-name>
+- git merge origin/your-branch-name
 - RESOVLE MERGE CONFLICTS and RETEST
 - git add <files>
 - git commit -m "Resolved merge"
