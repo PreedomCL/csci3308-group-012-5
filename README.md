@@ -21,6 +21,7 @@ Tudr is an application that matches students to tutors. Both potential students 
 - git commit -m "Resolved merge"
 - git push
 - open pull request in Github
+- In description add "closes #<ticket>"
 
 ## Technology Stack
 - Node.js
