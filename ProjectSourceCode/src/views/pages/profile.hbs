@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.card {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  max-width: 300px;
+  margin: auto;
+  text-align: center;
+}
+button:hover, a:hover {
+  opacity: 0.7;
+}
+section, aside, div {
+  padding: 20px;
+  border-radius: 12px;
+}
+.flex-container{
+  display: flex;
+}
+
+</style>
+<h1>Profile</h1>
+</head>
+<body>
+  {{!-- Student Profile --}}
+  <main class = "flex-container">
+    <section class = "main-content">
+    <form method="post" action="/"></form>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+      <div class="card">
+        <img src="img.jpg" alt="profile pic" style="width:100%">
+        <h2>My Name</h2>
+        <p>Courses needing tutoring for:</p>
+        <p>~~~~~~~~~~~~~~</p>
+        <p>Learning Style:</p>
+        <p>~~~~~~~~~~~~~~</p>
+        <p>Interests:</p>
+        <p>~~~~~~~~~~~~~~</p>
+        <button class = "btn btn-primary"  type='submit'>Edit</button><br/>
+      </div>
+    </form>
+    </section>
+    {{!-- Schedule to be implemented with Calendar API --}}
+
+    {{!-- Matched Tutors --}}
+    <aside class = "sidebar">
+      <h2 style="text-align: center;">Tutors</h2>
+      <div class="card-group">
+        <div class="card">
+          <img class="card-img-top" src="..." alt="Tutor Picture">
+          <p>Tutor Name</p>
+          <button class = "btn btn-primary"  type='submit'>Message</button><br/>
+        </div>
+        <div class="card">
+          <img class="card-img-top" src="..." alt="Tutor Picture">
+          <p>Tutor Name</p>
+          <button class = "btn btn-primary"  type='submit'>Message</button><br/>
+        </div>
+        <div class="card">
+          <img class="card-img-top" src="..." alt="Tutor Picture">
+          <p>Tutor Name</p>
+          <button class = "btn btn-primary"  type='submit'>Message</button><br/>
+        </div>   
+    </div>
+    </aside>
+
+    {{!-- Potential Tutors --}}
+     <aside class = "sidebar">
+      <h2 style="text-align: center;"> Potential Tutors</h2>
+      <div class="card-group">
+        <div class="card">
+          <img class="card-img-top" src="..." alt="Tutor Picture">
+          <p>Tutor Name</p>
+          <button class = "btn btn-primary"  type='submit'>View Profile</button><br/>
+        </div>
+        <div class="card">
+          <img class="card-img-top" src="..." alt="Tutor Picture">
+          <p>Tutor Name</p>
+          <button class = "btn btn-primary"  type='submit'>View Profile</button><br/>
+        </div>
+        <div class="card">
+          <img class="card-img-top" src="..." alt="Tutor Picture">
+          <p>Tutor Name</p>
+          <button class = "btn btn-primary"  type='submit'>View Profile</button><br/>
+        </div>   
+    </div>
+    </aside>
+
+  </main>
+
+</body>
+
