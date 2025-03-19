@@ -1,0 +1,22 @@
+<div class="container-md">
+    {{> message}}
+    <form method="post" action="/register">
+        <div class="form-group">
+            <h2>Register</h2>
+            <br>
+            <label for="user_type">Student or Tutor</label>
+            <select id="user_type" name="type" class="form-select" onchange="">
+                <option value="Student">Student</option>
+                <option value="Tutor">Tutor</option>
+            </select>
+            <label for="username_input">Username</label>
+            <input type="text" name="username" class="form-control" id="username_input" placeholder="Enter username">
+            <label for="password_input">Password</label>
+            <input type="password" name="password" class="form-control" id="password_input" placeholder="Enter password">
+        </div>
+        <button type="submit" class="btn btn-primary">Register</button>
+    </form>
+    <div class="container-sm">
+        <p>Already have an account? <a href="/login">Login</a></p>
+    </div>
+</div>
