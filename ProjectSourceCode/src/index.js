@@ -45,6 +45,21 @@ app.get('/', (req, res) => {
     res.render('pages/home')
 });
 
+app.get('/login', (req, res) => {
+  res.render('pages/login')
+});
+
+app.get('/matches', (req, res) => {
+  res.render('pages/myMatches')
+});
+
+app.get('/profile', (req, res) => {
+  res.render('pages/profile')
+});
+
+app.get('/register', (req, res) => {
+  res.render('pages/register')
+});
 // *****************************************************
 // <!-- Section 5 : Start Server-->
 // *****************************************************
