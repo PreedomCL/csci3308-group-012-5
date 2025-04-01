@@ -1,0 +1,30 @@
+<div class="match-container">
+  {{#each potentialMatches}}
+    <div class="profile-card" data-id="{{id}}">
+      <h2>{{name}}, {{age}}</h2>
+      <button onclick="openTimeList({{id}})">Choose a Time</button>
+    </div>
+  {{/each}}
+</div>
+
+<div id="timeList" style="display: none;">
+  <h2>Select a Time</h2>
+  <ul>
+    {{#each availableTimes}}
+      <li><button onclick="selectTime('{{this}}')">{{this}}</button></li>
+    {{/each}}
+  </ul>
+</div>
+
+<script>
+  function openTimeList(userId) {
+    document.getElementById('timeList').style.display = 'block';
+    document.getElementById('timeList').dataset.userId = userId;
+  }
+
+  function selectTime(time) {
+    const userId = document.getElementById('timeList').dataset.userId;
+    console.log(`User ${userId} scheduled for ${time}`);
+    document.getElementById('timeList').style.display = 'none';
+  }
+</script>
