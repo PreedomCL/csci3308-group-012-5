@@ -11,11 +11,8 @@ Tudr is an application that matches students to tutors. Both potential students 
 - Nick Meagher
 
 ## Merge Request Process
-- git commit -m "commit your changes"
-- git checkout main
-- git pull
-- git checkout -
-- git merge main
+- git fetch origin
+- git merge origin/your-branch-name
 - RESOVLE MERGE CONFLICTS and RETEST
 - git add <files>
 - git commit -m "Resolved merge"
