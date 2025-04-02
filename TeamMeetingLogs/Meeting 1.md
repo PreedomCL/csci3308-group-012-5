@@ -1,0 +1,13 @@
+## Meeting 1
+- **Date:** 3-21-2025  
+- **Time:** 2:15 PM
+- **Environment:** [TA] 
+- **Summary:** Discussing expectations for the group project and understanding what are the next steps that need to be taken   
+- **Additional Info:**  
+    - Someone needs to display the project board,
+    - Sprint plans would be in todo before the start of the meeting
+    - Have the tasks split and defined before the meetings,
+    - Full project plan week to week for a simple skeleton for good progress check, 
+    - Branch per issue/feature
+    - Tickets for meeting logs
+---
