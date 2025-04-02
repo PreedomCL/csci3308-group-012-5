@@ -90,6 +90,10 @@ Expects the following request body:
   password: string,  // plain text password
 }
 */
+app.get('/welcome', (req, res) => {
+  res.json({status: 'success', message: 'Welcome!'});
+});
+
 app.post('/register', async (req, res) => {
   // hash the password using bcrypt library
   const insertQuery = 'INSERT INTO Users (Username, Password) VALUES ($1, $2)';
@@ -185,5 +189,6 @@ function displaySelectedImage(event, elementId) {
 // <!-- Section 5 : Start Server-->
 // *****************************************************
 // starting the server and keeping the connection open to listen for more requests
-app.listen(3000);
+// app.listen(3000);
+module.exports = app.listen(3000);
 console.log('Server is listening on port 3000');
