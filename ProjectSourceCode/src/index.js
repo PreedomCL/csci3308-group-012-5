@@ -122,7 +122,7 @@ app.post('/login', async (req, res) => {
   
   try {
     const username = req.body.username.toLowerCase();
-    const [user] = await db.oneOrNone(userQuery, username);
+    const user = await db.oneOrNone(userQuery, username);
 
     // check if user exists
     if(user) {
