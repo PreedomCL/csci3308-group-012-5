@@ -84,6 +84,15 @@ app.get('/register', (req, res) => {
   res.render('pages/register')
 });
 
+/**
+ * Logout API
+ */
+app.get('/logout', (req, res) => {
+  req.session.destroy(function(err) {
+    res.render('pages/logout');
+  });
+});
+
 // function to display user image in registration 
 function displaySelectedImage(event, elementId) {
   const selectedImage = document.getElementById(elementId);
