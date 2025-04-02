@@ -82,15 +82,47 @@ app.get('/register', (req, res) => {
   res.render('pages/register')
 });
 
+/*
+POST /register
+Expects the following request body:
+{
+  username: string, // plain text username (case INSENSITIVE)
+  password: string,  // plain text password
+}
+*/
+app.post('/register', async (req, res) => {
+  // hash the password using bcrypt library
+  const insertQuery = 'INSERT INTO Users (Username, Password) VALUES ($1, $2)';
+  
+  const passwordHash = await bcrypt.hash(req.body.password, 10);
+  const username = req.body.username.toLowerCase();
+  try {
+    await db.none(insertQuery, [username, passwordHash]);
+    res.redirect('/login');
+  } catch (error) {
+    console.log(`Server encountered error during register: ${error}`);
+    res.status(500);
+  }
+});
+
 app.get('/login', (req, res) => {
   res.render('pages/login')
 });
 
+/*
+POST /login
+Expects the following request body:
+{
+  username: string, // plain text username (case INSENSITIVE)
+  password: string  // plain text password
+}
+*/
 app.post('/login', async (req, res) => {
   const userQuery = 'SELECT * FROM Users WHERE Username = $1';
   
   try {
-    const [user] = await db.any(userQuery, req.body.username);
+    const username = req.body.username.toLowerCase();
+    const [user] = await db.oneOrNone(userQuery, username);
 
     // check if user exists
     if(user) {
