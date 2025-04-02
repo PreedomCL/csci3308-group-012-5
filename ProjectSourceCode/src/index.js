@@ -83,6 +83,31 @@ app.get('/profile', (req, res) => {
 app.get('/register', (req, res) => {
   res.render('pages/register')
 });
+
+app.post('/login', async (req, res) =>{
+  const {username, password} = req.body;
+  const query = 'SELECT * FROM users WHERE username = $1';
+  try{
+    const user  = await db.oneOrNone(query, [username]);
+    if (!user){
+      return res.render('pages/register', { message: 'User not found', error: true});
+    }
+    // check if password from request matches with password in DB
+    const match = await bcrypt.compare(password, user.password);
+    if (match){
+      //save user details in session like in lab 7
+      req.session.user = user;
+      req.session.save();
+      return res.redirect('/profile');
+    }
+    return res.render('pages/login', { message: 'Incorrect username or password.', error: true});
+  }
+  catch (err) {
+    console.log(err);
+    return res.render('pages/login', { message: 'Error Occured', error: true});
+  }
+});
+
 // *****************************************************
 // <!-- Section 5 : Start Server-->
 // *****************************************************
