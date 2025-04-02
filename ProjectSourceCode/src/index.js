@@ -72,7 +72,7 @@ app.get('/login', (req, res) => {
   res.render('pages/login')
 });
 
-app.get('/matches', (req, res) => {
+app.get('/myMatches', (req, res) => {
   res.render('pages/myMatches')
 });
 
@@ -85,7 +85,14 @@ app.get('/register', (req, res) => {
 });
 
 app.get('/matching', (req, res) => {
-  res.render('pages/matching')
+  res.render('pages/matching', { 
+    potentialMatches: [
+      { id: 1, name: 'John Doe', age: 28 },
+      { id: 2, name: 'Jane Smith', age: 26 },
+      { id: 3, name: 'Sam Lee', age: 30 }
+    ],
+    availableTimes: ['10:00 AM', '12:00 PM', '03:00 PM']
+  });
 });
 // function to display user image in registration 
 function displaySelectedImage(event, elementId) {
