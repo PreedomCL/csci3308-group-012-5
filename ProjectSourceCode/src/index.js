@@ -127,26 +127,25 @@ app.post('/login', async (req, res) => {
   try {
     const username = req.body.username.toLowerCase();
     const user = await db.oneOrNone(userQuery, username);
-
-    // check if user exists
-    if(user) {
-      // check if password from request matches with password in DB
-      const match = await bcrypt.compare(req.body.password, user.password);
-
-      if(match) {
-        // login successful
-        req.session.user = user;
-        req.session.save();
-        res.redirect('/profile');
-      }
-    } else {
-      // login failed, bad username or password
-      console.log('Login Failed');
-      res.render('pages/login', {loginError: true});
+// changed login route to not have nested if statements and work with tests better
+    if (!user){
+      console.log("User Not Found");
+      return res.status(400).json({message: "Invalid Credentials"});
     }
+    const match = await bcrypt.compare(req.body.password, user.password);
+    if (!match){
+      console.log('Invalid Password');
+      return res.status(400).json({message: "Invalid Credentials"});
+    }
+    req.session.user = user;
+    await req.session.save();
+    if (req.headers.accept && req.headers.accept.includes("text/html")){
+      return res.redirect('/profile');
+    }
+    return res.status(200).json({message: "Login Successfull"});
   } catch (error) {
     console.log(`Server encountered error during login: ${error}`);
-    res.status(500);
+    return res.status(500).json({message: "Server Error"});
   }
 });
 
