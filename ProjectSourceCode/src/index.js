@@ -88,20 +88,137 @@ Expects the following request body:
 {
   username: string, // plain text username (case INSENSITIVE)
   password: string,  // plain text password
+  email: string,
+  type: string, // one of {student, tutor}
+  name: string,
+  degree: string,
+  year: string, // one of {freshmen, sophomore, senior, grad}
+  bio: string,
+  classes: string[], // from {math, history, compsci, engineering, business}
+  learning: string // one of {visual, auditory, hands, writing}
 }
 */
 app.post('/register', async (req, res) => {
+
+  // validate request body
+
+  let registerInfo = {
+    username: req.body.username,
+    password: req.body.password,
+    email: req.body.email,
+    type: req.body.type,
+    name: req.body.name,
+    degree: req.body.degree,
+    year: req.body.year,
+    bio: req.body.bio,
+    classes: req.body.classes,
+    learning: req.body.learning
+  }
+
+  // ensure all arguments are present
+  for(let arg in registerInfo) {
+    if(!registerInfo[arg]) {
+      res.status(400).statusMessage = `argument "${arg}" is required`;
+      return;
+    }
+  }
+
+  // validate email
+  const emailEx = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
+  if(!emailEx.test(registerInfo.email)) {
+    res.status(400).statusMessage = 'invalid email';
+    return;
+  }
+
+  // validate type
+  switch (registerInfo.type.toLowerCase()) {
+    case "student":
+    case "tutor":
+      break;
+    default:
+      res.status(400).statusMessage = 'argument "type" must be "student" or "tutor"';
+      return;
+  }
+
+  // validate name
+  if(registerInfo.name.length > 50) {
+    res.status(400).statusMessage = 'argument "name" is too long (max 50)';
+    return;
+  }
+
+  // validate degree 
+  if(registerInfo.degree.length > 50) {
+    res.status(400).statusMessage = 'argument "degree" is too long (max 50)';
+    return;
+  }
+
+  // validate year
+  switch (registerInfo.year.toLowerCase()) {
+    case "freshmen":
+    case "sophomore":
+    case "senior":
+    case "grad":
+      break;
+    default:
+      res.status(400).statusMessage = 'argument "year" must one of {"freshmen", "sophomore", "senior", "grad"}';
+      return;
+  }
+
+  // validate bio
+  if(registerInfo.bio.length > 200) {
+    res.status(400).statusMessage = 'argument "bio" is too long (max 200)';
+    return;
+  }
+
+  // validate classes
+  for(let c of registerInfo.classes) {
+    switch (c.toLowerCase()) {
+      case "math":
+      case "history":
+      case "compsci":
+      case "engineering":
+      case "business":
+        break;
+      default:
+        res.status(400).statusMessage = `invalid class "${c}", must one of {"math", "history", "compsci", "engineering", "business"}`;
+        return;
+    }
+  }
+
+  // validate learning
+  switch (registerInfo.learning.toLowerCase()) {
+    case "visual":
+    case "auditory":
+    case "hands":
+    case "writing":
+      break;
+    default:
+      res.status(400).statusMessage = 'argument "learning" must one of {"visual", "auditory", "hands", "writing"}';
+      return;
+  }
+
   // hash the password using bcrypt library
-  const insertQuery = 'INSERT INTO Users (Username, Password) VALUES ($1, $2)';
-  
   const passwordHash = await bcrypt.hash(req.body.password, 10);
-  const username = req.body.username.toLowerCase();
+
+  // insert the user data into the db
+  const insertQuery = 'INSERT INTO Users (Username, Password, Email, UserType, Name, Degree, Year, Bio, ClassIds, LearningStyle) VALUES ($1, $2)';
   try {
-    await db.none(insertQuery, [username, passwordHash]);
+    await db.none(insertQuery, [
+      registerInfo.username,
+      passwordHash,
+      registerInfo.email,
+      registerInfo.type,
+      registerInfo.name,
+      registerInfo.degree,
+      registerInfo.year,
+      registerInfo.bio,
+      registerInfo.classes,
+      registerInfo.learning
+    ]);
     res.redirect('/login');
   } catch (error) {
     console.log(`Server encountered error during register: ${error}`);
-    res.status(500);
+    res.status(500).statusMessage = 'the server encountered an error while registering the user';
   }
 });
 
