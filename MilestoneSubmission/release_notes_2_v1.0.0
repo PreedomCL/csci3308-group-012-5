@@ -1,0 +1,19 @@
+## What's Changed
+General Updates: 
+* Add basic call routes by @mamc3334 in https://github.com/PreedomCL/csci3308-group-012-5/pull/53
+* Created basic register page by @mamc3334 in https://github.com/PreedomCL/csci3308-group-012-5/pull/45
+* Create home.hbs by @mamc3334 in https://github.com/PreedomCL/csci3308-group-012-5/pull/43
+* Release Notes 1 by @joehpaulus in https://github.com/PreedomCL/csci3308-group-012-5/pull/55
+* Add PostgreSQL connection and express session by @PreedomCL in https://github.com/PreedomCL/csci3308-group-012-5/pull/57
+* Create docker compose by @PreedomCL in https://github.com/PreedomCL/csci3308-group-012-5/pull/58
+* Fix bugs for all pages to render by @PreedomCL in https://github.com/PreedomCL/csci3308-group-012-5/pull/74
+* Register Page UI by @joehpaulus in https://github.com/PreedomCL/csci3308-group-012-5/pull/77
+* calendar research by @mamc3334 in https://github.com/PreedomCL/csci3308-group-012-5/pull/86
+* Meeting log page updates by @nime5333 in https://github.com/PreedomCL/csci3308-group-012-5/pull/83
+* Internal Login sever side by @PreedomCL in https://github.com/PreedomCL/csci3308-group-012-5/pull/89
+* Login Page  by @joehpaulus in https://github.com/PreedomCL/csci3308-group-012-5/pull/82
+* layouts and partials for bootstrapping, style, scripts by @mamc3334 in https://github.com/PreedomCL/csci3308-group-012-5/pull/91
+* register page with all data inputs by @nime5333 in https://github.com/PreedomCL/csci3308-group-012-5/pull/95
+
+
+**Full Changelog**: https://github.com/PreedomCL/csci3308-group-012-5/compare/v0.0.0...v1.0.0
