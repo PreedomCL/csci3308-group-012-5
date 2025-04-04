@@ -95,7 +95,7 @@ app.post('/register', async (req, res) => {
   const insertQuery = 'INSERT INTO Users (Username, Password) VALUES ($1, $2)';
   
   const passwordHash = await bcrypt.hash(req.body.password, 10);
-  const username = req.body.username.toLowerCase();
+  const username = req.body.email.toLowerCase();
   try {
     await db.none(insertQuery, [username, passwordHash]);
     res.redirect('/login');
