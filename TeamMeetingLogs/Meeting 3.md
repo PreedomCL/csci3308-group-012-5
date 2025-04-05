@@ -9,4 +9,12 @@
   - Most pages have workable layout.
   - Basic back-end functionality is complete. There are api routes for login and register, and these interact with the database.
   - The plan for next week is to have the first iteration on the major features complete. This will give us time to polish and debug in week 4.
+    - Focus on webpage interaction and functionality.
+    - Database creation and populate with test data
+    - Data validation
   - We were reminded that it is important to open a new issue/branch for each bugfix.
+  - Tickets and subtickets for next week
+    - Subtasks will help grader understand who is doing what
+  - Sunday meeting:
+    - workload for last week
+    - Page styling - save for the last week - final touches
