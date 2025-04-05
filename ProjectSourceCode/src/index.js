@@ -68,6 +68,8 @@ app.use(
   })
 );
 
+app.use('/resources', express.static(path.join(__dirname, 'resources')));
+
 // *****************************************************
 // <!-- Section 4 : API Routes -->
 // *****************************************************

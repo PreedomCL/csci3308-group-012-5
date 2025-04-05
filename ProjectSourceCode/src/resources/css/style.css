@@ -1,6 +1,6 @@
 .card {
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    max-width: 300px;
+    min-width: 200px;
     margin: auto;
     text-align: center;
   }
@@ -8,9 +8,24 @@
     opacity: 0.7;
   }
   section, aside, div {
-    padding: 20px;
+    padding: 10px;
     border-radius: 12px;
   }
   .flex-container{
     display: flex;
+  }
+
+  /* Calendar Style */
+
+  #calendar-container {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    height: 75vh; /* 70% of viewport height */
+    width: 100%;
+  }
+  
+  /* On smaller screens */
+  @media (max-width: 768px) {
+    #calendar-container {
+      height: 90vh; /* More height on mobile */
+    }
   }
