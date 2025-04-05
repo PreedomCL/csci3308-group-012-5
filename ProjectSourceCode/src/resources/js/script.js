@@ -3,15 +3,9 @@
  */
 document.addEventListener('DOMContentLoaded', function() {
   console.log("DOM loaded, initializing calendar...");
-    
-  // Check if the element exists
   const calendarEl = document.getElementById('calendar');
-  if (!calendarEl) {
-      console.error("Calendar element not found in the DOM");
-      return; // Exit early if element doesn't exist
-  }
-  
-  // Check if FullCalendar is available
+
+  // Check if FullCalendar library is available
   if (typeof FullCalendar === 'undefined') {
       console.error("FullCalendar library not loaded");
       return; // Exit early if library isn't loaded
@@ -19,39 +13,46 @@ document.addEventListener('DOMContentLoaded', function() {
   
   try {
       console.log("Creating calendar instance...");
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-          initialView: 'timeGridWeek',
-          initialDate: '2025-04-07',
+      const calendar = new FullCalendar.Calendar(calendarEl, {  
+        initialView: 'timeGridWeek',
           headerToolbar: {
-              left: 'prev,next today',
-              center: 'title',
-              right: 'timeGridWeek,timeGridDay'
+              left: '',
+              center: 'title'/*user name's calendar*/,
+              right: 'button' /*Update availability button*/
           },
+          nowIndicator: true,
+          stickyHeaderDates: true,
           timeZone: 'America/Denver',
+          slotDuration: '00:30:00',  
+          slotMinTime: '08:00:00',  
+          slotMaxTime: '21:00:00',
+          scrollTime: '08:00:00',
+          dayHeaderFormat: { weekday: 'short' },
           events: [
-              { title: 'All Day Event', start: '2025-04-06' },
-              { title: 'Long Event', start: '2025-04-07', end: '2025-04-10' },
-              { title: 'Conference', start: '2025-04-11', end: '2025-04-13' },
-              { title: 'Meeting', start: '2025-04-12T10:30:00', end: '2025-04-12T12:30:00' },
-              { title: 'Lunch', start: '2025-04-12T12:00:00' },
-              { title: 'Meeting', start: '2025-04-12T14:30:00' },
-              { title: 'Birthday Party', start: '2025-04-13T07:00:00' }
+              { title: 'Meeting', daysOfWeek: [2,3], startTime: '10:30:00', end: '12:30:00' },
+              { title: 'Lunch', start: '2025-04-04T12:00:00' },
+              { title: 'Meeting', start: '2025-04-04T14:30:00' },
+              { title: 'Birthday Party', start: '2025-04-05T07:00:00' }
           ],
+          eventTimeFormat: {
+            hour: 'numeric',
+            minute: '2-digit',
+            meridiem: 'short'
+          },
+          allDaySlot: false,
+          expandRows: true,
+          navLinks: false,
           editable: false,
           selectable: false,
-          allDaySlot: true,
-          allDayContent: 'All Day',
           height: '100%',
-          expandRows: true,
-          stickyHeaderDates: true
       });
       
       console.log("Rendering calendar...");
       // Remove updateSize call, only render
       calendar.render();
-      console.log("Calendar render completed");
+      console.log("Calendar render complete");
   } catch (error) {
-      console.error("Error initializing calendar:", error);
+      console.error("Error creating calendar:", error);
   }
 });
 /*
