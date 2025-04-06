@@ -86,7 +86,6 @@ app.get('/register', (req, res) => {
 POST /register
 Expects the following request body:
 {
-  username: string, // plain text username (case INSENSITIVE)
   password: string,  // plain text password
   email: string,
   type: string, // one of {student, tutor}
@@ -103,7 +102,6 @@ app.post('/register', async (req, res) => {
   // validate request body
 
   let registerInfo = {
-    username: req.body.username,
     password: req.body.password,
     email: req.body.email,
     type: req.body.type,
@@ -118,7 +116,7 @@ app.post('/register', async (req, res) => {
   // ensure all arguments are present
   for(let arg in registerInfo) {
     if(!registerInfo[arg]) {
-      res.status(400).statusMessage = `argument "${arg}" is required`;
+      res.status(400).send(`argument "${arg}" is required`);
       return;
     }
   }
@@ -126,7 +124,7 @@ app.post('/register', async (req, res) => {
   // validate email
   const emailEx = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
   if(!emailEx.test(registerInfo.email)) {
-    res.status(400).statusMessage = 'invalid email';
+    res.status(400).send('invalid email');
     return;
   }
 
@@ -136,89 +134,122 @@ app.post('/register', async (req, res) => {
     case "tutor":
       break;
     default:
-      res.status(400).statusMessage = 'argument "type" must be "student" or "tutor"';
+      res.status(400).send('argument "type" must be "student" or "tutor"');
       return;
   }
 
   // validate name
   if(registerInfo.name.length > 50) {
-    res.status(400).statusMessage = 'argument "name" is too long (max 50)';
+    res.status(400).send('argument "name" is too long (max 50)');
     return;
   }
 
   // validate degree 
   if(registerInfo.degree.length > 50) {
-    res.status(400).statusMessage = 'argument "degree" is too long (max 50)';
+    res.status(400).send('argument "degree" is too long (max 50)');
     return;
   }
 
   // validate year
   switch (registerInfo.year.toLowerCase()) {
-    case "freshmen":
+    case "freshman":
     case "sophomore":
     case "senior":
     case "grad":
       break;
     default:
-      res.status(400).statusMessage = 'argument "year" must one of {"freshmen", "sophomore", "senior", "grad"}';
+      res.status(400).send('argument "year" must one of {"freshman", "sophomore", "senior", "grad"}');
       return;
   }
 
   // validate bio
   if(registerInfo.bio.length > 200) {
-    res.status(400).statusMessage = 'argument "bio" is too long (max 200)';
+    res.status(400).send('argument "bio" is too long (max 200)');
     return;
   }
 
-  // validate classes
+  // validate classes by comparing to the DB
+  const classIdQuery = 'SELECT Id FROM Classes WHERE Name = $1';
+  let classIds = [];
   for(let c of registerInfo.classes) {
-    switch (c.toLowerCase()) {
-      case "math":
-      case "history":
-      case "compsci":
-      case "engineering":
-      case "business":
-        break;
-      default:
-        res.status(400).statusMessage = `invalid class "${c}", must one of {"math", "history", "compsci", "engineering", "business"}`;
+    try {
+      const classId = await db.oneOrNone(classIdQuery, c.toLowerCase())
+      if(classId === null) {
+        res.status(400).send('invalid class name');
         return;
+      }
+      classIds.push(classId.id);
+    } catch (error) {
+      res.status(500).send('the server ran into an error while getting class ids');
+      return;
     }
   }
+  registerInfo.classes = classIds;
 
-  // validate learning
-  switch (registerInfo.learning.toLowerCase()) {
-    case "visual":
-    case "auditory":
-    case "hands":
-    case "writing":
-      break;
-    default:
-      res.status(400).statusMessage = 'argument "learning" must one of {"visual", "auditory", "hands", "writing"}';
+  // validate learning styles by comparing to the DB
+  const styleIdQuery = 'SELECT Id FROM LearningStyles WHERE Name = $1';
+  try {
+    const styleId = await db.oneOrNone(styleIdQuery, registerInfo.learning.toLowerCase());
+    if(styleId === null) {
+      res.status(400).send('invalid learning style');
       return;
+    }
+    registerInfo.learning = styleId.id;
+  } catch (error) {
+    res.status(500).send('the server ran into an error while getting learning style id');
+    return;
   }
 
-  // hash the password using bcrypt library
-  const passwordHash = await bcrypt.hash(req.body.password, 10);
+  try {
+    // ensure that the email doesn't already exists
+    const emailQuery = 'SELECT Id FROM Users WHERE Email = $1';
+    const emailResult = await db.manyOrNone(emailQuery, registerInfo.email);
+
+    if (emailResult.length > 1) {
+      res.status(400).send('An account is already registered with this email');
+      return;
+    }
+  } catch (error) {
+    console.log(`Server encountered error during email check: ${error}`);
+    res.status(500).send('the server encountered an error while registering the user');
+  }
 
   // insert the user data into the db
-  const insertQuery = 'INSERT INTO Users (Username, Password, Email, UserType, Name, Degree, Year, Bio, ClassIds, LearningStyle) VALUES ($1, $2)';
   try {
-    await db.none(insertQuery, [
-      registerInfo.username,
-      passwordHash,
-      registerInfo.email,
-      registerInfo.type,
-      registerInfo.name,
-      registerInfo.degree,
-      registerInfo.year,
-      registerInfo.bio,
-      registerInfo.classes,
-      registerInfo.learning
-    ]);
+    // Make this a SQL transaction so that if any part fails, the whole transaction fails
+    await db.tx(async t => {
+      // hash the password using bcrypt library
+      const passwordHash = await bcrypt.hash(req.body.password, 10);
+      
+      const insertUserQuery = 'INSERT INTO Users (Password, Email, UserType, Name, Degree, Year, Bio, LearningStyle) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)';
+      await t.none(insertUserQuery, [
+        passwordHash,
+        registerInfo.email,
+        registerInfo.type,
+        registerInfo.name,
+        registerInfo.degree,
+        registerInfo.year,
+        registerInfo.bio,
+        registerInfo.learning
+      ]);
+  
+      // get the userId for the user we just created
+      const userIdQuery = 'SELECT Id FROM Users WHERE Email = $1';
+      const userId = await t.one(userIdQuery, registerInfo.email);
+  
+      // insert the class to user mappings
+      const insertClassesToUsersQuery = 'INSERT INTO ClassesToUsers (ClassId, UserId) VALUES ($1, $2)';
+      for(let classId of registerInfo.classes) {
+        await t.none(insertClassesToUsersQuery, [classId, userId.id]);
+      }
+    });
+
+    // Successful register, redirect the user to the login page
     res.redirect('/login');
   } catch (error) {
+    // handle any errors
     console.log(`Server encountered error during register: ${error}`);
-    res.status(500).statusMessage = 'the server encountered an error while registering the user';
+    res.status(500).send('the server encountered an error while registering the user');
   }
 });
 
@@ -235,7 +266,7 @@ Expects the following request body:
 }
 */
 app.post('/login', async (req, res) => {
-  const userQuery = 'SELECT * FROM Users WHERE Username = $1';
+  const userQuery = 'SELECT * FROM Users WHERE Email = $1';
   
   try {
     const username = req.body.username.toLowerCase();
