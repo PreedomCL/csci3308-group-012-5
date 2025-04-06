@@ -314,6 +314,15 @@ app.get('/profile', (req, res) => {
   res.render('pages/profile')
 });
 
+/**
+ * Logout API
+ */
+app.get('/logout', (req, res) => {
+  req.session.destroy(function(err) {
+    res.render('pages/logout');
+  });
+});
+
 // function to display user image in registration 
 function displaySelectedImage(event, elementId) {
   const selectedImage = document.getElementById(elementId);
