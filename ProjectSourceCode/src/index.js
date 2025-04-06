@@ -10,6 +10,7 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const pgp = require('pg-promise')();
+const axios = require('axios');
 
 // *****************************************************
 // <!-- Section 2 : Connect to DB -->
@@ -111,7 +112,7 @@ app.post('/register', async (req, res) => {
     bio: req.body.bio,
     classes: req.body.classes,
     learning: req.body.learning
-  }
+  };
 
   // ensure all arguments are present
   for(let arg in registerInfo) {
@@ -335,3 +336,66 @@ function displaySelectedImage(event, elementId) {
 // starting the server and keeping the connection open to listen for more requests
 app.listen(3000);
 console.log('Server is listening on port 3000');
+
+// Test User
+
+const createTestUsers = async() => {
+  try {
+    const studentUser = {
+      password: 'password',
+      email: 'student@example.com',
+      type: 'student',
+      name: 'Billy Bob',
+      degree: 'Computer Science',
+      year: 'freshman',
+      bio: 'I am a test student',
+      classes: ['compsci', 'math'],
+      learning: 'visual'
+    };
+
+    const tutorUser = {
+      password: 'password',
+      email: 'tutor@example.com',
+      type: 'tutor',
+      name: 'John Doe',
+      degree: 'Computer Science',
+      year: 'senior',
+      bio: 'I am a test tutor',
+      classes: ['compsci', 'math'],
+      learning: 'visual'
+    };
+    
+    const emailQuery = 'SELECT * FROM Users WHERE Email = $1';
+    
+    // Create student test user
+    const studentExists = await db.oneOrNone(emailQuery, studentUser.email);
+    if(!studentExists) {
+      await axios.post('http://localhost:3000/register', studentUser, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('Created test student');
+    } else {
+      console.log('Test student already exists');
+    }
+
+    // Create tutor test user
+    const tutorExists = await db.oneOrNone(emailQuery, tutorUser.email);
+    if(!tutorExists) {
+      await axios.post('http://localhost:3000/register', tutorUser, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('Created test tutor');
+    } else {
+      console.log('Test tutor already exists');
+    }
+
+  } catch (error) {
+    console.log(`Error creating test user: ${error.message}`);
+  }
+};
+
+createTestUsers();
