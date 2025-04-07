@@ -41,6 +41,38 @@ describe("Server!", () => {
 
 // *********************** TODO: WRITE 2 UNIT TESTCASES **************************
 
+describe("/register route", () => {
+  beforeEach(async () => {
+    // Clear users table before each test
+    await db.query("TRUNCATE TABLE Users CASCADE");
+  });
+
+  after(async () => {
+    // Clear users table after all tests
+    await db.query("TRUNCATE TABLE Users CASCADE");
+  });
+
+  it("returns positive result", (done) => {
+    chai
+      .request(server)
+      .post("/register")
+      .send({ username: "user", password: "password" })
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        done();
+      });
+  });
+  it("returns negative result : invalid username", (done) => {
+    chai
+      .request(server)
+      .post("/register")
+      .send({ username: 10, password: "password" })
+      .end((err, res) => {
+        expect(res).to.have.status(400);
+        done();
+      });
+  });
+});
 
 describe("/login route", () => {
   beforeEach(async () => {
