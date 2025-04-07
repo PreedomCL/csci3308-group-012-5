@@ -374,65 +374,48 @@ function displaySelectedImage(event, elementId) {
 app.listen(3000);
 console.log('Server is listening on port 3000');
 
-// Test User
+// Test Users
 
-const createTestUsers = async() => {
-  try {
-    const studentUser = {
-      password: 'password',
-      email: 'student@example.com',
-      type: 'student',
-      name: 'Billy Bob',
-      degree: 'Computer Science',
-      year: 'freshman',
-      bio: 'I am a test student',
-      classes: ['compsci', 'math'],
-      learning: 'visual'
-    };
-
-    const tutorUser = {
-      password: 'password',
-      email: 'tutor@example.com',
-      type: 'tutor',
-      name: 'John Doe',
-      degree: 'Computer Science',
-      year: 'senior',
-      bio: 'I am a test tutor',
-      classes: ['compsci', 'math'],
-      learning: 'visual'
-    };
+const createTestUser = async(userData) => {
+  const emailQuery = 'SELECT * FROM Users WHERE Email = $1';
     
-    const emailQuery = 'SELECT * FROM Users WHERE Email = $1';
-    
-    // Create student test user
-    const studentExists = await db.oneOrNone(emailQuery, studentUser.email);
-    if(!studentExists) {
-      await axios.post('http://localhost:3000/register', studentUser, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log('Created test student');
-    } else {
-      console.log('Test student already exists');
-    }
-
-    // Create tutor test user
-    const tutorExists = await db.oneOrNone(emailQuery, tutorUser.email);
-    if(!tutorExists) {
-      await axios.post('http://localhost:3000/register', tutorUser, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log('Created test tutor');
-    } else {
-      console.log('Test tutor already exists');
-    }
-
-  } catch (error) {
-    console.log(`Error creating test user: ${error.message}`);
+  // Create student test user
+  const userExists = await db.oneOrNone(emailQuery, userData.email);
+  if(!userExists) {
+    await axios.post('http://localhost:3000/register', userData, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log(`Created test user: ${userData.email}`);
+  } else {
+    console.log(`User already exists: ${userData.email}`);
   }
 };
 
-createTestUsers();
+const studentUser = {
+  password: 'password',
+  email: 'student@example.com',
+  type: 'student',
+  name: 'Billy Bob',
+  degree: 'Computer Science',
+  year: 'freshman',
+  bio: 'I am a test student',
+  classes: ['compsci', 'math'],
+  learning: 'visual'
+};
+
+const tutorUser = {
+  password: 'password',
+  email: 'tutor@example.com',
+  type: 'tutor',
+  name: 'John Doe',
+  degree: 'Computer Science',
+  year: 'senior',
+  bio: 'I am a test tutor',
+  classes: ['compsci', 'math'],
+  learning: 'visual'
+};
+
+createTestUser(studentUser);
+createTestUser(tutorUser);
