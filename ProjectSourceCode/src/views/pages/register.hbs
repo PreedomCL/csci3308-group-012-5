@@ -1,9 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-</head>
-
 <div class="container mt-1">
 
     <form align = "center" method="post" action="/register">
@@ -30,28 +24,84 @@
                     </div>
                 </div>
             </div>
-            <div class="form-row">
+            <div class="row">
+                    <div class="form-group col-md-6">
+                        <label for="email_input">Email</label> <br/>
+                        <input type="text" name="email" class="form-control" id="email_input" placeholder="Enter email"> 
+                    </div>
+            
+                    <div class="form-group col-md-6">
+                                <label for="password_input">Password</label> 
+                                <input type="password" name="password" class="form-control" id="password_input" placeholder="Enter password">
+                    </div> 
+            </div>
+            <div class="row">
                     <div class="form-group col-md-6">
                         <label for="name_input">Full Name</label>
                         <input type="text" name="name" class="form-control" id="name_input" placeholder="Enter full name">
                     </div> 
                     <div class="form-group col-md-6">
-                        <label for="username_input">Username</label> <br/>
-                        <input type="text" name="username" class="form-control" id="username_input" placeholder="Enter username"> 
+                        <label for="degree_input">Degree</label>
+                        <input type="text" name="degree" class="form-control" id="degree_input" placeholder="Enter Degree">
+                    </div> 
+                    <div class="dropdown col-md-6">
+                        <label for="year_input">Select Your Year of Schooling</label> <br/>
+                        <select id="year_input" name="year" class="form-control" onchange="">
+                            <option selected disabled>Select Year</option>
+                            <option value="Freshman">Freshman</option>
+                            <option value="Sophmore">Sophmore</option>
+                            <option value="Senior">Senior</option>
+                            <option value="Grad">Grad</option>
+                        </select> 
                     </div>
+                    <div class="form-group col-md-6">
+                        <label for="bio_input">Bio</label>
+                        <input type="text" name="bio" class="form-control" id="bio_input" placeholder="Enter a Short Bio">
+                    </div> 
             </div>
-            <div class="form-group">
-                        <label for="password_input">Password</label> 
-                        <input type="password" name="password" class="form-control" id="password_input" placeholder="Enter password">
-            </div> 
+{{!-- 
             <div class="form-group">
                         <label for="classes_input">Classes Needing Tutoring For</label> 
                         <input type="text" name="classes" class="form-control" id="classes_input" placeholder="Enter classes">
-            </div> 
+            </div>
+--}}
+            {{!--need to highlight to select multiple will come back to--}}
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <div class="dropdown mr-1">
+                        <label for="classes_input">Classes Needing Tutoring For</label> <br/>
+                        <select id="classes_input" name="classes" class="form-control" onchange="" multiple  data-bs-toggle="dropdown" aria-expanded="false">
+                            <option selected disabled>(Hold ctr to select multiple)</option>
+                            <option value="Math">Math</option>
+                            <option value="History">History</option>
+                            <option value="Comp_sci">Comp sci</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Business">Business (really?)</option>
+                        </select> 
+                    </div>  
+                </div>
+
+                <div class="form-group col-md-6">
+                    <div class="dropdown mr-1">
+                        <label for="learning_input">Pick Your Learning Style</label> <br/>
+                        <select id="learning_input" name="learning" class="form-control" onchange="">
+                            <option selected disabled>Select Learning Style</option>
+                            <option value="Visual">Visual</option>
+                            <option value="Auditory">Auditory</option>
+                            <option value="Hands-on">Hands-on</option>
+                            <option value="Reading/Writing">Reading/Writing</option>
+                        </select> 
+                    </div> 
+                </div>                
+            </div>
+            
+            
+{{!--       
             <div class="form-group">
                         <label for="learning_input">Learning Style</label> 
                         <input type="text" name="learning" class="form-control" id="learning_input" placeholder="Enter learning style">
-            </div> 
+            </div>
+--}}            
                 <button class = "btn btn-primary"  type='submit'>Create Account</button><br/>
                 <div class="container-sm">
                 <p>Already have an account? <a href="/login">Login</a></p>
