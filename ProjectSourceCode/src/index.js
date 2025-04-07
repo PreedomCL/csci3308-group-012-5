@@ -130,6 +130,10 @@ app.post('/register', async (req, res) => {
   }
 
   // validate type
+  if(typeof registerInfo.type !== 'string') {
+    res.status(400).send('argument "type" must be a string');
+    return;
+  }
   switch (registerInfo.type.toLowerCase()) {
     case "student":
     case "tutor":
@@ -140,18 +144,30 @@ app.post('/register', async (req, res) => {
   }
 
   // validate name
+  if(typeof registerInfo.name !== 'string') {
+    res.status(400).send('argument "name" must be a string');
+    return;
+  }
   if(registerInfo.name.length > 50) {
     res.status(400).send('argument "name" is too long (max 50)');
     return;
   }
 
-  // validate degree 
+  // validate degree
+  if(typeof registerInfo.degree !== 'string') {
+    res.status(400).send('argument "degree" must be a string');
+    return;
+  }
   if(registerInfo.degree.length > 50) {
     res.status(400).send('argument "degree" is too long (max 50)');
     return;
   }
 
   // validate year
+  if(typeof registerInfo.year !== 'string') {
+    res.status(400).send('argument "year" must be a string');
+    return;
+  }
   switch (registerInfo.year.toLowerCase()) {
     case "freshman":
     case "sophomore":
@@ -164,6 +180,10 @@ app.post('/register', async (req, res) => {
   }
 
   // validate bio
+  if(typeof registerInfo.bio !== 'string') {
+    res.status(400).send('argument "bio" must be a string');
+    return;
+  }
   if(registerInfo.bio.length > 200) {
     res.status(400).send('argument "bio" is too long (max 200)');
     return;
@@ -173,6 +193,10 @@ app.post('/register', async (req, res) => {
   const classIdQuery = 'SELECT Id FROM Classes WHERE Name = $1';
   let classIds = [];
   for(let c of registerInfo.classes) {
+    if(typeof c !== 'string') {
+      res.status(400).send('argument "classes" must be an array of only strings');
+      return;
+    }
     try {
       const classId = await db.oneOrNone(classIdQuery, c.toLowerCase())
       if(classId === null) {
@@ -188,6 +212,10 @@ app.post('/register', async (req, res) => {
   registerInfo.classes = classIds;
 
   // validate learning styles by comparing to the DB
+  if(typeof registerInfo.learning !== 'string') {
+    res.status(400).send('argument "learning" must be a string');
+    return;
+  }
   const styleIdQuery = 'SELECT Id FROM LearningStyles WHERE Name = $1';
   try {
     const styleId = await db.oneOrNone(styleIdQuery, registerInfo.learning.toLowerCase());
@@ -201,8 +229,8 @@ app.post('/register', async (req, res) => {
     return;
   }
 
+  // ensure that the email doesn't already exists
   try {
-    // ensure that the email doesn't already exists
     const emailQuery = 'SELECT Id FROM Users WHERE Email = $1';
     const emailResult = await db.manyOrNone(emailQuery, registerInfo.email);
 
