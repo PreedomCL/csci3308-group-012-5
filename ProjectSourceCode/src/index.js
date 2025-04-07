@@ -90,6 +90,10 @@ Expects the following request body:
   password: string,  // plain text password
 }
 */
+app.get('/welcome', (req, res) => {
+  res.json({status: 'success', message: 'Welcome!'});
+});
+
 app.post('/register', async (req, res) => {
   // hash the password using bcrypt library
   const insertQuery = 'INSERT INTO Users (Username, Password) VALUES ($1, $2)';
@@ -123,26 +127,25 @@ app.post('/login', async (req, res) => {
   try {
     const username = req.body.username.toLowerCase();
     const user = await db.oneOrNone(userQuery, username);
-
-    // check if user exists
-    if(user) {
-      // check if password from request matches with password in DB
-      const match = await bcrypt.compare(req.body.password, user.password);
-
-      if(match) {
-        // login successful
-        req.session.user = user;
-        req.session.save();
-        res.redirect('/profile');
-      }
-    } else {
-      // login failed, bad username or password
-      console.log('Login Failed');
-      res.render('pages/login', {loginError: true});
+// changed login route to not have nested if statements and work with tests better
+    if (!user){
+      console.log("User Not Found");
+      return res.status(400).json({message: "Invalid Credentials"});
     }
+    const match = await bcrypt.compare(req.body.password, user.password);
+    if (!match){
+      console.log('Invalid Password');
+      return res.status(400).json({message: "Invalid Credentials"});
+    }
+    req.session.user = user;
+    await req.session.save();
+    if (req.headers.accept && req.headers.accept.includes("text/html")){
+      return res.redirect('/profile');
+    }
+    return res.status(200).json({message: "Login Successfull"});
   } catch (error) {
     console.log(`Server encountered error during login: ${error}`);
-    res.status(500);
+    return res.status(500).json({message: "Server Error"});
   }
 });
 
@@ -194,5 +197,6 @@ function displaySelectedImage(event, elementId) {
 // <!-- Section 5 : Start Server-->
 // *****************************************************
 // starting the server and keeping the connection open to listen for more requests
-app.listen(3000);
+// app.listen(3000);
+module.exports = app.listen(3000);
 console.log('Server is listening on port 3000');
