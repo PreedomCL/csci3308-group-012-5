@@ -56,7 +56,7 @@ describe("/register route", () => {
     chai
       .request(server)
       .post("/register")
-      .send({ username: "user", password: "password" })
+      .send({ email: "user", password: "password" })
       .end((err, res) => {
         expect(res).to.have.status(200);
         done();
@@ -66,7 +66,7 @@ describe("/register route", () => {
     chai
       .request(server)
       .post("/register")
-      .send({ username: 10, password: "password" })
+      .send({ email: 10, password: "password" })
       .end((err, res) => {
         expect(res).to.have.status(400);
         done();
