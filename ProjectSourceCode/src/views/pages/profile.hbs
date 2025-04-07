@@ -1,6 +1,6 @@
 <div>
   <div class="row">
-    <div class = "col-sm-2">
+    <div id="prof-left" class = "col-sm-2">
       <img src="img/img.jpg" alt="profile pic" style="width:100%">
       <h2>My Name</h2>
       <p>Courses needing tutoring for:</p>
@@ -12,11 +12,11 @@
       <button class = "btn btn-primary"  type='submit'>Edit</button><br/>
     </div>
     {{!-- Schedule to be implemented with Calendar API --}}
-    <div class="col-sm-7">
+    <div id="prof-center" class="col-sm-7">
       {{> cal}}
     </div>
     {{!-- Matched Tutors --}}
-    <div class = "col-sm-3" >
+    <div id="prof-right" class = "col-sm-3" >
       <row>
         <h2 style="text-align: center;">Tutors</h2>
         <div class="card-group">

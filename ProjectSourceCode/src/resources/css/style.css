@@ -15,15 +15,37 @@ section, aside, div {
   display: flex;
 }
 
+#prof-left{
+  min-width: 100px;
+}
+/* #prof-center{
+  min-width: 600px;
+} */
+#prof-left{
+  min-width: 200px;
+}
+
+
 /* Calendar Style */
 
 #calendar-container {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-  height: 75vh; /* 70% of viewport height */
+  height: 75vh; /* 75% of viewport height */
   width: 100%;
 }
 
 /* On smaller screens */
+@media (max-width: 1240px) {
+  #prof-left{
+    width:80%; 
+  }
+  #prof-center{
+    width: 95%;
+  }
+  #prof-right{
+    min-width: 90%;
+  }
+}
 @media (max-width: 768px) {
   #calendar-container {
     height: 90vh; /* More height on mobile */
