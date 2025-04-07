@@ -9,6 +9,7 @@ const chaiHttp = require("chai-http");
 chai.should();
 chai.use(chaiHttp);
 const { assert, expect } = chai;
+const bcrypt = require('bcryptjs');
 
 // Import the database connection from index.js
 const pgp = require('pg-promise')();
@@ -66,6 +67,41 @@ describe("/register route", () => {
       .request(server)
       .post("/register")
       .send({ username: 10, password: "password" })
+      .end((err, res) => {
+        expect(res).to.have.status(400);
+        done();
+      });
+  });
+});
+
+describe("/login route", () => {
+  beforeEach(async () => {
+    await db.query("TRUNCATE TABLE Users CASCADE");
+    const hash = await bcrypt.hash("password", 10);
+    await db.query(`INSERT INTO Users (Username, Password) VALUES ($1, $2)`, ['user', hash]);
+  });
+
+  after(async () => {
+    // Clear users table after all tests
+    await db.query("TRUNCATE TABLE Users CASCADE");
+  });
+
+  it("returns positive result", (done) => {
+    chai
+      .request(server)
+      .post("/login")
+      .send({ username: "user", password: "password" })
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        expect 
+        done();
+      });
+  });
+  it("returns negative result : invalid username", (done) => {
+    chai
+      .request(server)
+      .post("/login")
+      .send({ username: "invalid_user", password: "password" })
       .end((err, res) => {
         expect(res).to.have.status(400);
         done();
