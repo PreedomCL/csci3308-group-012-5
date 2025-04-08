@@ -174,6 +174,31 @@ app.get('/logout', (req, res) => {
   });
 });
 
+app.get('/matching', (req, res) => {
+  res.redirect('/matching/0');
+});
+
+app.get('/matching/:index?', (req, res) => {
+  const allMatches = [
+    { id: 1, name: 'John Doe', age: 28 },
+    { id: 2, name: 'Jane Smith', age: 26 },
+    { id: 3, name: 'Sam Lee', age: 30 }
+  ];
+  const index = parseInt(req.params.index) || 0;
+  const match = allMatches[index];
+
+  if (!match) {
+    return res.render('pages/matching', {
+      noMatches: true
+    });
+  }
+
+  res.render('pages/matching', {
+    match,
+    nextIndex: index + 1
+  });
+});
+
 // function to display user image in registration 
 function displaySelectedImage(event, elementId) {
   const selectedImage = document.getElementById(elementId);
