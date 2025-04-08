@@ -240,7 +240,7 @@ app.post('/register', async (req, res) => {
     const emailQuery = 'SELECT Id FROM Users WHERE Email = $1';
     const emailResult = await db.manyOrNone(emailQuery, registerInfo.email);
 
-    if (emailResult.length > 1) {
+    if (emailResult.length > 0) {
       res.status(400).send('An account is already registered with this email');
       return;
     }
