@@ -190,6 +190,12 @@ app.post('/register', async (req, res) => {
   }
 
   // validate classes by comparing to the DB
+  
+  // if only one class was selected, wrap it in an array
+  if(typeof registerInfo.classes === 'string') {
+    registerInfo.classes = [registerInfo.classes];
+  }
+
   const classIdQuery = 'SELECT Id FROM Classes WHERE Name = $1';
   let classIds = [];
   for(let c of registerInfo.classes) {

@@ -9,5 +9,5 @@ INSERT INTO Classes (Name) VALUES
 INSERT INTO LearningStyles (Name) VALUES
 ('visual'),
 ('auditory'),
-('gands'),
+('hands'),
 ('writing');
