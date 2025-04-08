@@ -98,6 +98,11 @@ app.post('/register', async (req, res) => {
   // hash the password using bcrypt library
   const insertQuery = 'INSERT INTO Users (Username, Password) VALUES ($1, $2)';
   
+  if(typeof req.body.email !== 'string') {
+    res.status(400).send();
+    return;
+  }
+
   const passwordHash = await bcrypt.hash(req.body.password, 10);
   const username = req.body.email.toLowerCase();
   try {
