@@ -304,28 +304,31 @@ app.post('/login', async (req, res) => {
   const userQuery = 'SELECT * FROM Users WHERE Email = $1';
   
   try {
-    const username = req.body.username.toLowerCase();
-    const user = await db.oneOrNone(userQuery, username);
-
-    // check if user exists
-    if(user) {
-      // check if password from request matches with password in DB
-      const match = await bcrypt.compare(req.body.password, user.password);
-
-      if(match) {
-        // login successful
-        req.session.user = user;
-        req.session.save();
-        res.redirect('/profile');
-      }
-    } else {
-      // login failed, bad username or password
-      console.log('Login Failed');
-      res.render('pages/login', {loginError: true});
+    const email = req.body.username.toLowerCase();
+// changed login route to not have nested if statements and work with tests better
+    if(!email){
+      console.log("missing email");
+      return res.status(400).json({message: "Invalid Credentials"});
     }
+    const user = await db.oneOrNone(userQuery, email);
+    if (!user){
+      console.log("User Not Found");
+      return res.status(400).json({message: "Invalid Credentials"});
+    }
+    const match = await bcrypt.compare(req.body.password, user.password);
+    if (!match){
+      console.log('Invalid Password');
+      return res.status(400).json({message: "Invalid Credentials"});
+    }
+    req.session.user = user;
+    await req.session.save();
+    if (req.headers.accept && req.headers.accept.includes("text/html")){
+      return res.redirect('/profile');
+    }
+    return res.status(200).json({message: "Login Successfull"});
   } catch (error) {
     console.log(`Server encountered error during login: ${error}`);
-    res.status(500);
+    return res.status(500).json({message: "Server Error"});
   }
 });
 
@@ -344,8 +347,32 @@ app.get('/matches', (req, res) => {
   res.render('pages/myMatches')
 });
 
-app.get('/profile', (req, res) => {
-  res.render('pages/profile')
+app.get('/profile', async(req, res) => {
+  const useremail = req.session.user.email;
+  console.log(req.session.user.email);
+  if(!useremail)
+  {
+    return res.status(400).send("invalid email");
+  }
+  const query = `
+  SELECT u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames 
+  FROM Users u 
+    JOIN LearningStyles ls ON u.LearningStyle = ls.Id
+    LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
+    LEFT JOIN Classes c ON c.Id = ctu.ClassId
+    WHERE u.email = $1
+      GROUP BY u.Name, u.Bio, ls.Name
+  `;
+  try{
+    const result = await db.one(query, [useremail])
+    console.log(result);
+    res.render('pages/profile', {
+      name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames
+    })
+  }
+  catch(error){
+    console.error("error loading profile:", error)
+  }
 });
 
 /**
