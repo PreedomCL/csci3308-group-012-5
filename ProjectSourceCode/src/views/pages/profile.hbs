@@ -6,13 +6,17 @@
 
         <div class="card">
           <img src="img.jpg" alt="profile pic" style="width:100%">
-          <h2>My Name</h2>
+          <h2>{{name}}</h2>
           <p>Courses needing tutoring for:</p>
-          <p>~~~~~~~~~~~~~~</p>
-          <p>Learning Style:</p>
-          <p>~~~~~~~~~~~~~~</p>
-          <p>Interests:</p>
-          <p>~~~~~~~~~~~~~~</p>
+            <ul>
+              {{#each classes}}
+              <li> 
+                {{this}}
+              </li>
+              {{/each}}
+            </ul>
+          <p>Learning Style: {{learningstyle}}</p>
+          <p>Bio: {{bio}}</p>
           <button class = "btn btn-primary"  type='submit'>Edit</button><br/>
         </div>
       </form>
