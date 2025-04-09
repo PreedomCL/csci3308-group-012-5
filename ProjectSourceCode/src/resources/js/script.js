@@ -25,13 +25,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const calendar = new FullCalendar.Calendar(calendarEl, {  
             initialView: 'timeGridWeek',
             headerToolbar: {
-                left: '',
+                left: 'updateAvailability',
                 center: 'title'/*user name's calendar*/,
-                right: 'addEventButton' /*Update availability button*/
+                right: '' /*Update availability button*/
             },
             customButtons: {
-                addEventButton: {
-                    text: 'Update Calendar',
+                updateAvailability: {
+                    text: 'Update Availability',
                     click: function() {
                         //create button, click it, remove it
                         const tmp_button = document.createElement('button');
