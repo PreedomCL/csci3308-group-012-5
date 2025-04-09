@@ -28,3 +28,39 @@ CREATE TABLE ClassesToUsers (
   ClassId INT NOT NULL REFERENCES Classes(Id),
   UserId INT NOT NULL REFERENCES Users(Id)
 );
+
+DROP TABLE IF EXISTS UsersToEvents;
+CREATE TABLE UsersToEvents (
+  UserID INT NOT NULL REFERENCES Users(Id),
+  EventID INT NOT NULL REFERENCES Events(EventId),
+);
+
+DROP TABLE IF EXISTS Events;
+CREATE TABLE Events (
+  EventId SERIAL PRIMARY KEY,
+  EventName VARCHAR(50) NOT NULL,
+  EventType INT NOT NULL REFERENCES EventTypes(TypeId),
+  EventDays INT[],
+  EventDescription VARCHAR(200),
+  EventStartTime DATETIME NOT NULL,
+  EventEndTime DATETIME NOT NULL,
+  EventFormat INT NOT NULL REFERENCES EventFormats(FormatId),
+);
+
+DROP TABLE IF EXISTS EventTypes;
+CREATE TABLE EventTypes (
+  TypeId SERIAL PRIMARY KEY,
+  TypeName VARCHAR(50) NOT NULL
+);
+
+DROP TABLE IF EXISTS EventFormats;
+CREATE TABLE EventFormats (
+  FormatId SERIAL PRIMARY KEY,
+  FormatName VARCHAR(50) NOT NULL
+);
+
+DROP TABLE IF EXISTS Days;
+CREATE TABLE EventDays (
+  DayId SERIAL PRIMARY KEY,
+  DayName VARCHAR(50) NOT NULL
+);
