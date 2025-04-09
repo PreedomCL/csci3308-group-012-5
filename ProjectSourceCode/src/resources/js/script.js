@@ -2,59 +2,75 @@
  * Calendar scripts
  */
 document.addEventListener('DOMContentLoaded', function() {
-  console.log("DOM loaded, initializing calendar...");
-  const calendarEl = document.getElementById('calendar');
+    console.log("DOM loaded, initializing calendar...");
+    const calendarEl = document.getElementById('calendar');
 
-  // Check if FullCalendar library is available
-  if (typeof FullCalendar === 'undefined') {
-      console.error("FullCalendar library not loaded");
-      return; // Exit early if library isn't loaded
-  }
-  const userId = calendarEl.getAttribute('data-user-id')
-  //Check user is defined
-  if (!userId){
-    console.error("User id not specified");
-    return; // Exit early if library isn't loaded
-  }
-  
-  try {
-    console.log("Creating calendar instance...");
-    const calendar = new FullCalendar.Calendar(calendarEl, {  
-        initialView: 'timeGridWeek',
-        headerToolbar: {
-            left: '',
-            center: 'title'/*user name's calendar*/,
-            right: 'button' /*Update availability button*/
-        },
-        nowIndicator: true,
-        stickyHeaderDates: true,
-        timeZone: 'America/Denver',
-        slotDuration: '00:30:00',  
-        slotMinTime: '08:00:00',  
-        slotMaxTime: '21:00:00',
-        scrollTime: '08:00:00',
-        dayHeaderFormat: { weekday: 'short' },
-        eventTimeFormat: {
-            hour: 'numeric',
-            minute: '2-digit',
-            meridiem: 'short'
-        }, 
-        allDaySlot: false,
-        expandRows: true,
-        navLinks: false,
-        editable: false,
-        selectable: false,
-        height: '100%',
-        events: `calendar/events?userId=${userId}`
-    });
-      
-    console.log("Rendering calendar...");
-    // Remove updateSize call, only render
-    calendar.render();
-    console.log("Calendar render complete");
-  } catch (error) {
-      console.error("Error creating calendar:", error);
-  }
+    // Check if FullCalendar library is available
+    if (typeof FullCalendar === 'undefined') {
+        console.error("FullCalendar library not loaded");
+        return; // Exit early if library isn't loaded
+    }
+    const userId = calendarEl.getAttribute('data-user-id');
+    //Check user is defined
+    if (!userId){
+        console.error("User id not specified");
+        return; // Exit early if library isn't loaded
+    }
+
+    // const eventsInfo = `calendar/events?userID=${userId}`;
+    // console.log(eventsInfo);
+
+    try {
+        console.log("Creating calendar instance...");
+        const calendar = new FullCalendar.Calendar(calendarEl, {  
+            initialView: 'timeGridWeek',
+            headerToolbar: {
+                left: '',
+                center: 'title'/*user name's calendar*/,
+                right: 'addEventButton' /*Update availability button*/
+            },
+            customButtons: {
+                addEventButton: {
+                    text: 'Update Calendar',
+                    click: function() {
+                        //create button, click it, remove it
+                        const tmp_button = document.createElement('button');
+                        tmp_button.setAttribute('data-bs-toggle', 'modal');
+                        tmp_button.setAttribute('data-bs-target', '#event_modal');
+                        document.getElementById('parent').appendChild(tmp_button);
+                        tmp_button.click();
+                        document.getElementById('parent').removeChild(tmp_button);
+                    }
+                }
+            },
+            nowIndicator: true,
+            stickyHeaderDates: true,
+            timeZone: 'America/Denver',
+            slotDuration: '00:30:00',  
+            slotMinTime: '08:00:00',  
+            slotMaxTime: '21:00:00',
+            scrollTime: '08:00:00',
+            dayHeaderFormat: { weekday: 'short' },
+            eventTimeFormat: {
+                hour: 'numeric',
+                minute: '2-digit',
+                meridiem: 'short'
+            }, 
+            allDaySlot: false,
+            expandRows: true,
+            navLinks: false,
+            editable: false,
+            selectable: false,
+            height: '100%',
+            events: `calendar/events?userID=${userId}`
+        });
+        console.log("Rendering calendar...");
+        // Remove updateSize call, only render
+        calendar.render();
+        console.log("Calendar render complete");
+    } catch (error) {
+        console.error("Error creating calendar:", error);
+    }
 });
 /*
   events: [
