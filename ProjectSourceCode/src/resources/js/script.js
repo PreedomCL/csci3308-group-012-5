@@ -10,53 +10,59 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error("FullCalendar library not loaded");
       return; // Exit early if library isn't loaded
   }
+  const userId = calendarEl.getAttribute('data-user-id')
+  //Check user is defined
+  if (!userId){
+    console.error("User id not specified");
+    return; // Exit early if library isn't loaded
+  }
   
   try {
-      console.log("Creating calendar instance...");
-      const calendar = new FullCalendar.Calendar(calendarEl, {  
+    console.log("Creating calendar instance...");
+    const calendar = new FullCalendar.Calendar(calendarEl, {  
         initialView: 'timeGridWeek',
-          headerToolbar: {
-              left: '',
-              center: 'title'/*user name's calendar*/,
-              right: 'button' /*Update availability button*/
-          },
-          nowIndicator: true,
-          stickyHeaderDates: true,
-          timeZone: 'America/Denver',
-          slotDuration: '00:30:00',  
-          slotMinTime: '08:00:00',  
-          slotMaxTime: '21:00:00',
-          scrollTime: '08:00:00',
-          dayHeaderFormat: { weekday: 'short' },
-          events: [
-              { title: 'Meeting', daysOfWeek: [2,3], startTime: '10:30:00', end: '12:30:00' },
-              { title: 'Lunch', start: '2025-04-04T12:00:00' },
-              { title: 'Meeting', start: '2025-04-04T14:30:00' },
-              { title: 'Birthday Party', start: '2025-04-05T07:00:00' }
-          ],
-          eventTimeFormat: {
+        headerToolbar: {
+            left: '',
+            center: 'title'/*user name's calendar*/,
+            right: 'button' /*Update availability button*/
+        },
+        nowIndicator: true,
+        stickyHeaderDates: true,
+        timeZone: 'America/Denver',
+        slotDuration: '00:30:00',  
+        slotMinTime: '08:00:00',  
+        slotMaxTime: '21:00:00',
+        scrollTime: '08:00:00',
+        dayHeaderFormat: { weekday: 'short' },
+        eventTimeFormat: {
             hour: 'numeric',
             minute: '2-digit',
             meridiem: 'short'
-          },
-          allDaySlot: false,
-          expandRows: true,
-          navLinks: false,
-          editable: false,
-          selectable: false,
-          height: '100%',
-      });
+        }, 
+        allDaySlot: false,
+        expandRows: true,
+        navLinks: false,
+        editable: false,
+        selectable: false,
+        height: '100%',
+        events: `calendar/events?userId=${userId}`
+    });
       
-      console.log("Rendering calendar...");
-      // Remove updateSize call, only render
-      calendar.render();
-      console.log("Calendar render complete");
+    console.log("Rendering calendar...");
+    // Remove updateSize call, only render
+    calendar.render();
+    console.log("Calendar render complete");
   } catch (error) {
       console.error("Error creating calendar:", error);
   }
 });
 /*
-  
+  events: [
+                { "title": 'Meeting', "daysOfWeek": [0,2,3], "startTime": '10:30:00', "end": '12:30:00' },
+                { "title": 'Lunch', "start": '2025-04-04T12:00:00' },
+                {  title: 'Meeting', daysOfWeek: [1,4], start: '2025-04-04T14:30:00' },
+                { "title": 'Birthday Party', start: '2025-04-05T07:00:00' }
+            ],
     // // Get the user ID from the data attribute
     // //const userId = document.getElementById('calendar').dataset.userId;
     // Check if FullCalendar is available
