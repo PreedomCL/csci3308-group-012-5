@@ -357,7 +357,7 @@ app.get('/profile', async(req, res) => {
     return res.status(400).send("invalid email");
   }
   const query = `
-  SELECT u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames 
+  SELECT u.Id as userID ,u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames 
   FROM Users u 
     JOIN LearningStyles ls ON u.LearningStyle = ls.Id
     LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
@@ -369,11 +369,40 @@ app.get('/profile', async(req, res) => {
     const result = await db.one(query, [useremail])
     console.log(result);
     res.render('pages/profile', {
-      name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames
+      userID: result.userID, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames
     })
   }
   catch(error){
     console.error("error loading profile:", error)
+  }
+});
+
+app.get('/calendar/events', async(req, res) => {
+  console.log("Gathering user event information");
+  const eventIDQuery = `SELECT EventId FROM UsersToEvents WHERE UserId = $1`;
+  let eventsInfo = [];
+  const eventInfoQuery = `SELECT e.EventId as id, e.EventName as title, e.EventDays as daysOfWeek, e.EventDescription as description, et.TypeName as type,
+                          e.EventStartTime as startTime, e.EventEndTime as end, ef.FormatName as format 
+                          FROM Events e 
+                          JOIN EventFormats ef ON e.EventFormat = ef.FormatID
+                          JOIN EventTypes et ON e.EventType = et.TypeID
+                          WHERE e.EventId = $1`;
+  try{
+    const eventIds = await db.manyOrNone(eventIDQuery, req.query.userID);
+    for(let e of eventIds){
+      const event = await db.oneOrNone(eventInfoQuery, e.eventid)
+      if(!event){
+        console.log(`Event not found for ID: ${e.eventid}`);
+        continue;
+      }
+      else{
+        eventsInfo.push(event);
+      }
+      return res.json(eventsInfo);
+    }
+  } catch(error){
+    console.log("Error accessing user events calendar: ", error);
+    return res.status(500).json({message: "Server Error"});
   }
 });
 
