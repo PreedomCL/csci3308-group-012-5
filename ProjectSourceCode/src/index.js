@@ -357,19 +357,19 @@ app.get('/profile', async(req, res) => {
     return res.status(400).send("invalid email");
   }
   const query = `
-  SELECT u.Id as userID ,u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames 
+  SELECT u.Id as userid, u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames 
   FROM Users u 
     JOIN LearningStyles ls ON u.LearningStyle = ls.Id
     LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
     LEFT JOIN Classes c ON c.Id = ctu.ClassId
     WHERE u.email = $1
-      GROUP BY u.Name, u.Bio, ls.Name
+      GROUP BY u.id, u.Name, u.Bio, ls.Name
   `;
   try{
     const result = await db.one(query, [useremail])
     console.log(result);
     res.render('pages/profile', {
-      userID: result.userID, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames
+      userID: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames
     })
   }
   catch(error){
@@ -480,6 +480,7 @@ const tutorUser = {
   classes: ['compsci', 'math'],
   learning: 'visual'
 };
+
 
 createTestUser(studentUser);
 createTestUser(tutorUser);
