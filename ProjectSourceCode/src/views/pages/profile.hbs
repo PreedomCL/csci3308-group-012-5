@@ -1,70 +1,75 @@
-<main class = "flex-container">
-    <h1>Profile</h1>
-    <section class = "main-content">
-    <form method="post" action="/"></form>
+<div>
+  <div><h1>Profile</h1></div>
+  <div class="row">
+    <div id="prof-left" class = "col-sm-2">
+      <form method="post" action="/"></form>
 
-      <div class="card">
-        <img src="img.jpg" alt="profile pic" style="width:100%">
-        <h2>{{name}}</h2>
-        <p>Courses needing tutoring for:</p>
-          <ul>
-            {{#each classes}}
-            <li> 
-              {{this}}
-            </li>
-            {{/each}}
-          </ul>
-        <p>Learning Style: {{learningstyle}}</p>
-        <p>Bio: {{bio}}</p>
-        <button class = "btn btn-primary"  type='submit'>Edit</button><br/>
-      </div>
-    </form>
-    </section>
+        <div class="card">
+          <img src="img.jpg" alt="profile pic" style="width:100%">
+          <h2>{{name}}</h2>
+          <p>Courses needing tutoring for:</p>
+            <ul>
+              {{#each classes}}
+              <li> 
+                {{this}}
+              </li>
+              {{/each}}
+            </ul>
+          <p>Learning Style: {{learningstyle}}</p>
+          <p>Bio: {{bio}}</p>
+          <button class = "btn btn-primary"  type='submit'>Edit</button><br/>
+        </div>
+      </form>
+    </div>
     {{!-- Schedule to be implemented with Calendar API --}}
-
+    <div id="prof-center" class="col-sm-7">
+      {{> cal}}
+    </div>
     {{!-- Matched Tutors --}}
-    <aside class = "sidebar">
-      <h2 style="text-align: center;">Tutors</h2>
-      <div class="card-group">
-        <div class="card">
-          <img class="card-img-top" src="..." alt="Tutor Picture">
-          <p>Tutor Name</p>
-          <button class = "btn btn-primary"  type='submit'>Message</button><br/>
+    <div id="prof-right" class = "col-sm-3" >
+      <row>
+        <h2 style="text-align: center;">Tutors</h2>
+        <div class="card-group">
+          <div class="card">
+            <img class="card-img-top" src="..." alt="Tutor Picture">
+            <p>Tutor Name</p>
+            <button class = "btn btn-primary"  type='submit'>Message</button><br/>
+          </div>
+          <div class="card">
+            <img class="card-img-top" src="..." alt="Tutor Picture">
+            <p>Tutor Name</p>
+            <button class = "btn btn-primary"  type='submit'>Message</button><br/>
+          </div>
+          <div class="card">
+            <img class="card-img-top" src="..." alt="Tutor Picture">
+            <p>Tutor Name</p>
+            <button class = "btn btn-primary"  type='submit'>Message</button><br/>
+          </div>   
         </div>
-        <div class="card">
-          <img class="card-img-top" src="..." alt="Tutor Picture">
-          <p>Tutor Name</p>
-          <button class = "btn btn-primary"  type='submit'>Message</button><br/>
-        </div>
-        <div class="card">
-          <img class="card-img-top" src="..." alt="Tutor Picture">
-          <p>Tutor Name</p>
-          <button class = "btn btn-primary"  type='submit'>Message</button><br/>
-        </div>   
-    </div>
-    </aside>
+      </row>
 
-    {{!-- Potential Tutors --}}
-     <aside class = "sidebar">
-      <h2 style="text-align: center;"> Potential Tutors</h2>
-      <div class="card-group">
-        <div class="card">
-          <img class="card-img-top" src="..." alt="Tutor Picture">
-          <p>Tutor Name</p>
-          <button class = "btn btn-primary"  type='submit'>View Profile</button><br/>
+      {{!-- Potential Tutors --}}
+      <row>
+        <h2 style="text-align: center;"> Potential Tutors</h2>
+        <div class="card-group">
+          <div class="card">
+            <img class="card-img-top" src="..." alt="Tutor Picture">
+            <p>Tutor Name</p>
+            <button class = "btn btn-primary"  type='submit'>View Profile</button><br/>
+          </div>
+          <div class="card">
+            <img class="card-img-top" src="..." alt="Tutor Picture">
+            <p>Tutor Name</p>
+            <button class = "btn btn-primary"  type='submit'>View Profile</button><br/>
+          </div>
+          <div class="card">
+            <img class="card-img-top" src="..." alt="Tutor Picture">
+            <p>Tutor Name</p>
+            <button class = "btn btn-primary"  type='submit'>View Profile</button><br/>
+          </div>   
         </div>
-        <div class="card">
-          <img class="card-img-top" src="..." alt="Tutor Picture">
-          <p>Tutor Name</p>
-          <button class = "btn btn-primary"  type='submit'>View Profile</button><br/>
-        </div>
-        <div class="card">
-          <img class="card-img-top" src="..." alt="Tutor Picture">
-          <p>Tutor Name</p>
-          <button class = "btn btn-primary"  type='submit'>View Profile</button><br/>
-        </div>   
+      </row>
     </div>
-    </aside>
-
-</main>
+  </div>
+</div>
 
