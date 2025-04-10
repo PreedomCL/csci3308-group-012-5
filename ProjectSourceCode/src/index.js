@@ -11,6 +11,8 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const pgp = require('pg-promise')();
 const axios = require('axios');
+const fileupload = require('express-fileupload');
+const fs = require('fs');
 
 // *****************************************************
 // <!-- Section 2 : Connect to DB -->
@@ -52,7 +54,18 @@ const hbs = handlebars.create({
 app.engine('hbs', hbs.engine);
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
-app.use(bodyParser.json()); // specify the usage of JSON for parsing request body.
+app.use(bodyParser.json({limit:'10mb'})); // specify the usage of JSON for parsing request body.
+app.use(express.urlencoded({ extended: true }));
+app.use(fileupload());
+app.use(express.static('public'));
+// app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
 
 // initialize session object
 app.use(
@@ -66,6 +79,7 @@ app.use(
 app.use(
   bodyParser.urlencoded({
     extended: true,
+    limit: '10mb'
   })
 );
 
@@ -111,9 +125,18 @@ app.post('/register', async (req, res) => {
     year: req.body.year,
     bio: req.body.bio,
     classes: req.body.classes,
-    learning: req.body.learning
+    learning: req.body.learning,
   };
-
+  // Handle profile image
+    let profileImagePath = '/uploads/default.jpg';
+    if (req.files && req.files.profileimagedata) {
+      const image = req.files.profileimagedata;
+      const fileName = Date.now() + '-' + image.name;
+      const savePath = path.join(uploadsDir, fileName);
+      await image.mv(savePath);
+      // profileImagePath = '/uploads/' + fileName;
+      profileImagePath = '/uploads/' + encodeURI(fileName);
+    }
   // ensure all arguments are present
   for(let arg in registerInfo) {
     if(!registerInfo[arg]) {
@@ -246,7 +269,7 @@ app.post('/register', async (req, res) => {
     }
   } catch (error) {
     console.log(`Server encountered error during email check: ${error}`);
-    res.status(500).send('the server encountered an error while registering the user');
+    res.status(500).send('the server encountered an error while registering the email for the user');
   }
 
   // insert the user data into the db
@@ -255,8 +278,7 @@ app.post('/register', async (req, res) => {
     await db.tx(async t => {
       // hash the password using bcrypt library
       const passwordHash = await bcrypt.hash(req.body.password, 10);
-      
-      const insertUserQuery = 'INSERT INTO Users (Password, Email, UserType, Name, Degree, Year, Bio, LearningStyle) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)';
+      const insertUserQuery = 'INSERT INTO Users (Password, Email, UserType, Name, Degree, Year, Bio, LearningStyle, Profileimage) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)';
       await t.none(insertUserQuery, [
         passwordHash,
         registerInfo.email,
@@ -265,7 +287,8 @@ app.post('/register', async (req, res) => {
         registerInfo.degree,
         registerInfo.year,
         registerInfo.bio,
-        registerInfo.learning
+        registerInfo.learning,
+        profileImagePath
       ]);
   
       // get the userId for the user we just created
@@ -284,7 +307,7 @@ app.post('/register', async (req, res) => {
   } catch (error) {
     // handle any errors
     console.log(`Server encountered error during register: ${error}`);
-    res.status(500).send('the server encountered an error while registering the user');
+    res.status(500).send('the server encountered an error while registering the password for the user');
   }
 });
 
@@ -355,19 +378,20 @@ app.get('/profile', async(req, res) => {
     return res.status(400).send("invalid email");
   }
   const query = `
-  SELECT u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames 
+  SELECT u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames, u.Profileimage
   FROM Users u 
     JOIN LearningStyles ls ON u.LearningStyle = ls.Id
     LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
     LEFT JOIN Classes c ON c.Id = ctu.ClassId
     WHERE u.email = $1
-      GROUP BY u.Name, u.Bio, ls.Name
+      GROUP BY u.Name, u.Bio, ls.Name, u.Profileimage
   `;
   try{
     const result = await db.one(query, [useremail])
     console.log(result);
     res.render('pages/profile', {
-      name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames
+      //i think this is where im having trouble reading in
+      name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage
     })
   }
   catch(error){
@@ -384,21 +408,6 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// function to display user image in registration 
-function displaySelectedImage(event, elementId) {
-  const selectedImage = document.getElementById(elementId);
-  const fileInput = event.target;
-
-  if (fileInput.files && fileInput.files[0]) {
-      const reader = new FileReader();
-
-      reader.onload = function(e) {
-          selectedImage.src = e.target.result;
-      };
-
-      reader.readAsDataURL(fileInput.files[0]);
-  }
-}
 
 // *****************************************************
 // <!-- Section 5 : Start Server-->
