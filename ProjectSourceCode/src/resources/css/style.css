@@ -15,15 +15,15 @@ section, aside, div {
   display: flex;
 }
 
-#prof-left{
+/* #prof-left{
   min-width: 100px;
 }
 /* #prof-center{
   min-width: 600px;
-} */
-#prof-left{
+} 
+#prof-right{
   min-width: 200px;
-}
+} */
 
 
 /* Calendar Style */
@@ -92,4 +92,14 @@ section, aside, div {
 .fc-timegrid-slot-label {
   font-size: 0.7em !important;
   text-align: left;
+}
+
+/* Calendar modal */
+.day{
+  padding: 10px 0;
+  border-radius: 0px;
+  border-bottom: 1px solid #dfdfdf;
+}
+.smalltime{
+  max-width: 400px;
 }

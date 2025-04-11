@@ -27,6 +27,6 @@ INSERT INTO EventFormats(FormatName) VALUES
 ('Hybrid');
 
 INSERT INTO EventTypes(TypeName) VALUES
-('Blocked'),
+('Available'),
 ('Pending Meeting'),
 ('Accepted Meeting');

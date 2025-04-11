@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         //create button, click it, remove it
                         const tmp_button = document.createElement('button');
                         tmp_button.setAttribute('data-bs-toggle', 'modal');
-                        tmp_button.setAttribute('data-bs-target', '#event_modal');
+                        tmp_button.setAttribute('data-bs-target', '#availability-modal');
                         document.getElementById('parent').appendChild(tmp_button);
                         tmp_button.click();
                         document.getElementById('parent').removeChild(tmp_button);
@@ -71,7 +71,89 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (error) {
         console.error("Error creating calendar:", error);
     }
+
+    /* add time slots */
+    document.querySelectorAll('.add-time').forEach(function(button){
+      button.addEventListener('click', function(){
+        const day = this.getAttribute('day');
+        const timeSlots = document.getElementById(`${day}-times`);
+        if(timeSlots.querySelectorAll('.timeSlot').length > 4){
+          return;
+        }
+        const newSlot = document.createElement('div');
+        newSlot.className = "time-slot"
+        newSlot.innerHTML =`
+            <select class="form-select start-time">
+              <option value="" disabled selected>Start Time</option>
+              <option value="08:00:00">8:00 AM</option>
+              <option value="09:00:00">9:00 AM</option>
+              <option value="10:00:00">10:00 AM</option>
+              <option value="11:00:00">11:00 AM</option>
+              <option value="12:00:00">12:00 PM</option>
+              <option value="13:00:00">1:00 PM</option>
+              <option value="14:00:00">2:00 PM</option>
+              <option value="15:00:00">3:00 PM</option>
+              <option value="16:00:00">4:00 PM</option>
+              <option value="17:00:00">5:00 PM</option>
+            </select>
+            <span>to</span>
+            <select class="form-select end-time">
+              <option value="" disabled selected>End Time</option>
+              <option value="08:00:00">8:00 AM</option>
+              <option value="09:00:00">9:00 AM</option>
+              <option value="10:00:00">10:00 AM</option>
+              <option value="11:00:00">11:00 AM</option>
+              <option value="12:00:00">12:00 PM</option>
+              <option value="13:00:00">1:00 PM</option>
+              <option value="14:00:00">2:00 PM</option>
+              <option value="15:00:00">3:00 PM</option>
+              <option value="16:00:00">4:00 PM</option>
+              <option value="17:00:00">5:00 PM</option>
+            </select>
+            <button type="button" class="btn btn-sm btn-outline-danger remove-time">Remove</button>
+          `;
+        timeSlots.appendChild(newSlot);
+        newSlot.querySelector('.remove-time').addEventListener('click', function(){
+          this.closest('.time-slot').remove();
+        });
+      });
+    });
 });
+
+function saveAvailabilityEvent(){
+  const day = 0;
+  const calendar = document.getElementById('calendar');
+  const userID = calendar.getAttribute('data-user-id');
+  while(day<7){
+    const input = document.querySelectorAll(`.${day}-times .time-slot`);
+    input.forEach(select => {
+      const start = select.querySelector('.start-time').value;
+      const end = select.querySelector('.end-time').value;
+      if(start&&end){
+        axios.post('/calendar/updateAvailability', {
+          userid: userID,
+          name: "Available",
+          type: "1",
+          days: `{${day}}`,
+          startTime: start,
+          endTime: end
+        })
+        .then(response =>{
+          console.log('Success: ', response.data);
+        })
+        .catch(error =>{
+          console.error('Error: ', error);
+        });
+      }
+      else{
+        
+      }
+    });
+  }
+}
+
+
+
 /*
   events: [
                 { "title": 'Meeting', "daysOfWeek": [0,2,3], "startTime": '10:30:00', "end": '12:30:00' },

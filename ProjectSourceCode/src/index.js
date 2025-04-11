@@ -11,6 +11,8 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const pgp = require('pg-promise')();
 const axios = require('axios');
+const fileupload = require('express-fileupload');
+const fs = require('fs');
 
 // *****************************************************
 // <!-- Section 2 : Connect to DB -->
@@ -52,7 +54,18 @@ const hbs = handlebars.create({
 app.engine('hbs', hbs.engine);
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
-app.use(bodyParser.json()); // specify the usage of JSON for parsing request body.
+app.use(bodyParser.json({limit:'10mb'})); // specify the usage of JSON for parsing request body.
+app.use(express.urlencoded({ extended: true }));
+app.use(fileupload());
+app.use(express.static('public'));
+// app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use('/uploads', express.static(path.join(__dirname,'..', 'uploads')));
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname,'..', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
 
 // initialize session object
 app.use(
@@ -66,6 +79,7 @@ app.use(
 app.use(
   bodyParser.urlencoded({
     extended: true,
+    limit: '10mb'
   })
 );
 
@@ -113,9 +127,18 @@ app.post('/register', async (req, res) => {
     year: req.body.year,
     bio: req.body.bio,
     classes: req.body.classes,
-    learning: req.body.learning
+    learning: req.body.learning,
   };
-
+  // Handle profile image
+    let profileImagePath = '/uploads/default.jpg';
+    if (req.files && req.files.profileimagedata) {
+      const image = req.files.profileimagedata;
+      const fileName = Date.now() + '-' + image.name;
+      const savePath = path.join(uploadsDir, fileName);
+      await image.mv(savePath);
+      // profileImagePath = '/uploads/' + fileName;
+      profileImagePath = '/uploads/' + encodeURI(fileName);
+    }
   // ensure all arguments are present
   for(let arg in registerInfo) {
     if(!registerInfo[arg]) {
@@ -248,7 +271,7 @@ app.post('/register', async (req, res) => {
     }
   } catch (error) {
     console.log(`Server encountered error during email check: ${error}`);
-    res.status(500).send('the server encountered an error while registering the user');
+    res.status(500).send('the server encountered an error while registering the email for the user');
   }
 
   // insert the user data into the db
@@ -257,8 +280,7 @@ app.post('/register', async (req, res) => {
     await db.tx(async t => {
       // hash the password using bcrypt library
       const passwordHash = await bcrypt.hash(req.body.password, 10);
-      
-      const insertUserQuery = 'INSERT INTO Users (Password, Email, UserType, Name, Degree, Year, Bio, LearningStyle) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)';
+      const insertUserQuery = 'INSERT INTO Users (Password, Email, UserType, Name, Degree, Year, Bio, LearningStyle, Profileimage) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)';
       await t.none(insertUserQuery, [
         passwordHash,
         registerInfo.email,
@@ -267,7 +289,8 @@ app.post('/register', async (req, res) => {
         registerInfo.degree,
         registerInfo.year,
         registerInfo.bio,
-        registerInfo.learning
+        registerInfo.learning,
+        profileImagePath
       ]);
   
       // get the userId for the user we just created
@@ -286,7 +309,7 @@ app.post('/register', async (req, res) => {
   } catch (error) {
     // handle any errors
     console.log(`Server encountered error during register: ${error}`);
-    res.status(500).send('the server encountered an error while registering the user');
+    res.status(500).send('the server encountered an error while registering the password for the user');
   }
 });
 
@@ -369,7 +392,8 @@ app.get('/profile', async(req, res) => {
     const result = await db.one(query, [useremail])
     console.log(result);
     res.render('pages/profile', {
-      userID: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames
+      //i think this is where im having trouble reading in
+      userID: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage
     })
   }
   catch(error){
@@ -406,6 +430,39 @@ app.get('/calendar/events', async(req, res) => {
   }
 });
 
+app.post('/calendar/updateAvailability', async (req, res) => {
+  const query = `INSERT INTO EVENTS (EventName, EventType, EventDays, EventStartTime, EventEndTime)
+                  VALUES ('Available', 1, $1, $2, $3)
+                  RETURNING EventId`;
+  let userID = req.body.userid;
+  let eventName = req.body.name;
+  let eventType = req.body.type;
+  let eventDays = req.body.days;
+  let eventStartTime = req.body.startTime;
+  let eventEndTime = req.body.endTime;
+
+  //insert checks
+  let eventFormat = null;
+  if(req.body.format){
+    eventFormat=req.body.format;
+  }
+    
+
+  const queryParams = {eventName, eventType, eventDays, eventStartTime, eventEndTime}
+  try{
+    const eventID = await db.one(query, queryParams);
+    const query1 = `INSERT INTO UsersToEvents (UserID, EventID)
+                    VALUES ($1, $2)`;
+    const query1Params = {userID, eventID};
+    const result = await db.none(query1, query1Params);
+  } catch(error){
+    console.error('Error: ', error);
+  }
+  
+
+
+});
+
 /**
  * Logout API
  */
@@ -415,21 +472,6 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// function to display user image in registration 
-function displaySelectedImage(event, elementId) {
-  const selectedImage = document.getElementById(elementId);
-  const fileInput = event.target;
-
-  if (fileInput.files && fileInput.files[0]) {
-      const reader = new FileReader();
-
-      reader.onload = function(e) {
-          selectedImage.src = e.target.result;
-      };
-
-      reader.readAsDataURL(fileInput.files[0]);
-  }
-}
 
 // *****************************************************
 // <!-- Section 5 : Start Server-->

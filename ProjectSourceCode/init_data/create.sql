@@ -20,7 +20,8 @@ CREATE TABLE Users (
   Degree VARCHAR(50) NOT NULL,
   Year VARCHAR(50) NOT NULL,
   Bio VARCHAR(200) NOT NULL,
-  LearningStyle INT NOT NULL REFERENCES LearningStyles(Id)
+  LearningStyle INT NOT NULL REFERENCES LearningStyles(Id),
+  Profileimage TEXT
 );
 
 DROP TABLE IF EXISTS ClassesToUsers;
@@ -50,7 +51,7 @@ CREATE TABLE Events (
   EventDescription VARCHAR(200),
   EventStartTime time NOT NULL,
   EventEndTime time NOT NULL,
-  EventFormat INT NOT NULL REFERENCES EventFormats(FormatId)
+  EventFormat INT REFERENCES EventFormats(FormatId)
 );
 
 DROP TABLE IF EXISTS UsersToEvents;
