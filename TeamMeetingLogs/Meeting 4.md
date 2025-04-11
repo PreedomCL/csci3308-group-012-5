@@ -1,0 +1,25 @@
+## Meeting 4
+
+- **Date:** 4-11-2025  
+- **Time:** 2:15 PM
+- **Environment:** [TA] [GROUP] 
+- **Summary:** Everyone shared their progress this week and plan for next week. We discussed our general approach to next week's tasking. We are going to discuss splitting up the larger tasks in our meeting on Sunday. 
+- **Additional Info:**
+  - This week's focus was UI and functionality, making functional API routes, and creating database. 
+  - Most pages have workable layout and interact with each other.
+  - Most of the back-end functionality is complete. There are api routes for login and register and the profile page, and these interact with the updated database.
+  - The plan for next week is to have most major features complete:
+    - Focus on getting major features to function
+    - Calendar functionality 
+    - Calendar download
+    - Pages change for tutor/student profiles
+    - Matches interactions and routing 
+    - Reccomendation algorithm 
+    - Working on external login
+  - We were reminded that it is important to open a new issue/branch for each bugfix.
+  - Tickets and subtickets for next week
+    - Subtasks will help grader understand who is doing what
+  - Sunday meeting:
+    - Workload for last week
+    - Dicuss how to split tasks for larger features
+    - Page styling - save for the last week - final touches
