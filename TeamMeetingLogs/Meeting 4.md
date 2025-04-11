@@ -14,12 +14,12 @@
     - Calendar download
     - Pages change for tutor/student profiles
     - Matches interactions and routing 
-    - Reccomendation algorithm 
+    - Recommendation algorithm 
     - Working on external login
   - We were reminded that it is important to open a new issue/branch for each bugfix.
   - Tickets and subtickets for next week
     - Subtasks will help grader understand who is doing what
   - Sunday meeting:
     - Workload for last week
-    - Dicuss how to split tasks for larger features
+    - Discuss how to split tasks for larger features
     - Page styling - save for the last week - final touches
