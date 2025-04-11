@@ -59,10 +59,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(fileupload());
 app.use(express.static('public'));
 // app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname,'..', 'uploads')));
 
 // Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, 'uploads');
+const uploadsDir = path.join(__dirname,'..', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
 }
