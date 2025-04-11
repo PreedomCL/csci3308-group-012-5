@@ -11,6 +11,7 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const pgp = require('pg-promise')();
 const axios = require('axios');
+const {OAuth2Client} = require('google-auth-library');
 
 // *****************************************************
 // <!-- Section 2 : Connect to DB -->
@@ -44,6 +45,9 @@ const hbs = handlebars.create({
   partialsDir: __dirname + '/views/partials',
 });
 
+
+const gClient = new OAuth2Client();
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
 // *****************************************************
 // <!-- Section 3 : App Settings -->
 // *****************************************************
@@ -332,6 +336,11 @@ app.post('/login', async (req, res) => {
     console.log(`Server encountered error during login: ${error}`);
     return res.status(500).json({message: "Server Error"});
   }
+});
+
+app.post('/glogin', async (req, res) => {
+  console.log('User credential: ', req.body.credential);
+  res.sendStatus(200);
 });
 
 // Authentication middleware
