@@ -1,7 +1,9 @@
 <div class="container mt-1">
+    {{#unless email}}
     <div class="container">
         {{> gsignin}}
-    </div> 
+    </div>
+    {{/unless}}
     <form align = "center" method="post" action="/register" enctype="multipart/form-data">
 
             <div class="form-group">
