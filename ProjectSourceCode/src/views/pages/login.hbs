@@ -1,16 +1,31 @@
-<script src="https://accounts.google.com/gsi/client" async></script>
-<script src="/resources/js/glogin.js"></script>
-
-<div class = "container mt-1">
-    <form align = "center" method="post" action="/login">
-        <h1>Login</h1>
-        <label for="Username">Username</label><br/>
-        <input type="text" name="username"/><br/>
-        <label for="password">Password</label><br/>
-        <input type="password" name="password"/><br/>
-        <button class = "btn btn-primary"  type='submit'>Login</button><br/>
-        <p>Don't have an account? <a href = '/register'>Register</a> </p>
-        {{!-- Sign in with Google button --}}
-        <div id="gbutton"></div>
-    </form>
+<div class="card w-50 text-start">
+    <div class="card-body">
+        <form class="" method="post" action="/login">
+            <div class="row">
+                <div class="col">
+                    <legend>Login</legend>
+                    
+                    <label for="email" class="form-label">Email</label>
+                    <input type="text" name="email" class="form-control"/>
+                    
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" name="password" class="form-control"/>
+                </div>
+            </div>
+            <div class="row align-items-center">
+                <div class="col col-3">
+                    <button class="btn btn-primary"  type='submit'>Login</button>
+                </div>
+                <div class="col">
+                    {{!-- Sign in with Google button --}}
+                    {{> gsignin}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p>Don't have an account? <a href = '/register'>Register</a> </p>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
