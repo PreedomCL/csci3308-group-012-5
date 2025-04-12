@@ -21,6 +21,7 @@ CREATE TABLE Users (
   Year VARCHAR(50) NOT NULL,
   Bio VARCHAR(200) NOT NULL,
   LearningStyle INT NOT NULL REFERENCES LearningStyles(Id),
+  Profileimage TEXT,
   GoogleId VARCHAR(30),
   -- A user either authenticates with a password or with Google
   CONSTRAINT password_xor_googleid CHECK (

@@ -1,8 +1,9 @@
 <div class="container mt-1">
     <div class="container">
         {{> gsignin}}
-    </div>
-    <form align = "center" method="post" action="/register">
+    </div> 
+    <form align = "center" method="post" action="/register" enctype="multipart/form-data">
+
             <div class="form-group">
                     {{#if email}}
                     <h1>Finish Setting up Your Account</h1>
@@ -17,18 +18,18 @@
                     </select>
                     </div>
             </div>
-             <div>
-                <div class="d-flex justify-content-center mb-4">
-                    <img id="selectedAvatar" src="https://mdbootstrap.com/img/Photos/Others/placeholder-avatar.jpg"
-                    class="rounded-circle" style="width: 200px; height: 200px; object-fit: cover;" alt="example placeholder" />
-                </div>
-                <div class="d-flex justify-content-center">
-                    <div data-mdb-ripple-init class="btn btn-primary btn-rounded">
-                        <label class="form-label text-white m-1" for="user_image">Choose Optional Profile Image</label>
-                        <input type="file" class="form-control d-none" id="user_image" onchange="displaySelectedImage(event, 'user_image')" />
+                <div>
+                    <div class="d-flex justify-content-center mb-4">
+                        <img id="selectedAvatar" src="https://mdbootstrap.com/img/Photos/Others/placeholder-avatar.jpg"
+                        class="rounded-circle" style="width: 200px; height: 200px; object-fit: cover;" alt="example placeholder" />
+                    </div>
+                    <div class="d-flex justify-content-center">
+                        <div data-mdb-ripple-init class="btn btn-primary btn-rounded">
+                            <label class="form-label text-white m-1" for="user_image">Choose Optional Profile Image</label>
+                            <input type="file" class="form-control d-none" name = "profileimagedata" id="user_image" onchange="displaySelectedImage(event)" />
+                        </div>
                     </div>
                 </div>
-            </div>
             <div class="row">
                 <div class="form-group col-md-6">
                     <label for="email_input">Email</label> <br/>
@@ -103,3 +104,18 @@
             {{/unless}}
     </form>
 </div>
+
+<script>
+// function to display user image in registration 
+function displaySelectedImage(event) {
+    const file = event.target.files[0]; //grabs first file user selects
+    if (file){
+        const reader = new FileReader();
+        reader.onload = function(e){
+            const base64 = e.target.result;
+            document.getElementById("selectedAvatar").src = base64;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+</script>
