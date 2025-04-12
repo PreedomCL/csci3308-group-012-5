@@ -2,12 +2,19 @@ let handleCredentialResponse = (response) => {
     console.log("Encoded JWT ID token: " + response.credential);
     console.log(response);
 
+    // send the Google login info to the server
     fetch('/glogin', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(response)
+    }).then(async response => {
+        if(response.ok) {
+            data = await response.json();
+            // redirect to either /profile or /gregister
+            window.location.href = data.redirect;
+        }
     });
 };
 
