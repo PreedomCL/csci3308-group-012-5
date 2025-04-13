@@ -18,21 +18,26 @@
                 <div class="day" id="monday">
                   <div>
                     <h5>Monday</h5>
-                    <div class="row smalltime" id="1-times"></div>
+                    <div class="row smalltime" id="times1">
+                      <div class="selector" id="selector1"></div>
+                    </div>
                     <button type="button" class="btn btn-sm btn-outline-primary add-time" day="1">Add time slot</button>
                   </div>
                 </div>
                 <div class="day" id="tuesday">
                   <div>  
                     <h5>Tuesday</h5>
-                    <div class="row smalltime" id="2-times"></div>
+                    <div class="row smalltime" id="times2">
+                      <div class="selector" id="selector2"></div>
+                    </div>
                     <button type="button" class="btn btn-sm btn-outline-primary add-time" day="2">Add time slot</button>
                   </div>
                 </div>
                 <div class="day" id="wednesday">
                   <div>
                     <h5>Wednesday</h5>
-                    <div class="row smalltime" id="3-times">
+                    <div class="row smalltime" id="times3">
+                      <div class="selector" id="selector3"></div>
                     </div>
                     <button type="button" class="btn btn-sm btn-outline-primary add-time" day="3">Add time slot</button>
                   </div>
@@ -40,28 +45,36 @@
                 <div class="day" id="thursday">
                   <div>
                     <h5>Thursday</h5>
-                    <div class="row smalltime" id="4-times"></div>
+                    <div class="row smalltime" id="times4">
+                      <div class="selector" id="selector4"></div>
+                    </div>
                     <button type="button" class="btn btn-sm btn-outline-primary add-time" day="4">Add time slot</button>
                   </div>
                 </div>
-                <div class="day smalltime" id="friday">
+                <div class="day" id="friday">
                   <div>
                     <h5>Friday</h5>
-                    <div class="row" id="5-times"></div>
+                    <div class="row smalltime" id="times5">
+                      <div class="selector" id="selector5"></div>
+                    </div>
                     <button type="button" class="btn btn-sm btn-outline-primary add-time" day="5">Add time slot</button>
                   </div>
                 </div>
                 <div class="day" id="saturday" >
                   <div>
                     <h5>Saturday</h5>
-                    <div class="row smalltime" id="6-times"></div>
+                    <div class="row smalltime" id="times6">
+                      <div class="selector" id="selector6"></div>
+                    </div>
                     <button type="button" class="btn btn-sm btn-outline-primary add-time" day="6">Add time slot</button>
                   </div>
                 </div>
                 <div class="day" id="sunday">
                   <div>
                     <h5>Sunday</h5>
-                    <div class="row smalltime" id="0-times"></div>
+                    <div class="row smalltime" id="times0">
+                        <div class="selector" id="selector0"></div>
+                    </div>
                     <button type="button" class="btn btn-sm btn-outline-primary add-time" day="0">Add time slot</button>
                   </div>
                 </div>
@@ -69,7 +82,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" id="save-button" class="btn btn-primary mt-3" data-bs-dismiss="modal" onclick="saveAvailabilityEvent()">Create Event</button>
+          <button type="button" id="save-button" class="btn btn-primary mt-3" data-bs-dismiss="modal" onclick="saveAvailabilityEvent()">Update</button>
         </div>
       </div>
     </div>

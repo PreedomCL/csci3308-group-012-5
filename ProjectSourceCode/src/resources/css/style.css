@@ -101,5 +101,11 @@ section, aside, div {
   border-bottom: 1px solid #dfdfdf;
 }
 .smalltime{
-  max-width: 400px;
+  max-width: 600px;
+}
+.time-slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }

@@ -13,6 +13,7 @@ const pgp = require('pg-promise')();
 const axios = require('axios');
 const fileupload = require('express-fileupload');
 const fs = require('fs');
+const { EventEmitterAsyncResource } = require('events');
 
 // *****************************************************
 // <!-- Section 2 : Connect to DB -->
@@ -401,18 +402,29 @@ app.get('/profile', async(req, res) => {
   }
 });
 
+app.get('/refresh', async(req, res) => {
+  const useremail = req.session.user.email;
+  const userpass = req.session.user.password;
+  req.session.destroy(function(err) {
+    req.body.username = useremail;
+    req.body.password = userpass;
+    res.redirect('login');
+  });
+})
+
 app.get('/calendar/events', async(req, res) => {
   console.log("Gathering user event information");
   const eventIDQuery = `SELECT EventId FROM UsersToEvents WHERE UserId = $1`;
   let eventsInfo = [];
-  const eventInfoQuery = `SELECT e.EventId as id, e.EventName as title, e.EventDays as daysOfWeek, e.EventDescription as description, et.TypeName as type,
-                          e.EventStartTime as startTime, e.EventEndTime as end, ef.FormatName as format 
+  const eventInfoQuery = `SELECT e.EventId as id, e.EventName as title, e.EventDays as days, e.EventDescription as description, et.TypeName as type,
+                          e.EventStartTime as start, e.EventEndTime as end, ef.FormatName as format 
                           FROM Events e 
                           JOIN EventFormats ef ON e.EventFormat = ef.FormatID
                           JOIN EventTypes et ON e.EventType = et.TypeID
                           WHERE e.EventId = $1`;
   try{
     const eventIds = await db.manyOrNone(eventIDQuery, req.query.userID);
+    console.log(eventIds);
     for(let e of eventIds){
       const event = await db.oneOrNone(eventInfoQuery, e.eventid)
       if(!event){
@@ -420,10 +432,20 @@ app.get('/calendar/events', async(req, res) => {
         continue;
       }
       else{
-        eventsInfo.push(event);
+        let formatted_event = {
+          title: event.title,
+          daysOfWeek: event.days,
+          description: event.description,
+          startTime: event.start,
+          endTime: event.end,
+          type: event.type,
+          id: event.id,
+          format: event.format
+        }
+        eventsInfo.push(formatted_event);
       }
-      return res.json(eventsInfo);
     }
+    return res.json(eventsInfo);
   } catch(error){
     console.log("Error accessing user events calendar: ", error);
     return res.status(500).json({message: "Server Error"});
@@ -431,10 +453,12 @@ app.get('/calendar/events', async(req, res) => {
 });
 
 app.post('/calendar/updateAvailability', async (req, res) => {
-  const query = `INSERT INTO EVENTS (EventName, EventType, EventDays, EventStartTime, EventEndTime)
-                  VALUES ('Available', 1, $1, $2, $3)
+  console.log("post method");
+  const query = `INSERT INTO EVENTS (EventName, EventType, EventDays, EventStartTime, EventEndTime, EventFormat)
+                  VALUES ($1, $2, $3, $4, $5, $6)
                   RETURNING EventId`;
   let userID = req.body.userid;
+  console.log(userID);
   let eventName = req.body.name;
   let eventType = req.body.type;
   let eventDays = req.body.days;
@@ -446,21 +470,21 @@ app.post('/calendar/updateAvailability', async (req, res) => {
   if(req.body.format){
     eventFormat=req.body.format;
   }
-    
-
-  const queryParams = {eventName, eventType, eventDays, eventStartTime, eventEndTime}
+  else{
+    eventFormat=3;
+  }
   try{
-    const eventID = await db.one(query, queryParams);
+    const result = await db.one(query, [eventName, eventType, eventDays, eventStartTime, eventEndTime, eventFormat]);
+    console.log(result);
     const query1 = `INSERT INTO UsersToEvents (UserID, EventID)
-                    VALUES ($1, $2)`;
-    const query1Params = {userID, eventID};
-    const result = await db.none(query1, query1Params);
+                    VALUES ($1, $2)
+                    RETURNING UserID, EventID`;
+    const result1 = await db.manyOrNone(query1, [userID, result.eventid]);
+    console.log("result: ", result1);
+    res.redirect('/refresh');
   } catch(error){
     console.error('Error: ', error);
   }
-  
-
-
 });
 
 /**
