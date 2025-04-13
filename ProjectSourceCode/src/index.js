@@ -412,11 +412,28 @@ app.get('/refresh', async(req, res) => {
   });
 })
 
+app.get('/calendar/reset', async(req, res) => {
+  const query = `SELECT EventID FROM UsersToEvents WHERE UserId = $1`;
+  const query2 = `DELETE FROM Events WHERE EventId = $1`;
+  console.log("Deleting");
+  try{
+    const eventIds = await db.manyOrNone(query, req.query.userID);
+    for(let e of eventIds){
+      console.log(e);
+      await db.none(query2, e.eventid);
+    }
+    console.log("Done Deleting");
+    return res.status(200).send("Done Deleting");
+  } catch (error){
+    console.log("ERROR: ", error);
+  }
+})
+
 app.get('/calendar/events', async(req, res) => {
   console.log("Gathering user event information");
   const eventIDQuery = `SELECT EventId FROM UsersToEvents WHERE UserId = $1`;
   let eventsInfo = [];
-  const eventInfoQuery = `SELECT e.EventId as id, e.EventName as title, e.EventDays as days, e.EventDescription as description, et.TypeName as type,
+  const eventInfoQuery = `SELECT e.EventId as id, e.EventName as title, e.EventDay as day, e.EventDescription as description, et.TypeName as type,
                           e.EventStartTime as start, e.EventEndTime as end, ef.FormatName as format 
                           FROM Events e 
                           JOIN EventFormats ef ON e.EventFormat = ef.FormatID
@@ -434,7 +451,7 @@ app.get('/calendar/events', async(req, res) => {
       else{
         let formatted_event = {
           title: event.title,
-          daysOfWeek: event.days,
+          daysOfWeek: [event.day],
           description: event.description,
           startTime: event.start,
           endTime: event.end,
@@ -454,14 +471,14 @@ app.get('/calendar/events', async(req, res) => {
 
 app.post('/calendar/updateAvailability', async (req, res) => {
   console.log("post method");
-  const query = `INSERT INTO EVENTS (EventName, EventType, EventDays, EventStartTime, EventEndTime, EventFormat)
+  const query = `INSERT INTO EVENTS (EventName, EventType, EventDay, EventStartTime, EventEndTime, EventFormat)
                   VALUES ($1, $2, $3, $4, $5, $6)
                   RETURNING EventId`;
   let userID = req.body.userid;
   console.log(userID);
   let eventName = req.body.name;
   let eventType = req.body.type;
-  let eventDays = req.body.days;
+  let eventDay = req.body.day;
   let eventStartTime = req.body.startTime;
   let eventEndTime = req.body.endTime;
 
@@ -474,7 +491,7 @@ app.post('/calendar/updateAvailability', async (req, res) => {
     eventFormat=3;
   }
   try{
-    const result = await db.one(query, [eventName, eventType, eventDays, eventStartTime, eventEndTime, eventFormat]);
+    const result = await db.one(query, [eventName, eventType, eventDay, eventStartTime, eventEndTime, eventFormat]);
     console.log(result);
     const query1 = `INSERT INTO UsersToEvents (UserID, EventID)
                     VALUES ($1, $2)
