@@ -24,7 +24,33 @@ section, aside, div {
 #prof-right{
   min-width: 200px;
 } */
-
+.card-prof {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  min-width: 200px;
+  margin: auto;
+  text-align: left;
+  margin-bottom: 10px;
+}
+.card-vert {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  min-width: 325px;
+  margin: auto;
+  text-align: left;
+  border-radius: 0;
+  /* border: 1px solid #ccc; */
+  margin-bottom: -1px; /* overlap borders */
+}
+.card-vert:last-child{
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  min-width: 325px;
+  margin: auto;
+  text-align: left;
+  border-radius: 0;
+}
+.card-group-vert {
+  display: flex;
+  flex-direction: column;
+}
 
 /* Calendar Style */
 
