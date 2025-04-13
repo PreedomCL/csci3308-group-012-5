@@ -11,6 +11,7 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const pgp = require('pg-promise')();
 const axios = require('axios');
+const {OAuth2Client} = require('google-auth-library');
 const fileupload = require('express-fileupload');
 const fs = require('fs');
 
@@ -46,6 +47,9 @@ const hbs = handlebars.create({
   partialsDir: __dirname + '/views/partials',
 });
 
+
+const gClient = new OAuth2Client();
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
 // *****************************************************
 // <!-- Section 3 : App Settings -->
 // *****************************************************
@@ -116,13 +120,18 @@ Expects the following request body:
 */
 app.post('/register', async (req, res) => {
 
+  // check if user is registering with Google
+  const gUser = req.session.gUser;
+
   // validate request body
 
+  console.log(gUser);
+
   let registerInfo = {
-    password: req.body.password,
-    email: req.body.email,
+    password: gUser ? 'N/A' : req.body.password,
+    email: gUser ? gUser.email : req.body.email,
     type: req.body.type,
-    name: req.body.name,
+    name: gUser ? gUser.name : req.body.name,
     degree: req.body.degree,
     year: req.body.year,
     bio: req.body.bio,
@@ -279,8 +288,10 @@ app.post('/register', async (req, res) => {
     // Make this a SQL transaction so that if any part fails, the whole transaction fails
     await db.tx(async t => {
       // hash the password using bcrypt library
-      const passwordHash = await bcrypt.hash(req.body.password, 10);
-      const insertUserQuery = 'INSERT INTO Users (Password, Email, UserType, Name, Degree, Year, Bio, LearningStyle, Profileimage) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)';
+      const passwordHash = gUser ? null : await bcrypt.hash(registerInfo.password, 10);
+      
+      const insertUserQuery = 'INSERT INTO Users (Password, Email, UserType, Name, Degree, Year, Bio, LearningStyle, Profileimage, GoogleId) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)';
+
       await t.none(insertUserQuery, [
         passwordHash,
         registerInfo.email,
@@ -290,7 +301,8 @@ app.post('/register', async (req, res) => {
         registerInfo.year,
         registerInfo.bio,
         registerInfo.learning,
-        profileImagePath
+        profileImagePath,
+        gUser ? gUser.gid : null
       ]);
   
       // get the userId for the user we just created
@@ -308,7 +320,8 @@ app.post('/register', async (req, res) => {
     res.redirect('/login');
   } catch (error) {
     // handle any errors
-    console.log(`Server encountered error during register: ${error}`);
+    console.log('Server encountered error during register:');
+    console.log(error.stack);
     res.status(500).send('the server encountered an error while registering the password for the user');
   }
 });
@@ -325,6 +338,12 @@ Expects the following request body:
   password: string  // plain text password
 }
 */
+
+async function loginUser(req, user) {
+  req.session.user = user;
+  await req.session.save();
+}
+
 app.post('/login', async (req, res) => {
   const userQuery = 'SELECT * FROM Users WHERE Email = $1';
   
@@ -340,21 +359,96 @@ app.post('/login', async (req, res) => {
       console.log("User Not Found");
       return res.status(400).json({message: "Invalid Credentials"});
     }
+
+    // Google users must use the Sign in with Google button
+    if(user.googleid) {
+      console.log("User is a Google User");
+      return res.status(400).json({message: "The user is a Google User"});
+    }
+
     const match = await bcrypt.compare(req.body.password, user.password);
     if (!match){
       console.log('Invalid Password');
       return res.status(400).json({message: "Invalid Credentials"});
     }
-    req.session.user = user;
-    await req.session.save();
+    
+    await loginUser(req, user);
+
     if (req.headers.accept && req.headers.accept.includes("text/html")){
       return res.redirect('/profile');
     }
     return res.status(200).json({message: "Login Successfull"});
   } catch (error) {
-    console.log(`Server encountered error during login: ${error}`);
+    console.log('Server encountered error during login:');
+    console.log(error.stack);
     return res.status(500).json({message: "Server Error"});
   }
+});
+
+function decodeJwtResponse(token) {
+  let base64Url = token.split('.')[1];
+  let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  let jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+
+  return JSON.parse(jsonPayload);
+}
+
+app.post('/glogin', async (req, res) => {
+
+  if(!req.body.credential) {
+    res.status(400).send('No credential in request');
+    return;
+  }
+
+  // Decode the credential
+  const payload = decodeJwtResponse(req.body.credential);
+  const userData = {
+    'gid': payload.sub,
+    'email': payload.email,
+    'name': payload.name
+  };
+
+  // Validate the data
+  for(let param in userData) {
+    if(!userData[param]) {
+      res.status(400).send('Malformed JWT credential');
+      return;
+    }
+  }
+
+  const gIdQuery = 'SELECT * FROM Users WHERE GoogleId = $1';
+  try {
+    let user = await db.oneOrNone(gIdQuery, [userData.gid]);
+    if(user) {
+      await loginUser(req, user);
+      res.send(JSON.stringify({redirect: '/profile'}));
+      return;
+    }
+    
+    // Save the google account data to be passed to the register page
+    req.session.gUser = userData;
+    req.session.save();
+
+    res.send(JSON.stringify({redirect: '/gregister'}));
+    return;
+  } catch (error) {
+    res.status(500).send('The server ran into an error while fetching Google User');
+  }
+});
+
+app.get('/gregister', (req, res) => {
+  
+  // redirect to normal register if there is no gUser object
+  if(!req.session.gUser) {
+    res.redirect('/register');
+    return;
+  }
+
+  let gUser = req.session.gUser;
+  res.render('pages/register', {email: gUser.email, name: gUser.name});
+
 });
 
 // Authentication middleware

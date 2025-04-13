@@ -1,15 +1,23 @@
 <div class="container mt-1">
-
+    {{#unless email}}
+    <div class="container">
+        {{> gsignin}}
+    </div>
+    {{/unless}}
     <form align = "center" method="post" action="/register" enctype="multipart/form-data">
-            <div class="form-group">
-                    <h1>Register</h1>
 
+            <div class="form-group">
+                    {{#if email}}
+                    <h1>Finish Setting up Your Account</h1>
+                    {{else}}
+                    <h1>Register</h1>
+                    {{/if}}
                     <div class="dropdown mr-1">
                     <label for="user_type">Select (Student or Tutor)</label> <br/>
                     <select id="user_type" name="type" class="form-control" onchange="">
                         <option value="Student">Student</option>
                         <option value="Tutor">Tutor</option>
-                    </select> 
+                    </select>
                     </div>
             </div>
                 <div>
@@ -25,20 +33,21 @@
                     </div>
                 </div>
             <div class="row">
-                    <div class="form-group col-md-6">
-                        <label for="email_input">Email</label> <br/>
-                        <input type="text" name="email" class="form-control" id="email_input" placeholder="Enter email"> 
-                    </div>
-            
-                    <div class="form-group col-md-6">
-                                <label for="password_input">Password</label> 
-                                <input type="password" name="password" class="form-control" id="password_input" placeholder="Enter password">
-                    </div> 
+                <div class="form-group col-md-6">
+                    <label for="email_input">Email</label> <br/>
+                    <input type="text" name="email" class="form-control" id="email_input" placeholder="Enter email" {{#if email}} value="{{email}}" disabled{{/if}}> 
+                </div>
+                {{#unless email}}
+                <div class="form-group col-md-6">
+                    <label for="password_input">Password</label>
+                    <input type="password" name="password" class="form-control" id="password_input" placeholder="Enter password">
+                </div>
+                {{/unless}}
             </div>
             <div class="row">
                     <div class="form-group col-md-6">
                         <label for="name_input">Full Name</label>
-                        <input type="text" name="name" class="form-control" id="name_input" placeholder="Enter full name">
+                        <input type="text" name="name" class="form-control" id="name_input" placeholder="Enter full name" {{#if name}}value="{{name}}" disabled{{/if}}>
                     </div> 
                     <div class="form-group col-md-6">
                         <label for="degree_input">Degree</label>
@@ -59,13 +68,7 @@
                         <input type="text" name="bio" class="form-control" id="bio_input" placeholder="Enter a Short Bio">
                     </div> 
             </div>
-{{!-- 
-            <div class="form-group">
-                        <label for="classes_input">Classes Needing Tutoring For</label> 
-                        <input type="text" name="classes" class="form-control" id="classes_input" placeholder="Enter classes">
-            </div>
---}}
-            {{!--need to highlight to select multiple will come back to--}}
+
             <div class="row">
                 <div class="form-group col-md-6">
                     <div class="dropdown mr-1">
@@ -95,17 +98,12 @@
                 </div>                
             </div>
             
-            
-{{!--       
-            <div class="form-group">
-                        <label for="learning_input">Learning Style</label> 
-                        <input type="text" name="learning" class="form-control" id="learning_input" placeholder="Enter learning style">
+            <button class = "btn btn-primary"  type='submit'>Create Account</button><br/>
+            {{#unless email}}
+            <div class="container-sm">
+            <p>Already have an account? <a href="/login">Login</a></p>
             </div>
---}}            
-                <button class = "btn btn-primary"  type='submit'>Create Account</button><br/>
-                <div class="container-sm">
-                <p>Already have an account? <a href="/login">Login</a></p>
-                </div>
+            {{/unless}}
     </form>
 </div>
 
