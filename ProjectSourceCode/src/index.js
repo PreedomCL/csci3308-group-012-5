@@ -348,7 +348,7 @@ app.post('/login', async (req, res) => {
   const userQuery = 'SELECT * FROM Users WHERE Email = $1';
   
   try {
-    const email = req.body.username.toLowerCase();
+    const email = req.body.email.toLowerCase();
 // changed login route to not have nested if statements and work with tests better
     if(!email){
       console.log("missing email");
