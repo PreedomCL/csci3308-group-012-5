@@ -16,7 +16,7 @@
   - Tickets and subtickets for next week
     - Subtasks will help grader understand who is doing what
   - Sunday meeting:
-    -Focus on:
+    * Focus on:
         - Error handling
         - Calendar
         - Email notification
