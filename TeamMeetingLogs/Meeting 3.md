@@ -16,5 +16,15 @@
   - Tickets and subtickets for next week
     - Subtasks will help grader understand who is doing what
   - Sunday meeting:
-    - workload for last week
-    - Page styling - save for the last week - final touches
+    -Focus on:
+        - Error handling
+        - Calendar
+        - Email notification
+        - Calendar event export
+        - Matching finalization
+        - Format
+        - Tutor match - schedule an event
+        - Show calendar for tutors
+        - UI
+        - Update wireframes, test plans and documentation
+
