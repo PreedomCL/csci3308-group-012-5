@@ -40,13 +40,25 @@
       </div>
     {{else}}
       <div class="profile-card">
-        <h2>{{match.name}}, {{match.age}}</h2>
-        <p><em>ID: {{match.id}}</em></p>
+        <h1>{{match.name}} </h1>
+        <h4>{{match.year}}</h4>
+        <h6><em>Learning Style:</em></h6>
+        <p>{{match.learningstyle}}</p>
+        <h6><em>Degree:</em></h6>
+        <p>{{match.degree}}</p>
+        <h6><em>Bio:</em></h6>
+        <p>{{match.bio}}</p>
 
-        <div class="btn-group">
-          <a href="/matching/{{nextIndex}}" class="btn btn-success">Like</a>
-          <a href="/matching/{{nextIndex}}" class="btn btn-secondary">Skip</a>
-        </div>
+        <form action="/like" method="POST">
+          <input type="hidden" name="tutorID" value="{{match.id}}">
+          <input type="hidden" name="nextIndex" value="{{nextIndex}}">
+          <button type="submit">Like</button>
+        </form>
+
+        <!-- Skip Button Form -->
+        <form action="/matching/{{nextIndex}}" method="GET">
+          <button type="submit">Skip</button>
+        </form>
       </div>
     {{/if}}
   </div>

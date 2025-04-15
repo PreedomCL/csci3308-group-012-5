@@ -384,30 +384,118 @@ app.get('/logout', (req, res) => {
   });
 });
 
+
 app.get('/matching', (req, res) => {
   res.redirect('/matching/0');
 });
 
-app.get('/matching/:index?', (req, res) => {
-  const allMatches = [
-    { id: 1, name: 'John Doe', age: 28 },
-    { id: 2, name: 'Jane Smith', age: 26 },
-    { id: 3, name: 'Sam Lee', age: 30 }
-  ];
-  const index = parseInt(req.params.index) || 0;
-  const match = allMatches[index];
+app.get('/matching/:index?', async (req, res) => {
+  try{
+    //get the user id
+    const userID=req.session.user.id;
 
-  if (!match) {
-    return res.render('pages/matching', {
-      noMatches: true
+    //check if user id exists
+    if(!userID){
+      return res.redirect ('/login');
+    }
+
+    //get user data based on user id
+    const userData = await db.one(
+      `SELECT LearningStyle, UserType, Degree
+      FROM users
+      Where Id =$1`,
+      [userID]
+    );
+
+
+    //find potential tutor matches based on Learning Style, the opposte User Type, and Degree
+    //Could change to classes via "classes" table when fully implemented
+    const potentials = await db.any(
+      `SELECT Id, Name, Degree, Year, Bio, LearningStyle 
+      FROM users 
+      WHERE LearningStyle =$1
+      AND UserType!=$2
+      AND Degree=$3`,
+    [userData.learningstyle, userData.usertype, userData.degree]
+  );  
+
+    
+
+    //start with initial index
+    const index = parseInt(req.params.index) || 0;
+    const match = potentials[index];
+
+    /*const styleMap = {
+      1: 'Visual',
+      2: 'Auditory',
+      3: 'Hands-on',
+      4: 'Writing'
+    };
+    
+    match.learningstyle = styleMap[match.learningstyle] || 'Unknown';*/
+
+    //check if match exists
+    //if no matches, send to login redirect page
+    if (!match) {
+      return res.render('pages/matching', {
+        noMatches: true
+      });
+    }
+    console.log(potentials);
+    //if matches, start rendering by index
+    res.render('pages/matching', {
+      match,
+      nextIndex: index + 1
     });
+  } catch (err){ //in case of database error
+    console.error('DB error:', err);
+    res.status(500).send('Server error');
   }
-
-  res.render('pages/matching', {
-    match,
-    nextIndex: index + 1
-  });
 });
+
+//When like button clicked, add to matched users
+app.post('/like', async (req, res) => {
+  try {
+    const userID = req.session.user.id;
+    const tutorID = req.body.tutorID;
+    const nextIndex = req.body.nextIndex;
+
+    if (!userID || !tutorID) {
+      console.error('Missing userID or tutorID');
+      return res.status(400).send('Missing data');
+    }
+
+    // Check if the match already exists
+    const existingMatch = await db.query(
+      'SELECT * FROM MatchedUsers WHERE TutorID = $1 AND UserID = $2',
+      [tutorID, userID]
+    );
+
+    if (existingMatch.length > 0) {
+      console.log(`Match already exists: UserID ${userID} and TutorID ${tutorID}`);
+    } else {
+      // Insert new match
+      await db.query(
+        'INSERT INTO MatchedUsers (TutorID, UserID) VALUES ($1, $2)',
+        [tutorID, userID]
+      );
+      console.log(`New match stored: UserID ${userID} liked TutorID ${tutorID}`);
+    }
+
+    // Log current matches
+    const allMatches = await db.query('SELECT * FROM MatchedUsers');
+    console.log('Current MatchedUsers:', allMatches);
+
+    // Redirect to next match
+    res.redirect(`/matching/${nextIndex}`);
+  } catch (err) {
+    console.error('❌ Error handling match:', err);
+    res.status(500).send('Server error');
+  }
+});
+
+
+
 
 // function to display user image in registration 
 function displaySelectedImage(event, elementId) {
@@ -475,5 +563,98 @@ const tutorUser = {
   learning: 'visual'
 };
 
+const jonas = {
+  password: 'pass',
+  email: 'me@mail.com',
+  type: 'tutor',
+  name: 'Jonas',
+  degree: 'Computer Science',
+  year: 'sophomore',
+  bio: 'I am German',
+  classes: ['business', 'math'],
+  learning: 'hands'
+};
+
+const connor = {
+  password: 'pass',
+  email: 'mail@mail.com',
+  type: 'student',
+  name: 'Connor',
+  degree: 'Computer Science',
+  year: 'senior',
+  bio: 'I am old',
+  classes: ['compsci', 'engineering'],
+  learning: 'hands'
+};
+
+const lukas = {
+  password: 'pass',
+  email: 'me@me.com',
+  type: 'tutor',
+  name: 'Lukas',
+  degree: 'Computer Science',
+  year: 'sophomore',
+  bio: 'I am cop',
+  classes: ['math', 'history'],
+  learning: 'hands'
+};
+
+const bjorn = {
+  password: 'pass',
+  email: 'mail@me.com',
+  type: 'tutor',
+  name: 'Bjorn',
+  degree: 'Computer Science',
+  year: 'grad',
+  bio: 'I am Norwegian',
+  classes: ['math', 'business'],
+  learning: 'hands'
+};
+
+const kate = {
+  password: 'pass',
+  email: 'mailme@mail.com',
+  type: 'tutor',
+  name: 'Kate',
+  degree: 'Computer Science',
+  year: 'freshman',
+  bio: 'I am freshman',
+  classes: ['math', 'engineering'],
+  learning: 'hands'
+};
+
+const molly = {
+  password: 'pass',
+  email: 'mailme@me.com',
+  type: 'tutor',
+  name: 'Molly',
+  degree: 'Computer Science',
+  year: 'Senior',
+  bio: 'I am hurt',
+  classes: ['compsci', 'engineering'],
+  learning: 'hands'
+};
+
+/*
+INSERT INTO LearningStyles (Name) VALUES
+('visual'),
+('auditory'),
+('hands'),
+('writing');
+
+INSERT INTO users (Id, Password, Email, UserType, Name, Degree, Year, Bio, LearningStyle) VALUES
+(1, 'pass', 'me@mail.com', 'Tutor', 'Jonas', 'Business', 'Junior', 'I am German', 1 ),
+(2, 'pass', 'mail@mail.com', 'Student', 'Connor', 'CSCI', 'Senior', 'I am tired', 3 ),
+(3, 'pass', 'me@me.com', 'Tutor', 'Lukas', 'Psych', 'Junior', 'I am Cop', 4 ),
+(4, 'pass', 'mail@me.com', 'Tutor', 'Bjorn', 'Business', 'Junior', 'I am Norwegian', 3 ),
+(5, 'pass', 'mailme@mail.com', 'Tutor', 'Kate', 'Aero', 'Freshman', 'I am freshman', 2 ),
+(6, 'pass', 'mailme@me.com', 'Tutor', 'Molly', 'CSCI', 'Junior', 'I am hurt', 3 );
+*/
 createTestUser(studentUser);
 createTestUser(tutorUser);
+createTestUser(jonas);
+createTestUser(connor);
+createTestUser(lukas);
+createTestUser(bjorn);
+createTestUser(kate);
+createTestUser(molly);

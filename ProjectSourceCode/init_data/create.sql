@@ -28,3 +28,9 @@ CREATE TABLE ClassesToUsers (
   ClassId INT NOT NULL REFERENCES Classes(Id),
   UserId INT NOT NULL REFERENCES Users(Id)
 );
+
+DROP TABLE IF EXISTS MatchedUsers;
+CREATE TABLE MatchedUsers(
+  TutorID INT NOT NULL,
+  UserID INT NOT NULL
+);
