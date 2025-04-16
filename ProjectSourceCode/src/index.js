@@ -494,14 +494,14 @@ app.get('/profile', async(req, res) => {
   const match = potentials[index];
 
   const allMatches = await db.any(
-    `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle
+    `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
      FROM users u
      INNER JOIN MatchedUsers m ON u.Id = m.TutorID
      WHERE m.UserID = $1 AND m.Action = 'like'`,
     [userID]
   );
   const potentialmatches = await db.any(
-    `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle
+    `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
      FROM users u
      WHERE u.Id != $1
        AND u.UserType != $2
