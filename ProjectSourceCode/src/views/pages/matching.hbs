@@ -55,9 +55,11 @@
           <button type="submit">Like</button>
         </form>
 
-        <!-- Skip Button Form -->
-        <form action="/matching/{{nextIndex}}" method="GET">
-          <button type="submit">Skip</button>
+
+        <form method="POST" action="/skip">
+          <input type="hidden" name="matchID" value="{{match.id}}">
+          <input type="hidden" name="nextIndex" value="{{nextIndex}}">
+          <button class="btn btn-secondary" type="submit">Skip</button>
         </form>
       </div>
     {{/if}}

@@ -527,7 +527,7 @@ app.get('/matching/:index?', async (req, res) => {
       [userID]
     );
 
-
+    console.log(userData);
     //find potential tutor matches based on Learning Style, the opposte User Type, and Degree
     //Could change to classes via "classes" table when fully implemented
     const potentials = await db.any(
@@ -535,9 +535,12 @@ app.get('/matching/:index?', async (req, res) => {
       FROM users 
       WHERE LearningStyle =$1
       AND UserType!=$2
-      AND Degree=$3`,
-    [userData.learningstyle, userData.usertype, userData.degree]
-  );  
+      AND Degree=$3
+      AND Id NOT IN (
+        SELECT TutorID FROM MatchedUsers WHERE UserID = $4
+      )`,
+    [userData.learningstyle, userData.usertype, userData.degree, userID]
+    );
 
     
 
@@ -552,8 +555,8 @@ app.get('/matching/:index?', async (req, res) => {
       4: 'Writing'
     };
     
-    match.learningstyle = styleMap[match.learningstyle] || 'Unknown';*/
-
+      match.learningstyle = styleMap[match.learningstyle] || 'Unknown';*/
+    console.log(potentials);
     //check if match exists
     //if no matches, send to login redirect page
     if (!match) {
@@ -596,8 +599,8 @@ app.post('/like', async (req, res) => {
     } else {
       // Insert new match
       await db.query(
-        'INSERT INTO MatchedUsers (TutorID, UserID) VALUES ($1, $2)',
-        [tutorID, userID]
+        'INSERT INTO MatchedUsers (TutorID, UserID, Action) VALUES ($1, $2, $3)',
+        [tutorID, userID, 'like']
       );
       console.log(`New match stored: UserID ${userID} liked TutorID ${tutorID}`);
     }
@@ -610,6 +613,32 @@ app.post('/like', async (req, res) => {
     res.redirect(`/matching/${nextIndex}`);
   } catch (err) {
     console.error('Error handling match:', err);
+    res.status(500).send('Server error');
+  }
+});
+
+app.post('/skip', async (req, res) => {
+  try {
+    console.log("Session:", req.session);
+    const userID = req.session.user.id;
+
+    const { matchID, nextIndex } = req.body;
+    console.log("matchID:", matchID, "nextIndex:", nextIndex);
+
+    if (!matchID) {
+      return res.status(400).send('Missing match ID');
+    }
+
+    await db.query(
+      `INSERT INTO MatchedUsers (TutorID, UserID, Action)
+       VALUES ($1, $2, 'skip')`,
+      [matchID, userID]
+    );
+
+    console.log(`User ${userID} skipped match ${matchID}`);
+    res.redirect(`/matching/${nextIndex}`);
+  } catch (err) {
+    console.error('Skip error:', err);
     res.status(500).send('Server error');
   }
 });

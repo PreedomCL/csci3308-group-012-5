@@ -39,5 +39,6 @@ CREATE TABLE ClassesToUsers (
 DROP TABLE IF EXISTS MatchedUsers;
 CREATE TABLE MatchedUsers(
   TutorID INT NOT NULL,
-  UserID INT NOT NULL
+  UserID INT NOT NULL,
+  Action VARCHAR(10) CHECK (Action IN ('like', 'skip')) NOT NULL
 );
