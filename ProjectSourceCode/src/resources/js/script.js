@@ -3,80 +3,9 @@
  */
 let calendar;
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM loaded, initializing calendar...");
-    const calendarEl = document.getElementById('calendar');
+document.addEventListener('DOMContentLoaded', function() {   
+  initializeCalendar();
 
-    // Check if FullCalendar library is available
-    if (typeof FullCalendar === 'undefined') {
-        console.error("FullCalendar library not loaded");
-        return; // Exit early if library isn't loaded
-    }
-    const userId = calendarEl.getAttribute('data-user-id');
-    //Check user is defined
-    if (!userId){
-        console.error("User id not specified");
-        return; // Exit early if library isn't loaded
-    }
-
-    // const eventsInfo = `calendar/events?userID=${userId}`;
-    // console.log(eventsInfo);
-
-    try {
-        console.log("Creating calendar instance...");
-        calendar = new FullCalendar.Calendar(calendarEl, {  
-            initialView: 'timeGridWeek',
-            headerToolbar: {
-                left: 'updateAvailability',
-                center: 'title'/*user name's calendar*/,
-                right: '' /*Update availability button*/
-            },
-            customButtons: {
-                updateAvailability: {
-                    text: 'Update Availability',
-                    click: function() {
-                        //create button, click it, remove it
-                        const tmp_button = document.createElement('button');
-                        tmp_button.setAttribute('data-bs-toggle', 'modal');
-                        tmp_button.setAttribute('data-bs-target', '#availability-modal');
-                        document.getElementById('parent').appendChild(tmp_button);
-                        tmp_button.click();
-                        document.getElementById('parent').removeChild(tmp_button);
-                        populateModal(userId);
-                    }
-                }
-            },
-            nowIndicator: true,
-            stickyHeaderDates: true,
-            timeZone: 'America/Denver',
-            slotDuration: '00:30:00',  
-            slotMinTime: '08:00:00',  
-            slotMaxTime: '21:00:00',
-            scrollTime: '08:00:00',
-            dayHeaderFormat: { weekday: 'short' },
-            eventTimeFormat: {
-                hour: 'numeric',
-                minute: '2-digit',
-                meridiem: 'short'
-            }, 
-            allDaySlot: false,
-            expandRows: true,
-            navLinks: false,
-            editable: false,
-            selectable: false,
-            height: '100%',
-            events: `calendar/events?userID=${userId}`
-        });
-        console.log(calendar.events);
-        console.log("Rendering calendar...");
-        // Remove updateSize call, only render
-        calendar.render();
-        console.log("Calendar render complete");
-    } catch (error) {
-        console.error("Error creating calendar:", error);
-    }
-
-    /* add time slots */
     document.querySelectorAll('.add-time').forEach(function(button){
       button.addEventListener('click', function(){
         const day = this.getAttribute('day');
@@ -147,13 +76,17 @@ document.addEventListener('DOMContentLoaded', function() {
           `;
         //verify end time is after start time
         timeSlots.appendChild(newSlot);
-        if(timeSlots.querySelectorAll('.time-slot').length > 4){
+        if(timeSlots.querySelectorAll('.time-slot').length > 5){
           timeSlots.removeChild(newSlot);
         }
         newSlot.querySelector('.remove-time').addEventListener('click', function(){
           this.closest('.time-slot').remove();
         });
       });
+    });
+
+    document.getElementById('save-button').addEventListener('click', function(){
+      saveAvailabilityEvent();
     });
 });
 
@@ -168,19 +101,18 @@ async function saveAvailabilityEvent(){
     if(!response.ok){
       console.error("ERROR RESET CALENDAR")
     }
-    console.log("hjere");
     while(day<7){
       console.log(day);
       const input = document.querySelectorAll(`#selector${day} .time-slot`);
       console.log("list: ", input);
-      input.forEach(select => {
+      for(let select of input) {
         let start = select.querySelector('.start-time').value;
         console.log("start", start);
         let end = select.querySelector('.end-time').value;
         console.log("end", end);
         if(start&&end){
           console.log("post");
-          fetch('/calendar/updateAvailability', {
+          await fetch('/calendar/updateAvailability', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -193,33 +125,88 @@ async function saveAvailabilityEvent(){
               startTime: start,
               endTime: end
             })
-          })
-          .then(response =>{
-            console.log('Success: ', response.data);
-          })
-          .catch(error =>{
-            console.error('Error: ', error);
           });
-          refreshCalendar();
+          console.log("update done");
         }
-        else{
-          //error
-          console.log("else")
-        }
-      });
-      day++;
+      }
+    day++;
     }
-  } catch(error) {
+  initializeCalendar();
+} catch(error) {
     console.log("ERROR: ", error);
   }
-  
 }
 
-function refreshCalendar(){
-  console.log("refresh");
-  if(calendar){
-    calendar.render();
-    console.log("render");
+async function initializeCalendar(){
+  /* add time slots */
+  console.log("DOM loaded, initializing calendar...");
+  const calendarEl = document.getElementById('calendar');
+
+  // Check if FullCalendar library is available
+  if (typeof FullCalendar === 'undefined') {
+      console.error("FullCalendar library not loaded");
+      return; // Exit early if library isn't loaded
+  }
+  const userID = document.getElementById("calendar").getAttribute("data-user-id");
+  console.log(userID);
+
+  const response = await fetch(`/calendar/events?userID=${userID}`);
+  console.log("cal done");
+  const userEvents = await response.json();
+
+  try {
+      console.log("Creating calendar instance...");
+      calendar = new FullCalendar.Calendar(calendarEl, {  
+          initialView: 'timeGridWeek',
+          headerToolbar: {
+              left: 'updateAvailability',
+              center: 'title'/*user name's calendar*/,
+              right: '' /*Update availability button*/
+          },
+          customButtons: {
+              updateAvailability: {
+                  text: 'Update Availability',
+                  click: function() {
+                      //create button, click it, remove it
+                      const tmp_button = document.createElement('button');
+                      tmp_button.setAttribute('data-bs-toggle', 'modal');
+                      tmp_button.setAttribute('data-bs-target', '#availability-modal');
+                      document.getElementById('parent').appendChild(tmp_button);
+                      tmp_button.click();
+                      document.getElementById('parent').removeChild(tmp_button);
+                      populateModal(userID);
+                  }
+              }
+          },
+          nowIndicator: true,
+          stickyHeaderDates: true,
+          timeZone: 'America/Denver',
+          slotDuration: '00:30:00',  
+          slotMinTime: '08:00:00',  
+          slotMaxTime: '21:00:00',
+          scrollTime: '08:00:00',
+          dayHeaderFormat: { weekday: 'short' },
+          eventTimeFormat: {
+              hour: 'numeric',
+              minute: '2-digit',
+              meridiem: 'short'
+          }, 
+          allDaySlot: false,
+          expandRows: true,
+          navLinks: false,
+          editable: false,
+          selectable: false,
+          height: '100%',
+          events: userEvents
+      });
+
+      console.log(calendar.events);
+      console.log("Rendering calendar...");
+      // Remove updateSize call, only render
+      calendar.render();
+      console.log("Calendar render complete");
+  } catch (error) {
+      console.error("Error creating calendar:", error);
   }
 }
 
