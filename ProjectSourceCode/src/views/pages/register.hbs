@@ -4,7 +4,8 @@
         {{> gsignin}}
     </div>
     {{/unless}}
-    <form class="needs-validation" align="center" method="post" action="/register" enctype="multipart/form-data" novalidate>
+    <form class="needs-validation" align="center" method="post" action="/register" enctype="multipart/form-data"
+        novalidate>
 
         <div class="form-group">
             {{#if email}}
@@ -38,8 +39,8 @@
         <div class="row">
             <div class="form-group col-md-6">
                 <label for="email_input">Email</label> <br />
-                <input type="text" name="email" class="form-control" id="email_input" placeholder="Enter email" {{#if
-                    email}} value="{{email}}" disabled{{/if}} required pattern="/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g">
+                <input type="email" name="email" class="form-control" id="email_input" placeholder="Enter email" {{#if
+                    email}} value="{{email}}" disabled{{/if}} required pattern="^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,4}$">
             </div>
             {{#unless email}}
             <div class="form-group col-md-6">
@@ -57,7 +58,8 @@
             </div>
             <div class="form-group col-md-6">
                 <label for="degree_input">Degree</label>
-                <input type="text" name="degree" class="form-control" id="degree_input" placeholder="Enter Degree" required maxlength="50">
+                <input type="text" name="degree" class="form-control" id="degree_input" placeholder="Enter Degree"
+                    required maxlength="50">
             </div>
             <div class="dropdown col-md-6">
                 <label for="year_input">Select Your Year of Schooling</label> <br />
@@ -71,7 +73,8 @@
             </div>
             <div class="form-group col-md-6">
                 <label for="bio_input">Bio</label>
-                <input type="text" name="bio" class="form-control" id="bio_input" placeholder="Enter a Short Bio" required maxlength="200">
+                <textarea type="text" name="bio" class="form-control" id="bio_input" placeholder="Enter a Short Bio"
+                    required maxlength="200" rows="4" style="resize: none;"></textarea>
             </div>
         </div>
 
@@ -127,20 +130,20 @@
 </script>
 
 <script>
-(() => {
-    // Fetch all the forms we want to apply custom Bootstrap validation styles to
-    const forms = document.querySelectorAll('.needs-validation');
+    (() => {
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        const forms = document.querySelectorAll('.needs-validation');
 
-    // Loop over them and prevent submission
-    Array.from(forms).forEach(form => {
-    form.addEventListener('submit', event => {
-        if (!form.checkValidity()) {
-        event.preventDefault()
-        event.stopPropagation()
-        }
+        // Loop over them and prevent submission
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
 
-        form.classList.add('was-validated')
-    }, false)
-    });
-})()
+                form.classList.add('was-validated')
+            }, false)
+        });
+    })()
 </script>

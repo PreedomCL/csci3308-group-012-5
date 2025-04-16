@@ -1,20 +1,21 @@
 <div class="card text-start" style="width: 25rem;">
     <div class="card-body">
-        <form class="" method="post" action="/login">
+        <form class="needs-validation" method="post" action="/login" novalidate>
             <div class="row">
                 <div class="col">
                     <legend>Login</legend>
-                    
+
                     <label for="email" class="form-label">Email</label>
-                    <input type="text" name="email" class="form-control"/>
-                    
+                    <input type="email" name="email" class="form-control" pattern="^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,4}$"
+                        required />
+
                     <label for="password" class="form-label">Password</label>
-                    <input type="password" name="password" class="form-control"/>
+                    <input type="password" name="password" class="form-control" required />
                 </div>
             </div>
             <div class="row align-items-center">
                 <div class="col col-3">
-                    <button class="btn btn-primary"  type='submit'>Login</button>
+                    <button class="btn btn-primary" type='submit'>Login</button>
                 </div>
                 <div class="col">
                     {{!-- Sign in with Google button --}}
@@ -23,9 +24,28 @@
             </div>
             <div class="row">
                 <div class="col">
-                    <p>Don't have an account? <a href = '/register'>Register</a> </p>
+                    <p>Don't have an account? <a href='/register'>Register</a> </p>
                 </div>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+    (() => {
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        const forms = document.querySelectorAll('.needs-validation');
+
+        // Loop over them and prevent submission
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+
+                form.classList.add('was-validated')
+            }, false)
+        });
+    })()
+</script>
