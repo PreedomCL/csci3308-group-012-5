@@ -11,6 +11,7 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const pgp = require('pg-promise')();
 const axios = require('axios');
+const {OAuth2Client} = require('google-auth-library');
 const fileupload = require('express-fileupload');
 const fs = require('fs');
 const { EventEmitterAsyncResource } = require('events');
@@ -21,8 +22,8 @@ const { EventEmitterAsyncResource } = require('events');
 
 // database configuration
 const dbConfig = {
-  host: 'db', // the database server
-  port: 5432, // the database port
+  host: process.env.POSTGRES_HOST || 'db', // the database server
+  port: process.env.POSTGRES_PORT || 5432, // the database port
   database: process.env.POSTGRES_DB, // the database name
   user: process.env.POSTGRES_USER, // the user account to connect with
   password: process.env.POSTGRES_PASSWORD, // the password of the user account
@@ -47,6 +48,9 @@ const hbs = handlebars.create({
   partialsDir: __dirname + '/views/partials',
 });
 
+
+const gClient = new OAuth2Client();
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
 // *****************************************************
 // <!-- Section 3 : App Settings -->
 // *****************************************************
@@ -117,13 +121,18 @@ Expects the following request body:
 */
 app.post('/register', async (req, res) => {
 
+  // check if user is registering with Google
+  const gUser = req.session.gUser;
+
   // validate request body
 
+  console.log(gUser);
+
   let registerInfo = {
-    password: req.body.password,
-    email: req.body.email,
+    password: gUser ? 'N/A' : req.body.password,
+    email: gUser ? gUser.email : req.body.email,
     type: req.body.type,
-    name: req.body.name,
+    name: gUser ? gUser.name : req.body.name,
     degree: req.body.degree,
     year: req.body.year,
     bio: req.body.bio,
@@ -280,8 +289,10 @@ app.post('/register', async (req, res) => {
     // Make this a SQL transaction so that if any part fails, the whole transaction fails
     await db.tx(async t => {
       // hash the password using bcrypt library
-      const passwordHash = await bcrypt.hash(req.body.password, 10);
-      const insertUserQuery = 'INSERT INTO Users (Password, Email, UserType, Name, Degree, Year, Bio, LearningStyle, Profileimage) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)';
+      const passwordHash = gUser ? null : await bcrypt.hash(registerInfo.password, 10);
+      
+      const insertUserQuery = 'INSERT INTO Users (Password, Email, UserType, Name, Degree, Year, Bio, LearningStyle, Profileimage, GoogleId) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)';
+
       await t.none(insertUserQuery, [
         passwordHash,
         registerInfo.email,
@@ -291,7 +302,8 @@ app.post('/register', async (req, res) => {
         registerInfo.year,
         registerInfo.bio,
         registerInfo.learning,
-        profileImagePath
+        profileImagePath,
+        gUser ? gUser.gid : null
       ]);
   
       // get the userId for the user we just created
@@ -309,7 +321,8 @@ app.post('/register', async (req, res) => {
     res.redirect('/login');
   } catch (error) {
     // handle any errors
-    console.log(`Server encountered error during register: ${error}`);
+    console.log('Server encountered error during register:');
+    console.log(error.stack);
     res.status(500).send('the server encountered an error while registering the password for the user');
   }
 });
@@ -326,11 +339,17 @@ Expects the following request body:
   password: string  // plain text password
 }
 */
+
+async function loginUser(req, user) {
+  req.session.user = user;
+  await req.session.save();
+}
+
 app.post('/login', async (req, res) => {
   const userQuery = 'SELECT * FROM Users WHERE Email = $1';
   
   try {
-    const email = req.body.username.toLowerCase();
+    const email = req.body.email.toLowerCase();
 // changed login route to not have nested if statements and work with tests better
     if(!email){
       console.log("missing email");
@@ -341,21 +360,96 @@ app.post('/login', async (req, res) => {
       console.log("User Not Found");
       return res.status(400).json({message: "Invalid Credentials"});
     }
+
+    // Google users must use the Sign in with Google button
+    if(user.googleid) {
+      console.log("User is a Google User");
+      return res.status(400).json({message: "The user is a Google User"});
+    }
+
     const match = await bcrypt.compare(req.body.password, user.password);
     if (!match){
       console.log('Invalid Password');
       return res.status(400).json({message: "Invalid Credentials"});
     }
-    req.session.user = user;
-    await req.session.save();
+    
+    await loginUser(req, user);
+
     if (req.headers.accept && req.headers.accept.includes("text/html")){
       return res.redirect('/profile');
     }
     return res.status(200).json({message: "Login Successfull"});
   } catch (error) {
-    console.log(`Server encountered error during login: ${error}`);
+    console.log('Server encountered error during login:');
+    console.log(error.stack);
     return res.status(500).json({message: "Server Error"});
   }
+});
+
+function decodeJwtResponse(token) {
+  let base64Url = token.split('.')[1];
+  let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  let jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+
+  return JSON.parse(jsonPayload);
+}
+
+app.post('/glogin', async (req, res) => {
+
+  if(!req.body.credential) {
+    res.status(400).send('No credential in request');
+    return;
+  }
+
+  // Decode the credential
+  const payload = decodeJwtResponse(req.body.credential);
+  const userData = {
+    'gid': payload.sub,
+    'email': payload.email,
+    'name': payload.name
+  };
+
+  // Validate the data
+  for(let param in userData) {
+    if(!userData[param]) {
+      res.status(400).send('Malformed JWT credential');
+      return;
+    }
+  }
+
+  const gIdQuery = 'SELECT * FROM Users WHERE GoogleId = $1';
+  try {
+    let user = await db.oneOrNone(gIdQuery, [userData.gid]);
+    if(user) {
+      await loginUser(req, user);
+      res.send(JSON.stringify({redirect: '/profile'}));
+      return;
+    }
+    
+    // Save the google account data to be passed to the register page
+    req.session.gUser = userData;
+    req.session.save();
+
+    res.send(JSON.stringify({redirect: '/gregister'}));
+    return;
+  } catch (error) {
+    res.status(500).send('The server ran into an error while fetching Google User');
+  }
+});
+
+app.get('/gregister', (req, res) => {
+  
+  // redirect to normal register if there is no gUser object
+  if(!req.session.gUser) {
+    res.redirect('/register');
+    return;
+  }
+
+  let gUser = req.session.gUser;
+  res.render('pages/register', {email: gUser.email, name: gUser.name});
+
 });
 
 // Authentication middleware
@@ -514,6 +608,148 @@ app.get('/logout', (req, res) => {
 });
 
 
+app.get('/matching', (req, res) => {
+  res.redirect('/matching/0');
+});
+
+app.get('/matching/:index?', async (req, res) => {
+  try{
+    //get the user id
+    const userID=req.session.user.id;
+
+    //check if user id exists
+    if(!userID){
+      return res.redirect ('/login');
+    }
+
+    //get user data based on user id
+    const userData = await db.one(
+      `SELECT LearningStyle, UserType, Degree
+      FROM users
+      Where Id =$1`,
+      [userID]
+    );
+
+    console.log(userData);
+    //find potential tutor matches based on Learning Style, the opposte User Type, and Degree
+    //Could change to classes via "classes" table when fully implemented
+    const potentials = await db.any(
+      `SELECT Id, Name, Degree, Year, Bio, LearningStyle 
+      FROM users 
+      WHERE LearningStyle =$1
+      AND UserType!=$2
+      AND Degree=$3
+      AND Id NOT IN (
+        SELECT TutorID FROM MatchedUsers WHERE UserID = $4
+      )`,
+    [userData.learningstyle, userData.usertype, userData.degree, userID]
+    );
+
+    
+
+    //start with initial index
+    const index = parseInt(req.params.index) || 0;
+    const match = potentials[index];
+
+    /*const styleMap = {
+      1: 'Visual',
+      2: 'Auditory',
+      3: 'Hands-on',
+      4: 'Writing'
+    };
+    
+      match.learningstyle = styleMap[match.learningstyle] || 'Unknown';*/
+    console.log(potentials);
+    //check if match exists
+    //if no matches, send to login redirect page
+    if (!match) {
+      return res.render('pages/matching', {
+        noMatches: true
+      });
+    }
+    console.log(potentials);
+    //if matches, start rendering by index
+    res.render('pages/matching', {
+      match,
+      nextIndex: index + 1
+    });
+  } catch (err){ //in case of database error
+    console.error('DB error:', err);
+    res.status(500).send('Server error');
+  }
+});
+
+//When like button clicked, add to matched users
+app.post('/like', async (req, res) => {
+  try {
+    const userID = req.session.user.id;
+    const tutorID = req.body.tutorID;
+    const nextIndex = req.body.nextIndex;
+
+    if (!userID || !tutorID) {
+      console.error('Missing userID or tutorID');
+      return res.status(400).send('Missing data');
+    }
+
+    // Check if the match already exists
+    const existingMatch = await db.query(
+      'SELECT * FROM MatchedUsers WHERE TutorID = $1 AND UserID = $2',
+      [tutorID, userID]
+    );
+
+    if (existingMatch.length > 0) {
+      console.log(`Match already exists: UserID ${userID} and TutorID ${tutorID}`);
+    } else {
+      // Insert new match
+      await db.query(
+        'INSERT INTO MatchedUsers (TutorID, UserID, Action) VALUES ($1, $2, $3)',
+        [tutorID, userID, 'like']
+      );
+      console.log(`New match stored: UserID ${userID} liked TutorID ${tutorID}`);
+    }
+
+    // Log current matches
+    const allMatches = await db.query('SELECT * FROM MatchedUsers');
+    console.log('Current MatchedUsers:', allMatches);
+
+    // Redirect to next match
+    res.redirect(`/matching/${nextIndex}`);
+  } catch (err) {
+    console.error('Error handling match:', err);
+    res.status(500).send('Server error');
+  }
+});
+
+app.post('/skip', async (req, res) => {
+  try {
+    console.log("Session:", req.session);
+    const userID = req.session.user.id;
+
+    const { matchID, nextIndex } = req.body;
+    console.log("matchID:", matchID, "nextIndex:", nextIndex);
+
+    if (!matchID) {
+      return res.status(400).send('Missing match ID');
+    }
+
+    await db.query(
+      `INSERT INTO MatchedUsers (TutorID, UserID, Action)
+       VALUES ($1, $2, 'skip')`,
+      [matchID, userID]
+    );
+
+    console.log(`User ${userID} skipped match ${matchID}`);
+    res.redirect(`/matching/${nextIndex}`);
+  } catch (err) {
+    console.error('Skip error:', err);
+    res.status(500).send('Server error');
+  }
+});
+
+
+
+
+
 // *****************************************************
 // <!-- Section 5 : Start Server-->
 // *****************************************************
@@ -565,5 +801,83 @@ const tutorUser = {
 };
 
 
+const jonas = {
+  password: 'pass',
+  email: 'me@mail.com',
+  type: 'tutor',
+  name: 'Jonas',
+  degree: 'Computer Science',
+  year: 'sophomore',
+  bio: 'I am German',
+  classes: ['business', 'math'],
+  learning: 'hands'
+};
+
+const connor = {
+  password: 'pass',
+  email: 'mail@mail.com',
+  type: 'student',
+  name: 'Connor',
+  degree: 'Computer Science',
+  year: 'senior',
+  bio: 'I am old',
+  classes: ['compsci', 'engineering'],
+  learning: 'hands'
+};
+
+const lukas = {
+  password: 'pass',
+  email: 'me@me.com',
+  type: 'tutor',
+  name: 'Lukas',
+  degree: 'Computer Science',
+  year: 'sophomore',
+  bio: 'I am cop',
+  classes: ['math', 'history'],
+  learning: 'hands'
+};
+
+const bjorn = {
+  password: 'pass',
+  email: 'mail@me.com',
+  type: 'tutor',
+  name: 'Bjorn',
+  degree: 'Computer Science',
+  year: 'grad',
+  bio: 'I am Norwegian',
+  classes: ['math', 'business'],
+  learning: 'hands'
+};
+
+const kate = {
+  password: 'pass',
+  email: 'mailme@mail.com',
+  type: 'tutor',
+  name: 'Kate',
+  degree: 'Computer Science',
+  year: 'freshman',
+  bio: 'I am freshman',
+  classes: ['math', 'engineering'],
+  learning: 'hands'
+};
+
+const molly = {
+  password: 'pass',
+  email: 'mailme@me.com',
+  type: 'tutor',
+  name: 'Molly',
+  degree: 'Computer Science',
+  year: 'Senior',
+  bio: 'I am hurt',
+  classes: ['compsci', 'engineering'],
+  learning: 'hands'
+};
+
 createTestUser(studentUser);
 createTestUser(tutorUser);
+createTestUser(jonas);
+createTestUser(connor);
+createTestUser(lukas);
+createTestUser(bjorn);
+createTestUser(kate);
+createTestUser(molly);
