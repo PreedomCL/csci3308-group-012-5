@@ -4,120 +4,143 @@
         {{> gsignin}}
     </div>
     {{/unless}}
-    <form align = "center" method="post" action="/register" enctype="multipart/form-data">
+    <form class="needs-validation" align="center" method="post" action="/register" enctype="multipart/form-data" novalidate>
 
-            <div class="form-group">
-                    {{#if email}}
-                    <h1>Finish Setting up Your Account</h1>
-                    {{else}}
-                    <h1>Register</h1>
-                    {{/if}}
-                    <div class="dropdown mr-1">
-                    <label for="user_type">Select (Student or Tutor)</label> <br/>
-                    <select id="user_type" name="type" class="form-control" onchange="">
-                        <option value="Student">Student</option>
-                        <option value="Tutor">Tutor</option>
-                    </select>
-                    </div>
+        <div class="form-group">
+            {{#if email}}
+            <h1>Finish Setting up Your Account</h1>
+            {{else}}
+            <h1>Register</h1>
+            {{/if}}
+            <div class="dropdown mr-1">
+                <label for="user_type">Account Type</label> <br />
+                <select id="user_type" name="type" class="form-select" onchange="" required>
+                    <option value="" selected disabled>Select Account Type</option>
+                    <option value="Student">Student</option>
+                    <option value="Tutor">Tutor</option>
+                </select>
             </div>
-                <div>
-                    <div class="d-flex justify-content-center mb-4">
-                        <img id="selectedAvatar" src="https://mdbootstrap.com/img/Photos/Others/placeholder-avatar.jpg"
-                        class="rounded-circle" style="width: 200px; height: 200px; object-fit: cover;" alt="example placeholder" />
-                    </div>
-                    <div class="d-flex justify-content-center">
-                        <div data-mdb-ripple-init class="btn btn-primary btn-rounded">
-                            <label class="form-label text-white m-1" for="user_image">Choose Optional Profile Image</label>
-                            <input type="file" class="form-control d-none" name = "profileimagedata" id="user_image" onchange="displaySelectedImage(event)" />
-                        </div>
-                    </div>
-                </div>
-            <div class="row">
-                <div class="form-group col-md-6">
-                    <label for="email_input">Email</label> <br/>
-                    <input type="text" name="email" class="form-control" id="email_input" placeholder="Enter email" {{#if email}} value="{{email}}" disabled{{/if}}> 
-                </div>
-                {{#unless email}}
-                <div class="form-group col-md-6">
-                    <label for="password_input">Password</label>
-                    <input type="password" name="password" class="form-control" id="password_input" placeholder="Enter password">
-                </div>
-                {{/unless}}
+        </div>
+        <div>
+            <div class="d-flex justify-content-center mb-4">
+                <img id="selectedAvatar" src="https://mdbootstrap.com/img/Photos/Others/placeholder-avatar.jpg"
+                    class="rounded-circle" style="width: 200px; height: 200px; object-fit: cover;"
+                    alt="example placeholder" />
             </div>
-            <div class="row">
-                    <div class="form-group col-md-6">
-                        <label for="name_input">Full Name</label>
-                        <input type="text" name="name" class="form-control" id="name_input" placeholder="Enter full name" {{#if name}}value="{{name}}" disabled{{/if}}>
-                    </div> 
-                    <div class="form-group col-md-6">
-                        <label for="degree_input">Degree</label>
-                        <input type="text" name="degree" class="form-control" id="degree_input" placeholder="Enter Degree">
-                    </div> 
-                    <div class="dropdown col-md-6">
-                        <label for="year_input">Select Your Year of Schooling</label> <br/>
-                        <select id="year_input" name="year" class="form-control" onchange="">
-                            <option selected disabled>Select Year</option>
-                            <option value="Freshman">Freshman</option>
-                            <option value="Sophomore">Sophomore</option>
-                            <option value="Senior">Senior</option>
-                            <option value="Grad">Grad</option>
-                        </select> 
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label for="bio_input">Bio</label>
-                        <input type="text" name="bio" class="form-control" id="bio_input" placeholder="Enter a Short Bio">
-                    </div> 
-            </div>
-
-            <div class="row">
-                <div class="form-group col-md-6">
-                    <div class="dropdown mr-1">
-                        <label for="classes_input">Classes Needing Tutoring For</label> <br/>
-                        <select id="classes_input" name="classes" class="form-control" onchange="" multiple  data-bs-toggle="dropdown" aria-expanded="false">
-                            <option selected disabled>(Hold ctr to select multiple)</option>
-                            <option value="Math">Math</option>
-                            <option value="History">History</option>
-                            <option value="Compsci">Comp sci</option>
-                            <option value="Engineering">Engineering</option>
-                            <option value="Business">Business (really?)</option>
-                        </select> 
-                    </div>  
+            <div class="d-flex justify-content-center">
+                <div data-mdb-ripple-init class="btn btn-primary btn-rounded">
+                    <label class="form-label text-white m-1" for="user_image">Choose Optional Profile Image</label>
+                    <input type="file" class="form-control d-none" name="profileimagedata" id="user_image"
+                        onchange="displaySelectedImage(event)" />
                 </div>
-
-                <div class="form-group col-md-6">
-                    <div class="dropdown mr-1">
-                        <label for="learning_input">Pick Your Learning Style</label> <br/>
-                        <select id="learning_input" name="learning" class="form-control" onchange="">
-                            <option selected disabled>Select Learning Style</option>
-                            <option value="Visual">Visual</option>
-                            <option value="Auditory">Auditory</option>
-                            <option value="Hands">Hands-on</option>
-                            <option value="Writing">Reading/Writing</option>
-                        </select> 
-                    </div> 
-                </div>                
             </div>
-            
-            <button class = "btn btn-primary"  type='submit'>Create Account</button><br/>
+        </div>
+        <div class="row">
+            <div class="form-group col-md-6">
+                <label for="email_input">Email</label> <br />
+                <input type="text" name="email" class="form-control" id="email_input" placeholder="Enter email" {{#if
+                    email}} value="{{email}}" disabled{{/if}} required pattern="/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g">
+            </div>
             {{#unless email}}
-            <div class="container-sm">
-            <p>Already have an account? <a href="/login">Login</a></p>
+            <div class="form-group col-md-6">
+                <label for="password_input">Password</label>
+                <input type="password" name="password" class="form-control" id="password_input"
+                    placeholder="Enter password" required>
             </div>
             {{/unless}}
+        </div>
+        <div class="row">
+            <div class="form-group col-md-6">
+                <label for="name_input">Full Name</label>
+                <input type="text" name="name" class="form-control" id="name_input" placeholder="Enter full name" {{#if
+                    name}}value="{{name}}" disabled{{/if}} required maxlength="50">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="degree_input">Degree</label>
+                <input type="text" name="degree" class="form-control" id="degree_input" placeholder="Enter Degree" required maxlength="50">
+            </div>
+            <div class="dropdown col-md-6">
+                <label for="year_input">Select Your Year of Schooling</label> <br />
+                <select id="year_input" name="year" class="form-select" onchange="" required>
+                    <option value="" selected disabled>Select Year</option>
+                    <option value="Freshman">Freshman</option>
+                    <option value="Sophomore">Sophomore</option>
+                    <option value="Senior">Senior</option>
+                    <option value="Grad">Grad</option>
+                </select>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="bio_input">Bio</label>
+                <input type="text" name="bio" class="form-control" id="bio_input" placeholder="Enter a Short Bio" required maxlength="200">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="dropdown col-md-6 mr-1">
+                <label for="classes_input">Classes Needing Tutoring For</label> <br />
+                <select id="classes_input" name="classes" class="form-control" size="6" onchange="" multiple
+                    data-bs-toggle="dropdown" aria-expanded="false" required>
+                    <option value="" disabled>(Hold ctrl to select multiple)</option>
+                    <option value="Math">Math</option>
+                    <option value="History">History</option>
+                    <option value="Compsci">Comp sci</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Business">Business (really?)</option>
+                </select>
+            </div>
+
+            <div class="dropdown col-md-6 mr-1">
+                <label for="learning_input">Pick Your Learning Style</label> <br />
+                <select id="learning_input" name="learning" class="form-select" onchange="" required>
+                    <option value="" selected disabled>Select Learning Style</option>
+                    <option value="Visual">Visual</option>
+                    <option value="Auditory">Auditory</option>
+                    <option value="Hands">Hands-on</option>
+                    <option value="Writing">Reading/Writing</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <button class="btn btn-primary" type='submit'>Create Account</button><br />
+                {{#unless email}}
+                <p style="margin-top: 4px;">Already have an account? <a href="/login">Login</a></p>
+                {{/unless}}
+            </div>
+        </div>
     </form>
 </div>
 
 <script>
-// function to display user image in registration 
-function displaySelectedImage(event) {
-    const file = event.target.files[0]; //grabs first file user selects
-    if (file){
-        const reader = new FileReader();
-        reader.onload = function(e){
-            const base64 = e.target.result;
-            document.getElementById("selectedAvatar").src = base64;
-        };
-        reader.readAsDataURL(file);
+    // function to display user image in registration 
+    function displaySelectedImage(event) {
+        const file = event.target.files[0]; //grabs first file user selects
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const base64 = e.target.result;
+                document.getElementById("selectedAvatar").src = base64;
+            };
+            reader.readAsDataURL(file);
+        }
     }
-}
+</script>
+
+<script>
+(() => {
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    const forms = document.querySelectorAll('.needs-validation');
+
+    // Loop over them and prevent submission
+    Array.from(forms).forEach(form => {
+    form.addEventListener('submit', event => {
+        if (!form.checkValidity()) {
+        event.preventDefault()
+        event.stopPropagation()
+        }
+
+        form.classList.add('was-validated')
+    }, false)
+    });
+})()
 </script>
