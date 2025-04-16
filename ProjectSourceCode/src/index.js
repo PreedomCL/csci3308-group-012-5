@@ -496,16 +496,6 @@ app.get('/profile', async(req, res) => {
   }
 });
 
-app.get('/refresh', async(req, res) => {
-  const useremail = req.session.user.email;
-  const userpass = req.session.user.password;
-  req.session.destroy(function(err) {
-    req.body.username = useremail;
-    req.body.password = userpass;
-    res.redirect('login');
-  });
-})
-
 app.get('/calendar/reset', async(req, res) => {
   const query = `SELECT EventID FROM UsersToEvents WHERE UserId = $1`;
   const query2 = `DELETE FROM Events WHERE EventId = $1`;
@@ -556,6 +546,7 @@ app.get('/calendar/events', async(req, res) => {
         eventsInfo.push(formatted_event);
       }
     }
+    console.log('GET', eventsInfo);
     return res.json(eventsInfo);
   } catch(error){
     console.log("Error accessing user events calendar: ", error);
@@ -592,7 +583,8 @@ app.post('/calendar/updateAvailability', async (req, res) => {
                     RETURNING UserID, EventID`;
     const result1 = await db.manyOrNone(query1, [userID, result.eventid]);
     console.log("result: ", result1);
-    res.redirect('/refresh');
+    res.send(200);
+    return;
   } catch(error){
     console.error('Error: ', error);
   }
