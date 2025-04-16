@@ -15,15 +15,15 @@ section, aside, div {
   display: flex;
 }
 
-#prof-left{
+/* #prof-left{
   min-width: 100px;
 }
 /* #prof-center{
   min-width: 600px;
-} */
-#prof-left{
+} 
+#prof-right{
   min-width: 200px;
-}
+} */
 .card-prof {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   min-width: 200px;
@@ -118,4 +118,20 @@ section, aside, div {
 .fc-timegrid-slot-label {
   font-size: 0.7em !important;
   text-align: left;
+}
+
+/* Calendar modal */
+.day{
+  padding: 10px 0;
+  border-radius: 0px;
+  border-bottom: 1px solid #dfdfdf;
+}
+.smalltime{
+  max-width: 600px;
+}
+.time-slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
