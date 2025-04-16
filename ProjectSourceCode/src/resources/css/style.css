@@ -1,16 +1,121 @@
 .card {
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    max-width: 300px;
-    margin: auto;
-    text-align: center;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  min-width: 200px;
+  margin: auto;
+  text-align: center;
+}
+button:hover, a:hover {
+  opacity: 0.7;
+}
+section, aside, div {
+  padding: 10px;
+  border-radius: 12px;
+}
+.flex-container{
+  display: flex;
+}
+
+#prof-left{
+  min-width: 100px;
+}
+/* #prof-center{
+  min-width: 600px;
+} */
+#prof-left{
+  min-width: 200px;
+}
+.card-prof {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  min-width: 200px;
+  margin: auto;
+  text-align: left;
+  margin-bottom: 10px;
+}
+.card-vert {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  min-width: 325px;
+  margin: auto;
+  text-align: left;
+  border-radius: 0;
+  /* border: 1px solid #ccc; */
+  margin-bottom: -1px; /* overlap borders */
+}
+.card-vert:last-child{
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  min-width: 325px;
+  margin: auto;
+  text-align: left;
+  border-radius: 0;
+}
+.card-group-vert {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Calendar Style */
+
+#calendar-container {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  height: 75vh; /* 75% of viewport height */
+  width: 100%;
+}
+
+/* On smaller screens */
+@media (max-width: 1240px) {
+  #prof-left{
+    width:80%; 
   }
-  button:hover, a:hover {
-    opacity: 0.7;
+  #prof-center{
+    width: 95%;
   }
-  section, aside, div {
-    padding: 20px;
-    border-radius: 12px;
+  #prof-right{
+    min-width: 90%;
   }
-  .flex-container{
-    display: flex;
+}
+@media (max-width: 768px) {
+  #calendar-container {
+    height: 90vh; /* More height on mobile */
   }
+}
+
+/* Allow scrolling */
+.fc .fc-scroller {
+  overflow-x: auto !important; 
+  overflow-y: auto !important;
+}
+
+  /* Reduce general padding and spacing */
+.fc .fc-timegrid-slot {
+  height: 1em; /* Smaller time slots */
+}
+
+/* Slim down the header */
+.fc .fc-toolbar {
+  margin-bottom: 0.0em;
+  padding: 0em;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 5em; /* Smaller title */
+  padding: 0em;
+  margin: 0em;
+}
+
+/* Compact day headers */
+.fc .fc-col-header-cell {
+  padding: 0px;
+}
+
+
+/* More compact event display */
+.fc-event {
+  font-size: 0.7em !important;
+  line-height: 1 !important;
+  padding: 2px 2px !important;
+}
+
+/* Reduce spacing in time labels */
+.fc-timegrid-slot-label {
+  font-size: 0.7em !important;
+  text-align: left;
+}

@@ -11,6 +11,9 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const pgp = require('pg-promise')();
 const axios = require('axios');
+const {OAuth2Client} = require('google-auth-library');
+const fileupload = require('express-fileupload');
+const fs = require('fs');
 
 // *****************************************************
 // <!-- Section 2 : Connect to DB -->
@@ -44,6 +47,9 @@ const hbs = handlebars.create({
   partialsDir: __dirname + '/views/partials',
 });
 
+
+const gClient = new OAuth2Client();
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
 // *****************************************************
 // <!-- Section 3 : App Settings -->
 // *****************************************************
@@ -52,7 +58,18 @@ const hbs = handlebars.create({
 app.engine('hbs', hbs.engine);
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
-app.use(bodyParser.json()); // specify the usage of JSON for parsing request body.
+app.use(bodyParser.json({limit:'10mb'})); // specify the usage of JSON for parsing request body.
+app.use(express.urlencoded({ extended: true }));
+app.use(fileupload());
+app.use(express.static('public'));
+// app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use('/uploads', express.static(path.join(__dirname,'..', 'uploads')));
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname,'..', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
 
 // initialize session object
 app.use(
@@ -66,8 +83,11 @@ app.use(
 app.use(
   bodyParser.urlencoded({
     extended: true,
+    limit: '10mb'
   })
 );
+
+app.use('/resources', express.static(path.join(__dirname, 'resources')));
 
 // *****************************************************
 // <!-- Section 4 : API Routes -->
@@ -100,20 +120,34 @@ Expects the following request body:
 */
 app.post('/register', async (req, res) => {
 
+  // check if user is registering with Google
+  const gUser = req.session.gUser;
+
   // validate request body
 
+  console.log(gUser);
+
   let registerInfo = {
-    password: req.body.password,
-    email: req.body.email,
+    password: gUser ? 'N/A' : req.body.password,
+    email: gUser ? gUser.email : req.body.email,
     type: req.body.type,
-    name: req.body.name,
+    name: gUser ? gUser.name : req.body.name,
     degree: req.body.degree,
     year: req.body.year,
     bio: req.body.bio,
     classes: req.body.classes,
-    learning: req.body.learning
+    learning: req.body.learning,
   };
-
+  // Handle profile image
+    let profileImagePath = '/uploads/default.jpg';
+    if (req.files && req.files.profileimagedata) {
+      const image = req.files.profileimagedata;
+      const fileName = Date.now() + '-' + image.name;
+      const savePath = path.join(uploadsDir, fileName);
+      await image.mv(savePath);
+      // profileImagePath = '/uploads/' + fileName;
+      profileImagePath = '/uploads/' + encodeURI(fileName);
+    }
   // ensure all arguments are present
   for(let arg in registerInfo) {
     if(!registerInfo[arg]) {
@@ -246,7 +280,7 @@ app.post('/register', async (req, res) => {
     }
   } catch (error) {
     console.log(`Server encountered error during email check: ${error}`);
-    res.status(500).send('the server encountered an error while registering the user');
+    res.status(500).send('the server encountered an error while registering the email for the user');
   }
 
   // insert the user data into the db
@@ -254,9 +288,10 @@ app.post('/register', async (req, res) => {
     // Make this a SQL transaction so that if any part fails, the whole transaction fails
     await db.tx(async t => {
       // hash the password using bcrypt library
-      const passwordHash = await bcrypt.hash(req.body.password, 10);
+      const passwordHash = gUser ? null : await bcrypt.hash(registerInfo.password, 10);
       
-      const insertUserQuery = 'INSERT INTO Users (Password, Email, UserType, Name, Degree, Year, Bio, LearningStyle) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)';
+      const insertUserQuery = 'INSERT INTO Users (Password, Email, UserType, Name, Degree, Year, Bio, LearningStyle, Profileimage, GoogleId) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)';
+
       await t.none(insertUserQuery, [
         passwordHash,
         registerInfo.email,
@@ -265,7 +300,9 @@ app.post('/register', async (req, res) => {
         registerInfo.degree,
         registerInfo.year,
         registerInfo.bio,
-        registerInfo.learning
+        registerInfo.learning,
+        profileImagePath,
+        gUser ? gUser.gid : null
       ]);
   
       // get the userId for the user we just created
@@ -283,8 +320,9 @@ app.post('/register', async (req, res) => {
     res.redirect('/login');
   } catch (error) {
     // handle any errors
-    console.log(`Server encountered error during register: ${error}`);
-    res.status(500).send('the server encountered an error while registering the user');
+    console.log('Server encountered error during register:');
+    console.log(error.stack);
+    res.status(500).send('the server encountered an error while registering the password for the user');
   }
 });
 
@@ -300,11 +338,17 @@ Expects the following request body:
   password: string  // plain text password
 }
 */
+
+async function loginUser(req, user) {
+  req.session.user = user;
+  await req.session.save();
+}
+
 app.post('/login', async (req, res) => {
   const userQuery = 'SELECT * FROM Users WHERE Email = $1';
   
   try {
-    const email = req.body.username.toLowerCase();
+    const email = req.body.email.toLowerCase();
 // changed login route to not have nested if statements and work with tests better
     if(!email){
       console.log("missing email");
@@ -315,21 +359,96 @@ app.post('/login', async (req, res) => {
       console.log("User Not Found");
       return res.status(400).json({message: "Invalid Credentials"});
     }
+
+    // Google users must use the Sign in with Google button
+    if(user.googleid) {
+      console.log("User is a Google User");
+      return res.status(400).json({message: "The user is a Google User"});
+    }
+
     const match = await bcrypt.compare(req.body.password, user.password);
     if (!match){
       console.log('Invalid Password');
       return res.status(400).json({message: "Invalid Credentials"});
     }
-    req.session.user = user;
-    await req.session.save();
+    
+    await loginUser(req, user);
+
     if (req.headers.accept && req.headers.accept.includes("text/html")){
       return res.redirect('/profile');
     }
     return res.status(200).json({message: "Login Successfull"});
   } catch (error) {
-    console.log(`Server encountered error during login: ${error}`);
+    console.log('Server encountered error during login:');
+    console.log(error.stack);
     return res.status(500).json({message: "Server Error"});
   }
+});
+
+function decodeJwtResponse(token) {
+  let base64Url = token.split('.')[1];
+  let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  let jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+
+  return JSON.parse(jsonPayload);
+}
+
+app.post('/glogin', async (req, res) => {
+
+  if(!req.body.credential) {
+    res.status(400).send('No credential in request');
+    return;
+  }
+
+  // Decode the credential
+  const payload = decodeJwtResponse(req.body.credential);
+  const userData = {
+    'gid': payload.sub,
+    'email': payload.email,
+    'name': payload.name
+  };
+
+  // Validate the data
+  for(let param in userData) {
+    if(!userData[param]) {
+      res.status(400).send('Malformed JWT credential');
+      return;
+    }
+  }
+
+  const gIdQuery = 'SELECT * FROM Users WHERE GoogleId = $1';
+  try {
+    let user = await db.oneOrNone(gIdQuery, [userData.gid]);
+    if(user) {
+      await loginUser(req, user);
+      res.send(JSON.stringify({redirect: '/profile'}));
+      return;
+    }
+    
+    // Save the google account data to be passed to the register page
+    req.session.gUser = userData;
+    req.session.save();
+
+    res.send(JSON.stringify({redirect: '/gregister'}));
+    return;
+  } catch (error) {
+    res.status(500).send('The server ran into an error while fetching Google User');
+  }
+});
+
+app.get('/gregister', (req, res) => {
+  
+  // redirect to normal register if there is no gUser object
+  if(!req.session.gUser) {
+    res.redirect('/register');
+    return;
+  }
+
+  let gUser = req.session.gUser;
+  res.render('pages/register', {email: gUser.email, name: gUser.name});
+
 });
 
 // Authentication middleware
@@ -355,19 +474,20 @@ app.get('/profile', async(req, res) => {
     return res.status(400).send("invalid email");
   }
   const query = `
-  SELECT u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames 
+  SELECT u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames, u.Profileimage
   FROM Users u 
     JOIN LearningStyles ls ON u.LearningStyle = ls.Id
     LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
     LEFT JOIN Classes c ON c.Id = ctu.ClassId
     WHERE u.email = $1
-      GROUP BY u.Name, u.Bio, ls.Name
+      GROUP BY u.Name, u.Bio, ls.Name, u.Profileimage
   `;
   try{
     const result = await db.one(query, [useremail])
     console.log(result);
     res.render('pages/profile', {
-      name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames
+      //i think this is where im having trouble reading in
+      name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage
     })
   }
   catch(error){
@@ -489,7 +609,7 @@ app.post('/like', async (req, res) => {
     // Redirect to next match
     res.redirect(`/matching/${nextIndex}`);
   } catch (err) {
-    console.error('❌ Error handling match:', err);
+    console.error('Error handling match:', err);
     res.status(500).send('Server error');
   }
 });
@@ -497,21 +617,6 @@ app.post('/like', async (req, res) => {
 
 
 
-// function to display user image in registration 
-function displaySelectedImage(event, elementId) {
-  const selectedImage = document.getElementById(elementId);
-  const fileInput = event.target;
-
-  if (fileInput.files && fileInput.files[0]) {
-      const reader = new FileReader();
-
-      reader.onload = function(e) {
-          selectedImage.src = e.target.result;
-      };
-
-      reader.readAsDataURL(fileInput.files[0]);
-  }
-}
 
 // *****************************************************
 // <!-- Section 5 : Start Server-->
