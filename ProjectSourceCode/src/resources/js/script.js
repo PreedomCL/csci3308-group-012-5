@@ -91,9 +91,9 @@ document.addEventListener('DOMContentLoaded', function() {
       saveAvailabilityEvent();
     });
 
-    document.getElementById('download-button').addEventListener('click', function(){
-      downloadEvent();
-    })
+    // document.getElementById('download-button').addEventListener('click', function(){
+    //   downloadEvent();
+    // })
 });
 
 async function saveAvailabilityEvent(){
@@ -324,10 +324,11 @@ async function populateModal(id){
 }
 
 function populateDownload(event){
+  eventView = event;
   const title = event.title;
   const start = new Date(event.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   const end = new Date(event.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-  const day = new Date(event.start).toLocaleDateString([], {weekday: 'long'});
+  const day = new Date(event.start).toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
   const format = event.extendedProps.format;
   const type = event.extendedProps.type;
   const description = event.extendedProps.description || "No description";
@@ -369,94 +370,50 @@ function populateDownload(event){
   if(type!='Available'){
     newDiv.innerHTML += `
     <div class="card-footer">
-      <button class="btn btn-sm id="download" btn-outline-secondary me-2">Download</button>
+      <button class="btn btn-sm id="download-button" btn-outline-secondary me-2" onclick="downloadEvent()">Download</button>
     </div>`;
   }
   modal.appendChild(newDiv);
 }
 
 function downloadEvent(){
-  const calendar = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TUDR//EN']; //starts icalendar ICS format 
-  const now = new Date();
-  const weekstart = new Date();
-  weekstart.setDate(weekstart.getDate() - weekstart.getDay()); // start of current week (Sunday)
-
-
-  
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  eventsInfo.forEach((event,i) => {
-    const daysindex = typeof event.daysOfWeek[0] === 'number'
-      ? event.daysOfWeek[0]
-      : days.indexOf(event.daysOfWeek[0]);
-  
-    if (daysindex === -1 || daysindex === undefined || daysindex === null) {
-      console.log("Skipping invalid event day:", event.daysOfWeek[0]);
-      return;
-    }
-      const startdate = new Date(weekstart);
-      startdate.setDate(weekstart.getDate() + event.daysOfWeek[0]);
-
-      const [starthour, startmin] = event.startTime.split(':'); //gets hour and min seperated 
-      startdate.setHours(starthour, startmin);
-
-      const enddate = new Date(weekstart);
-      enddate.setDate(weekstart.getDate() + event.daysOfWeek[0]);
-
-      const [endhour, endmin] = event.endTime.split(':');
-      enddate.setHours(endhour, endmin);
-      
-      calendar.push(
-        'BEGIN:VEVENT',  //each vevent is a individual calendar entry
-        `UID:event-${event.id}@tudr.app`,
-        `DTSTAMP:${formaticsdate(new Date())}`, //when event starts its formatted in ICS|| DTSTAMP is when it was downloaded
-        `DTSTART:${formaticsdate(startdate)}`,
-        `DTEND:${formaticsdate(enddate)}`,
-        `SUMMARY:${event.title}`,
-        `DESCRIPTION:${event.description}`,
-        `CATEGORIES:${event.type}, ${event.format}`,
-        'END:VEVENT'
-      )
-  });
-  calendar.push('END:VCALENDAR');
-  return calendar.join('\r\n') // returns/ends entire calendar, ics formatted
-}
-
-  function formaticsdate(date) {
-    const pad = (n) => (n < 10 ? '0' + n : n);
-    return (
-      date.getFullYear().toString() +
-      pad(date.getMonth() + 1) +
-      pad(date.getDate()) + 'T' +
-      pad(date.getHours()) +
-      pad(date.getMinutes()) +
-      pad(date.getSeconds())
-    );
-  }
-
-
-
-document.addEventListener('DOMContentLoaded', () => {
-document.getElementById('downloadICS').addEventListener('click', async function(e){
-  e.preventDefault();
   try {
-    const userID = document.getElementById('user-id').value;
-    const response = await fetch(`/calendar/events?userID=${userID}`);
-    const eventsinfo = await response.json();
-
-    console.log("Fetched events:", eventsinfo); 
-    if (!eventsinfo || eventsinfo.length === 0) {
-      alert("No events available to download.");
-      return;
-    }
-
-    const icscontent = createICSfromevents(eventsinfo);
-    const blob = new Blob([icscontent], {type: 'text/calendar; charset=utf-8'});
+    console.log(eventView);
+    // const weekstart = new Date();
+    // weekstart.setDate(weekstart.getDate() - weekstart.getDay()); // start of current week (Sunday)
+    // const start = new Date(eventView.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    // const end = new Date(eventView.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    // start.setDate()
+    // startdate.setDate(eventView.start.day);
+    // startdate.setHours(eventView.start.hour, eventView.start.minute);
+    // const enddate = new Date();
+    // enddate.setDate(eventView.start.day);
+    // enddate.setHours(eventView.end.hour, eventView.end.minute);
+    console.log(eventView.start);
+    const calEvent = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TUDR//EN']; //starts icalendar ICS format 
+    calEvent.push(
+          'BEGIN:VEVENT',  //each vevent is a individual calendar entry
+          `UID:event-${eventView.publicId}@tudr.app`,
+          `DTSTAMP:${formaticsdate(new Date())}`, //when event starts its formatted in ICS|| DTSTAMP is when it was downloaded
+          `DTSTART:${formaticsdate(eventView.start)}`,
+          `DTEND:${formaticsdate(eventView.end)}`,
+          `SUMMARY:${eventView.title}`,
+          `DESCRIPTION:${eventView.description}`,
+          `CATEGORIES:${eventView.type}, ${eventView.format}`,
+          'END:VEVENT',
+          'END:VCALENDAR'
+        );
+    
+    const icsContent = calEvent.join('\r\n') + '\r\n';
+    console.log('ics', icsContent);
+    
+    const blob = new Blob([icsContent], {type: 'text/calendar; charset=utf-8'});
     const url = URL.createObjectURL(blob);
 
     // Automatically trigger the download
     const tempLink = document.createElement('a');
     tempLink.href = url;
-    tempLink.download = 'availability.ics';
+    tempLink.download = `Tudr_Event-${eventView.id}`;
     document.body.appendChild(tempLink);
     tempLink.click();
     document.body.removeChild(tempLink);
@@ -464,6 +421,17 @@ document.getElementById('downloadICS').addEventListener('click', async function(
   } catch (error) {
     console.error('Failed to download calendar', error);
   }
-});
-});
+}
+
+function formaticsdate(date) {
+  const pad = (n) => (n < 10 ? '0' + n : n);
+  return (
+    date.getFullYear().toString() +
+    pad(date.getMonth() + 1) +
+    pad(date.getDate()) + 'T' +
+    pad(date.getHours()) +
+    pad(date.getMinutes()) +
+    pad(date.getSeconds())
+  );
+}
 
