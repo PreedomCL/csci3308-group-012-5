@@ -531,7 +531,7 @@ app.get('/profile', async(req, res) => {
     console.log(result);
     res.render('pages/profile', {
       //i think this is where im having trouble reading in
-      name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches
+      userID: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches
     })
   }
   catch(error){
