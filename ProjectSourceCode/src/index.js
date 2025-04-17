@@ -14,6 +14,7 @@ const axios = require('axios');
 const {OAuth2Client} = require('google-auth-library');
 const fileupload = require('express-fileupload');
 const fs = require('fs');
+const { EventEmitterAsyncResource } = require('events');
 
 // *****************************************************
 // <!-- Section 2 : Connect to DB -->
@@ -21,8 +22,8 @@ const fs = require('fs');
 
 // database configuration
 const dbConfig = {
-  host: 'db', // the database server
-  port: 5432, // the database port
+  host: process.env.POSTGRES_HOST || 'db', // the database server
+  port: process.env.POSTGRES_PORT || 5432, // the database port
   database: process.env.POSTGRES_DB, // the database name
   user: process.env.POSTGRES_USER, // the user account to connect with
   password: process.env.POSTGRES_PASSWORD, // the password of the user account
@@ -518,13 +519,13 @@ app.get('/profile', async(req, res) => {
     return res.status(400).send("invalid email");
   }
   const query = `
-  SELECT u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames, u.Profileimage
+  SELECT u.Id as userid, u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames 
   FROM Users u 
     JOIN LearningStyles ls ON u.LearningStyle = ls.Id
     LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
     LEFT JOIN Classes c ON c.Id = ctu.ClassId
     WHERE u.email = $1
-      GROUP BY u.Name, u.Bio, ls.Name, u.Profileimage
+      GROUP BY u.id, u.Name, u.Bio, ls.Name
   `;
   try{
     const result = await db.one(query, [useremail])
@@ -536,6 +537,100 @@ app.get('/profile', async(req, res) => {
   }
   catch(error){
     console.error("error loading profile:", error)
+  }
+});
+
+app.get('/calendar/reset', async(req, res) => {
+  const query = `SELECT EventID FROM UsersToEvents WHERE UserId = $1`;
+  const query2 = `DELETE FROM Events WHERE EventId = $1`;
+  console.log("Deleting");
+  try{
+    const eventIds = await db.manyOrNone(query, req.query.userID);
+    for(let e of eventIds){
+      console.log(e);
+      await db.none(query2, e.eventid);
+    }
+    console.log("Done Deleting");
+    return res.status(200).send("Done Deleting");
+  } catch (error){
+    console.log("ERROR: ", error);
+  }
+})
+
+app.get('/calendar/events', async(req, res) => {
+  console.log("Gathering user event information");
+  const eventIDQuery = `SELECT EventId FROM UsersToEvents WHERE UserId = $1`;
+  let eventsInfo = [];
+  const eventInfoQuery = `SELECT e.EventId as id, e.EventName as title, e.EventDay as day, e.EventDescription as description, et.TypeName as type,
+                          e.EventStartTime as start, e.EventEndTime as end, ef.FormatName as format 
+                          FROM Events e 
+                          JOIN EventFormats ef ON e.EventFormat = ef.FormatID
+                          JOIN EventTypes et ON e.EventType = et.TypeID
+                          WHERE e.EventId = $1`;
+  try{
+    const eventIds = await db.manyOrNone(eventIDQuery, req.query.userID);
+    console.log(eventIds);
+    for(let e of eventIds){
+      const event = await db.oneOrNone(eventInfoQuery, e.eventid)
+      if(!event){
+        console.log(`Event not found for ID: ${e.eventid}`);
+        continue;
+      }
+      else{
+        let formatted_event = {
+          title: event.title,
+          daysOfWeek: [event.day],
+          description: event.description,
+          startTime: event.start,
+          endTime: event.end,
+          type: event.type,
+          id: event.id,
+          format: event.format
+        }
+        eventsInfo.push(formatted_event);
+      }
+    }
+    console.log('GET', eventsInfo);
+    return res.json(eventsInfo);
+  } catch(error){
+    console.log("Error accessing user events calendar: ", error);
+    return res.status(500).json({message: "Server Error"});
+  }
+});
+
+app.post('/calendar/updateAvailability', async (req, res) => {
+  console.log("post method");
+  const query = `INSERT INTO EVENTS (EventName, EventType, EventDay, EventStartTime, EventEndTime, EventFormat)
+                  VALUES ($1, $2, $3, $4, $5, $6)
+                  RETURNING EventId`;
+  let userID = req.body.userid;
+  console.log(userID);
+  let eventName = req.body.name;
+  let eventType = req.body.type;
+  let eventDay = req.body.day;
+  let eventStartTime = req.body.startTime;
+  let eventEndTime = req.body.endTime;
+
+  //insert checks
+  let eventFormat = null;
+  if(req.body.format){
+    eventFormat=req.body.format;
+  }
+  else{
+    eventFormat=3;
+  }
+  try{
+    const result = await db.one(query, [eventName, eventType, eventDay, eventStartTime, eventEndTime, eventFormat]);
+    console.log(result);
+    const query1 = `INSERT INTO UsersToEvents (UserID, EventID)
+                    VALUES ($1, $2)
+                    RETURNING UserID, EventID`;
+    const result1 = await db.manyOrNone(query1, [userID, result.eventid]);
+    console.log("result: ", result1);
+    res.send(200);
+    return;
+  } catch(error){
+    console.error('Error: ', error);
   }
 });
 
@@ -741,6 +836,7 @@ const tutorUser = {
   learning: 'visual'
 };
 
+
 const jonas = {
   password: 'pass',
   email: 'me@mail.com',
@@ -813,21 +909,6 @@ const molly = {
   learning: 'hands'
 };
 
-/*
-INSERT INTO LearningStyles (Name) VALUES
-('visual'),
-('auditory'),
-('hands'),
-('writing');
-
-INSERT INTO users (Id, Password, Email, UserType, Name, Degree, Year, Bio, LearningStyle) VALUES
-(1, 'pass', 'me@mail.com', 'Tutor', 'Jonas', 'Business', 'Junior', 'I am German', 1 ),
-(2, 'pass', 'mail@mail.com', 'Student', 'Connor', 'CSCI', 'Senior', 'I am tired', 3 ),
-(3, 'pass', 'me@me.com', 'Tutor', 'Lukas', 'Psych', 'Junior', 'I am Cop', 4 ),
-(4, 'pass', 'mail@me.com', 'Tutor', 'Bjorn', 'Business', 'Junior', 'I am Norwegian', 3 ),
-(5, 'pass', 'mailme@mail.com', 'Tutor', 'Kate', 'Aero', 'Freshman', 'I am freshman', 2 ),
-(6, 'pass', 'mailme@me.com', 'Tutor', 'Molly', 'CSCI', 'Junior', 'I am hurt', 3 );
-*/
 createTestUser(studentUser);
 createTestUser(tutorUser);
 createTestUser(jonas);
