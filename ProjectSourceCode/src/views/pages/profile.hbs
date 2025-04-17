@@ -75,6 +75,7 @@
 
       {{!-- Potential Tutors --}}
       <row>
+        <br>
         <h2 style="text-align: center;"> Potential Tutors</h2>
         <div class="card-group">
           {{#if potentialmatches}}
@@ -93,16 +94,20 @@
             <button class = "btn btn-primary"  type='submit'>View Profile</button><br/>
           </div>
           {{/each}}
-          {{else}}
-           <div class="card">
-                <div class="text-center">
-                  <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
-                </div>
-                <strong>Looks Like You've Seen Everyone</strong>
-            </div>
-          {{/if}}
         </div>
       </row>
+          {{else}}
+        {{!-- <h2 style="text-align: center;">Potential Tutors</h2> --}}
+            <div class="card-vert" style="margin-left: -8px;">
+            <div class="row align-items-center">
+                    <div class="col-auto">
+                <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+              </div>
+    
+              <div class="col-auto">
+                <p class="mb-0">No More Tutors Available</p>
+              </div>
+        {{/if}}
     </div>
   </div>
 </div>
