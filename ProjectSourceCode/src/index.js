@@ -152,6 +152,7 @@ app.post('/register', async (req, res) => {
   for(let arg in registerInfo) {
     if(!registerInfo[arg]) {
       res.status(400).send(`argument "${arg}" is required`);
+      res.render('pages/register', {message: [{ text: `argument "${arg}" is required`, level: 'danger'}]});
       return;
     }
   }
@@ -245,7 +246,7 @@ app.post('/register', async (req, res) => {
       }
       classIds.push(classId.id);
     } catch (error) {
-      res.status(500).send('the server ran into an error while getting class ids');
+      res.render('pages/register', {message: [{ text: 'The server ran into an error!', level: 'danger'}]});
       return;
     }
   }
@@ -265,7 +266,7 @@ app.post('/register', async (req, res) => {
     }
     registerInfo.learning = styleId.id;
   } catch (error) {
-    res.status(500).send('the server ran into an error while getting learning style id');
+    res.render('pages/register', {message: [{ text: 'The server ran into an error!', level: 'danger'}]});
     return;
   }
 
@@ -275,12 +276,13 @@ app.post('/register', async (req, res) => {
     const emailResult = await db.manyOrNone(emailQuery, registerInfo.email);
 
     if (emailResult.length > 0) {
-      res.status(400).send('An account is already registered with this email');
+      res.render('pages/register', {message: [{ text: 'An account is already registered with this email', level: 'danger'}]});
       return;
     }
   } catch (error) {
     console.log(`Server encountered error during email check: ${error}`);
-    res.status(500).send('the server encountered an error while registering the email for the user');
+    res.render('pages/register', {message: [{ text: 'The server ran into an error!', level: 'danger'}]});
+    return;
   }
 
   // insert the user data into the db
@@ -322,7 +324,8 @@ app.post('/register', async (req, res) => {
     // handle any errors
     console.log('Server encountered error during register:');
     console.log(error.stack);
-    res.status(500).send('the server encountered an error while registering the password for the user');
+    res.render('pages/register', {message: [{ text: 'The server ran into an error!', level: 'danger'}]});
+    return;
   }
 });
 
@@ -352,24 +355,27 @@ app.post('/login', async (req, res) => {
 // changed login route to not have nested if statements and work with tests better
     if(!email){
       console.log("missing email");
-      return res.status(400).json({message: "Invalid Credentials"});
+      return res.status(400).json({message: 'missing argument: email'});
     }
     const user = await db.oneOrNone(userQuery, email);
     if (!user){
       console.log("User Not Found");
-      return res.status(400).json({message: "Invalid Credentials"});
+      res.render('pages/login', {message: [{ text: 'Incorrect email or password', level: 'danger'}]});
+      return;
     }
 
     // Google users must use the Sign in with Google button
     if(user.googleid) {
       console.log("User is a Google User");
-      return res.status(400).json({message: "The user is a Google User"});
+      res.render('pages/login', {message: [{ text: 'Please Sign In with Google', level: 'warning'}]});
+      return;
     }
 
     const match = await bcrypt.compare(req.body.password, user.password);
     if (!match){
       console.log('Invalid Password');
-      return res.status(400).json({message: "Invalid Credentials"});
+      res.render('pages/login', {message: [{ text: 'Incorrect email or password', level: 'danger'}]});
+      return;
     }
     
     await loginUser(req, user);
@@ -381,7 +387,8 @@ app.post('/login', async (req, res) => {
   } catch (error) {
     console.log('Server encountered error during login:');
     console.log(error.stack);
-    return res.status(500).json({message: "Server Error"});
+    res.render('pages/login', {message: [{ text: 'The server ran into an error!', level: 'danger'}]});
+    return;
   }
 });
 
@@ -471,7 +478,10 @@ app.get('/profile', async(req, res) => {
   console.log(req.session.user.email);
   if(!useremail)
   {
-    return res.status(400).send("invalid email");
+    console.log('A user session has been corrupted: ');
+    console.log(user);
+    res.redirect('/login');
+    return;
   }
   const query = `
   SELECT u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames, u.Profileimage
@@ -488,10 +498,12 @@ app.get('/profile', async(req, res) => {
     res.render('pages/profile', {
       //i think this is where im having trouble reading in
       name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage
-    })
+    });
   }
   catch(error){
     console.error("error loading profile:", error)
+    res.render('pages/profile', {message: [{ text: 'The server ran into an error!', level: 'danger'}]});
+    return;
   }
 });
 
@@ -572,7 +584,8 @@ app.get('/matching/:index?', async (req, res) => {
     });
   } catch (err){ //in case of database error
     console.error('DB error:', err);
-    res.status(500).send('Server error');
+    res.render('pages/matching', {message: [{ text: 'The server ran into an error!', level: 'danger'}]});
+    return;
   }
 });
 
