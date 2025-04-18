@@ -14,6 +14,7 @@ const axios = require('axios');
 const {OAuth2Client} = require('google-auth-library');
 const fileupload = require('express-fileupload');
 const fs = require('fs');
+const e = require('express');
 
 // *****************************************************
 // <!-- Section 2 : Connect to DB -->
@@ -317,6 +318,7 @@ app.post('/register', async (req, res) => {
     });
 
     // Successful register, redirect the user to the login page
+    sendEmail(registerInfo.email, "Tudr Account Created!", `Welcome to Tudr ${registerInfo.name}!`);
     res.redirect('/login');
   } catch (error) {
     // handle any errors
@@ -375,6 +377,7 @@ app.post('/login', async (req, res) => {
     await loginUser(req, user);
 
     if (req.headers.accept && req.headers.accept.includes("text/html")){
+      //sendEmail(email, "Tudr Account Login!", `Welcome back to Tudr ${user.name}!`);
       return res.redirect('/profile');
     }
     return res.status(200).json({message: "Login Successfull"});
@@ -423,6 +426,7 @@ app.post('/glogin', async (req, res) => {
     let user = await db.oneOrNone(gIdQuery, [userData.gid]);
     if(user) {
       await loginUser(req, user);
+      //sendEmail(user.email, "Tudr Account Created!", "Welcome to Tudr!");
       res.send(JSON.stringify({redirect: '/profile'}));
       return;
     }
@@ -609,7 +613,18 @@ app.post('/like', async (req, res) => {
     const allMatches = await db.query('SELECT * FROM MatchedUsers');
     console.log('Current MatchedUsers:', allMatches);
 
+    //tutor email
+    // const tutorEmail = await db.one(
+    //   `SELECT Email
+    //   FROM users
+    //   Where Id =tutorID`,
+    //   [tutorEmail]
+    // );
+    // console.log(tutorEmail);
+
     // Redirect to next match
+    //sendEmail(req.session.user.email, "Meeting request sent!", `New match with ${tutorUser} has been added!` );
+    //sendEmail(req.body.tutorUser, "Meeting request sent!", `New match with ${userID} has been added!` );
     res.redirect(`/matching/${nextIndex}`);
   } catch (err) {
     console.error('Error handling match:', err);
@@ -643,6 +658,36 @@ app.post('/skip', async (req, res) => {
   }
 });
 
+// *****************************************************
+// <!-- Email notifications code -->
+// *****************************************************
+function sendEmail(toEmail, subject, message){
+  const nodemailer = require('nodemailer');
+
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // true for port 465, false for port 587
+    auth: {
+      user: 'tudr.alerts@gmail.com',
+      pass: 'lmjt mrum ichb frvn',
+    },
+  });
+
+  const mailOptions = {
+    from: '"Tudr.com" <tudr.alerts@gmail.com>',
+    to: toEmail,
+    subject: subject,
+    text: message,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      return console.error('Error sending email:', error);
+    }
+    console.log('Email sent:', info.response);
+  });
+}
 
 
 
