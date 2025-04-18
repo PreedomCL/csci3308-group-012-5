@@ -477,6 +477,50 @@ app.get('/matches', (req, res) => {
 app.get('/profile', async(req, res) => {
   const useremail = req.session.user.email;
   console.log(req.session.user.email);
+  const userID = req.session.user.id;
+  const userData = await db.one(
+    `SELECT LearningStyle, UserType, Degree
+    FROM users
+    WHERE Id = $1`,
+    [userID]
+  );
+
+  const potentials = await db.any(
+    `SELECT Id, Name, Degree, Year, Bio, LearningStyle 
+    FROM users 
+    WHERE LearningStyle = $1
+      AND UserType != $2
+      AND Degree = $3
+      AND Id IN (
+        SELECT TutorID FROM MatchedUsers WHERE UserID = $4
+      )`,
+    [userData.learningstyle, userData.usertype, userData.degree, userID]
+  );
+
+  // start with initial index
+  const index = parseInt(req.params.index) || 0;
+  const match = potentials[index];
+
+  const allMatches = await db.any(
+    `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+     FROM users u
+     INNER JOIN MatchedUsers m ON u.Id = m.TutorID
+     WHERE m.UserID = $1 AND m.Action = 'like'`,
+    [userID]
+  );
+  const potentialmatches = await db.any(
+    `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+     FROM users u
+     WHERE u.Id != $1
+       AND u.UserType != $2
+       AND u.Degree = $3
+       AND u.LearningStyle = $4
+       AND u.Id NOT IN (
+         SELECT TutorID FROM MatchedUsers WHERE UserID = $1
+       ) LIMIT 3`,
+    [userID, userData.usertype, userData.degree, userData.learningstyle]
+  );  
+
   if(!useremail)
   {
     console.log('A user session has been corrupted: ');
@@ -498,7 +542,7 @@ app.get('/profile', async(req, res) => {
     console.log(result);
     res.render('pages/profile', {
       //i think this is where im having trouble reading in
-      userID: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage
+      userID: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches
     })
   }
   catch(error){
