@@ -546,7 +546,7 @@ app.get('/profile', async(req, res) => {
     console.log(result);
     res.render('pages/profile', {
       //i think this is where im having trouble reading in
-      userID: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches
+      id: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches
     })
   }
   catch(error){
@@ -583,6 +583,47 @@ app.get('/calendar/events', async(req, res) => {
                           JOIN EventFormats ef ON e.EventFormat = ef.FormatID
                           JOIN EventTypes et ON e.EventType = et.TypeID
                           WHERE e.EventId = $1`;
+  try{
+    const eventIds = await db.manyOrNone(eventIDQuery, req.query.userID);
+    console.log(eventIds);
+    for(let e of eventIds){
+      const event = await db.oneOrNone(eventInfoQuery, e.eventid)
+      if(!event){
+        console.log(`Event not found for ID: ${e.eventid}`);
+        continue;
+      }
+      else{
+        let formatted_event = {
+          title: event.title,
+          daysOfWeek: [event.day],
+          description: event.description,
+          startTime: event.start,
+          endTime: event.end,
+          type: event.type,
+          id: event.id,
+          format: event.format
+        }
+        eventsInfo.push(formatted_event);
+      }
+    }
+    console.log('GET', eventsInfo);
+    return res.json(eventsInfo);
+  } catch(error){
+    console.log("Error accessing user events calendar: ", error);
+    return res.status(500).json({message: "Server Error"});
+  }
+});
+
+app.get('/calendar/events/match', async(req, res) => {
+  console.log("Gathering user event information");
+  const eventIDQuery = `SELECT EventId FROM UsersToEvents WHERE UserId = $1`;
+  let eventsInfo = [];
+  const eventInfoQuery = `SELECT e.EventId as id, e.EventName as title, e.EventDay as day, e.EventDescription as description, et.TypeName as type,
+                          e.EventStartTime as start, e.EventEndTime as end, ef.FormatName as format 
+                          FROM Events e 
+                          JOIN EventFormats ef ON e.EventFormat = ef.FormatID
+                          JOIN EventTypes et ON e.EventType = et.TypeID
+                          WHERE e.EventId=$1 AND et.TypeName='Available'`;
   try{
     const eventIds = await db.manyOrNone(eventIDQuery, req.query.userID);
     console.log(eventIds);

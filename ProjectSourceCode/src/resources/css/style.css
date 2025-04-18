@@ -54,7 +54,7 @@ section, aside, div {
 
 /* Calendar Style */
 
-#calendar-container {
+.calendar-container {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   height: 75vh; /* 75% of viewport height */
   width: 100%;
@@ -73,7 +73,7 @@ section, aside, div {
   }
 }
 @media (max-width: 768px) {
-  #calendar-container {
+  .calendar-container {
     height: 90vh; /* More height on mobile */
   }
 }
@@ -134,4 +134,16 @@ section, aside, div {
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
+}
+
+#request-modal{
+  z-index: 1053;
+}
+
+#profileModal{
+  z-index: 1051;
+}
+
+.modal-backdrop + .modal-backdrop {
+  z-index: 1052;
 }
