@@ -1,0 +1,10 @@
+{{#if message}}
+<div class="container">
+    {{#each message}}
+    <div class="alert alert-{{{level}}} alert-dismissible" role="alert">
+    <div>{{text}}</div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {{/each}}
+</div>
+{{/if}}
