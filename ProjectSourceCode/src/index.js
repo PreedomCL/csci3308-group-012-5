@@ -474,10 +474,6 @@ app.use((req, res, next) => {
 
 // All routes that require login below
 
-app.get('/matches', (req, res) => {
-  res.render('pages/myMatches')
-});
-
 app.get('/profile', async(req, res) => {
   const useremail = req.session.user.email;
   console.log(req.session.user.email);
