@@ -1,3 +1,38 @@
+/* home page */
+.desc{
+  float: left;
+  max-width: 500px;
+}
+.home-form{
+  float: right;
+}
+
+/* matching */
+body {
+  background-color: #f8f9fa;
+  padding-top: 50px;
+}
+
+.profile-card {
+  max-width: 400px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.profile-card h2 {
+  margin-bottom: 10px;
+}
+
+.btn-group {
+  margin-top: 20px;
+}
+
+/* Profile */
+
 .card {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   min-width: 200px;
