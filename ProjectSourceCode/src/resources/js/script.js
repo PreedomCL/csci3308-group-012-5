@@ -137,6 +137,10 @@ async function saveAvailabilityEvent(){
   }
 }
 
+async function requestSession(tutorId){
+  console.log('Request Session');
+}
+
 async function initializeCalendar(){
   /* add time slots */
   console.log("DOM loaded, initializing calendar...");
