@@ -73,8 +73,6 @@ CREATE TABLE UsersToEvents (
   EventID INT NOT NULL REFERENCES Events(EventId) ON DELETE CASCADE
 );
 
-
-
 DROP TABLE IF EXISTS MatchedUsers;
 CREATE TABLE MatchedUsers(
   TutorID INT NOT NULL,

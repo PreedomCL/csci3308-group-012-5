@@ -3,6 +3,8 @@
  */
 let calendar;
 
+let eventView;
+
 document.addEventListener('DOMContentLoaded', function() {   
   initializeCalendar();
 
@@ -148,7 +150,7 @@ async function initializeCalendar(){
       return; // Exit early if library isn't loaded
   }
   const userID = document.getElementById("calendar").getAttribute("data-user-id");
-  console.log(userID);
+  const userName = document.getElementById("calendar").getAttribute("data-user-name");
 
   const response = await fetch(`/calendar/events?userID=${userID}`);
   console.log("cal done");
@@ -159,28 +161,41 @@ async function initializeCalendar(){
       calendar = new FullCalendar.Calendar(calendarEl, {  
           initialView: 'timeGridWeek',
           headerToolbar: {
-              left: 'updateAvailability',
-              center: 'title'/*user name's calendar*/,
-              right: '' /*Update availability button*/
+            left: 'updateAvailability',
+            center: 'title'/*user name's calendar*/,
+            right: '' /*Update availability button*/
           },
           customButtons: {
-              updateAvailability: {
-                  text: 'Update Availability',
-                  click: function() {
-                      //create button, click it, remove it
-                      const tmp_button = document.createElement('button');
-                      tmp_button.setAttribute('data-bs-toggle', 'modal');
-                      tmp_button.setAttribute('data-bs-target', '#availability-modal');
-                      document.getElementById('parent').appendChild(tmp_button);
-                      tmp_button.click();
-                      document.getElementById('parent').removeChild(tmp_button);
-                      populateModal(userID);
-                  }
+            updateAvailability: {
+              text: 'Update Availability',
+              click: function() {
+                  //create button, click it, remove it
+                  const tmp_button = document.createElement('button');
+                  tmp_button.setAttribute('data-bs-toggle', 'modal');
+                  tmp_button.setAttribute('data-bs-target', '#availability-modal');
+                  document.getElementById('parent').appendChild(tmp_button);
+                  tmp_button.click();
+                  document.getElementById('parent').removeChild(tmp_button);
+                  populateModal(userID);
               }
+            }
+          },
+          titleFormat: function(){
+            return `${userName}'s Calendar`;
+          },
+          eventClick: function(info){
+            console.log('Click: ', info);
+            //create button, click it, remove it
+            const tmp_button = document.createElement('button');
+            tmp_button.setAttribute('data-bs-toggle', 'modal');
+            tmp_button.setAttribute('data-bs-target', '#download-modal');
+            document.getElementById('parent').appendChild(tmp_button);
+            tmp_button.click();
+            document.getElementById('parent').removeChild(tmp_button);
+            populateDownload(info.event);
           },
           nowIndicator: true,
           stickyHeaderDates: true,
-          timeZone: 'America/Denver',
           slotDuration: '00:30:00',  
           slotMinTime: '08:00:00',  
           slotMaxTime: '21:00:00',
@@ -303,3 +318,106 @@ async function populateModal(id){
   // newSlot.className = `time-slot`;
   // newSlot.innerHTML =``;
 }
+
+function populateDownload(event){
+  eventView = event;
+  const title = event.title;
+  const start = new Date(event.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const end = new Date(event.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const day = new Date(event.start).toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
+  const format = event.extendedProps.format;
+  const type = event.extendedProps.type;
+  const description = event.extendedProps.description || "No description";
+
+  //clear previous event info
+  const modal = document.getElementById('body');
+  if(modal.childNodes){
+    modal.replaceChildren();
+  }
+  const newDiv = document.createElement('div');
+
+  newDiv.className = 'card';
+  newDiv.innerHTML =`
+    <div class="card-header bg-primary text-white">
+      <h5 class="card-title mb-0">${title}</h5>
+    </div>
+    <div class="card-body">
+      <div class="row mb-2">
+        <div class="col-md-5 fw-bold">Day:</div>
+        <div class="col-md-7">${day}</div>
+      </div>
+      <div class="row mb-2">
+        <div class="col-md-5 fw-bold">Time:</div>
+        <div class="col-md-7">${start} - ${end}</div>
+      </div>
+      <div class="row mb-2">
+        <div class="col-md-5 fw-bold">Format:</div>
+        <div class="col-md-7">${format}</div>
+      </div>
+      <div class="row mb-2">
+        <div class="col-md-5 fw-bold">Type:</div>
+        <div class="col-md-7">${type}</div>
+      </div>
+      <div class="row">
+        <div class="col-md-5 fw-bold">Description:</div>
+        <div class="col-md-7">${description}</div>
+      </div>
+    </div>
+  `;
+  if(type!='Available'){
+    newDiv.innerHTML += `
+    <div class="card-footer">
+      <button class="btn btn-sm id="download-button" btn-outline-secondary me-2" onclick="downloadEvent()">Download</button>
+    </div>`;
+  }
+  modal.appendChild(newDiv);
+}
+
+function downloadEvent(){
+  try {
+    console.log(eventView);
+    const calEvent = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TUDR//EN']; //starts icalendar ICS format 
+    calEvent.push(
+          'BEGIN:VEVENT',  //each vevent is a individual calendar entry
+          `UID:event-${eventView.publicId}@tudr.app`,
+          `DTSTAMP:${formaticsdate(new Date())}`, //when event starts its formatted in ICS|| DTSTAMP is when it was downloaded
+          `DTSTART:${formaticsdate(eventView.start)}`,
+          `DTEND:${formaticsdate(eventView.end)}`,
+          `SUMMARY:${eventView.title}`,
+          `DESCRIPTION:${eventView.description}`,
+          `CATEGORIES:${eventView.type}, ${eventView.format}`,
+          'END:VEVENT',
+          'END:VCALENDAR'
+        );
+    
+    const icsContent = calEvent.join('\r\n') + '\r\n';
+    console.log('ics', icsContent);
+    
+    const blob = new Blob([icsContent], {type: 'text/calendar; charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+
+    // Automatically trigger the download
+    const tempLink = document.createElement('a');
+    tempLink.href = url;
+    tempLink.download = `Tudr_Event-${eventView.id}`;
+    document.body.appendChild(tempLink);
+    tempLink.click();
+    document.body.removeChild(tempLink);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Failed to download calendar', error);
+  }
+}
+
+function formaticsdate(date) {
+  const pad = (n) => (n < 10 ? '0' + n : n);
+  return (
+    date.getFullYear().toString() +
+    pad(date.getMonth() + 1) +
+    pad(date.getDate()) + 'T' +
+    pad(date.getHours()) +
+    pad(date.getMinutes()) +
+    pad(date.getSeconds())
+  );
+}
+
