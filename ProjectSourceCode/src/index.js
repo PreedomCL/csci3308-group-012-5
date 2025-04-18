@@ -14,6 +14,7 @@ const axios = require('axios');
 const {OAuth2Client} = require('google-auth-library');
 const fileupload = require('express-fileupload');
 const fs = require('fs');
+const { EventEmitterAsyncResource } = require('events');
 const e = require('express');
 
 // *****************************************************
@@ -22,8 +23,8 @@ const e = require('express');
 
 // database configuration
 const dbConfig = {
-  host: 'db', // the database server
-  port: 5432, // the database port
+  host: process.env.POSTGRES_HOST || 'db', // the database server
+  port: process.env.POSTGRES_PORT || 5432, // the database port
   database: process.env.POSTGRES_DB, // the database name
   user: process.env.POSTGRES_USER, // the user account to connect with
   password: process.env.POSTGRES_PASSWORD, // the password of the user account
@@ -153,6 +154,7 @@ app.post('/register', async (req, res) => {
   for(let arg in registerInfo) {
     if(!registerInfo[arg]) {
       res.status(400).send(`argument "${arg}" is required`);
+      res.render('pages/register', {message: [{ text: `argument "${arg}" is required`, level: 'danger'}]});
       return;
     }
   }
@@ -246,7 +248,7 @@ app.post('/register', async (req, res) => {
       }
       classIds.push(classId.id);
     } catch (error) {
-      res.status(500).send('the server ran into an error while getting class ids');
+      res.render('pages/register', {message: [{ text: 'The server ran into an error!', level: 'danger'}]});
       return;
     }
   }
@@ -266,7 +268,7 @@ app.post('/register', async (req, res) => {
     }
     registerInfo.learning = styleId.id;
   } catch (error) {
-    res.status(500).send('the server ran into an error while getting learning style id');
+    res.render('pages/register', {message: [{ text: 'The server ran into an error!', level: 'danger'}]});
     return;
   }
 
@@ -276,12 +278,13 @@ app.post('/register', async (req, res) => {
     const emailResult = await db.manyOrNone(emailQuery, registerInfo.email);
 
     if (emailResult.length > 0) {
-      res.status(400).send('An account is already registered with this email');
+      res.render('pages/register', {message: [{ text: 'An account is already registered with this email', level: 'danger'}]});
       return;
     }
   } catch (error) {
     console.log(`Server encountered error during email check: ${error}`);
-    res.status(500).send('the server encountered an error while registering the email for the user');
+    res.render('pages/register', {message: [{ text: 'The server ran into an error!', level: 'danger'}]});
+    return;
   }
 
   // insert the user data into the db
@@ -324,7 +327,8 @@ app.post('/register', async (req, res) => {
     // handle any errors
     console.log('Server encountered error during register:');
     console.log(error.stack);
-    res.status(500).send('the server encountered an error while registering the password for the user');
+    res.render('pages/register', {message: [{ text: 'The server ran into an error!', level: 'danger'}]});
+    return;
   }
 });
 
@@ -354,24 +358,27 @@ app.post('/login', async (req, res) => {
 // changed login route to not have nested if statements and work with tests better
     if(!email){
       console.log("missing email");
-      return res.status(400).json({message: "Invalid Credentials"});
+      return res.status(400).json({message: 'missing argument: email'});
     }
     const user = await db.oneOrNone(userQuery, email);
     if (!user){
       console.log("User Not Found");
-      return res.status(400).json({message: "Invalid Credentials"});
+      res.render('pages/login', {message: [{ text: 'Incorrect email or password', level: 'danger'}]});
+      return;
     }
 
     // Google users must use the Sign in with Google button
     if(user.googleid) {
       console.log("User is a Google User");
-      return res.status(400).json({message: "The user is a Google User"});
+      res.render('pages/login', {message: [{ text: 'Please Sign In with Google', level: 'warning'}]});
+      return;
     }
 
     const match = await bcrypt.compare(req.body.password, user.password);
     if (!match){
       console.log('Invalid Password');
-      return res.status(400).json({message: "Invalid Credentials"});
+      res.render('pages/login', {message: [{ text: 'Incorrect email or password', level: 'danger'}]});
+      return;
     }
     
     await loginUser(req, user);
@@ -384,7 +391,8 @@ app.post('/login', async (req, res) => {
   } catch (error) {
     console.log('Server encountered error during login:');
     console.log(error.stack);
-    return res.status(500).json({message: "Server Error"});
+    res.render('pages/login', {message: [{ text: 'The server ran into an error!', level: 'danger'}]});
+    return;
   }
 });
 
@@ -473,29 +481,172 @@ app.get('/matches', (req, res) => {
 app.get('/profile', async(req, res) => {
   const useremail = req.session.user.email;
   console.log(req.session.user.email);
+  const userID = req.session.user.id;
+  const userData = await db.one(
+    `SELECT LearningStyle, UserType, Degree
+    FROM users
+    WHERE Id = $1`,
+    [userID]
+  );
+
+  const potentials = await db.any(
+    `SELECT Id, Name, Degree, Year, Bio, LearningStyle 
+    FROM users 
+    WHERE LearningStyle = $1
+      AND UserType != $2
+      AND Degree = $3
+      AND Id IN (
+        SELECT TutorID FROM MatchedUsers WHERE UserID = $4
+      )`,
+    [userData.learningstyle, userData.usertype, userData.degree, userID]
+  );
+
+  // start with initial index
+  const index = parseInt(req.params.index) || 0;
+  const match = potentials[index];
+
+  const allMatches = await db.any(
+    `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+     FROM users u
+     INNER JOIN MatchedUsers m ON u.Id = m.TutorID
+     WHERE m.UserID = $1 AND m.Action = 'like'`,
+    [userID]
+  );
+  const potentialmatches = await db.any(
+    `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+     FROM users u
+     WHERE u.Id != $1
+       AND u.UserType != $2
+       AND u.Degree = $3
+       AND u.LearningStyle = $4
+       AND u.Id NOT IN (
+         SELECT TutorID FROM MatchedUsers WHERE UserID = $1
+       ) LIMIT 3`,
+    [userID, userData.usertype, userData.degree, userData.learningstyle]
+  );  
+
   if(!useremail)
   {
-    return res.status(400).send("invalid email");
+    console.log('A user session has been corrupted: ');
+    console.log(user);
+    res.redirect('/login');
+    return;
   }
   const query = `
-  SELECT u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames, u.Profileimage
+  SELECT u.Id as userid, u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames 
   FROM Users u 
     JOIN LearningStyles ls ON u.LearningStyle = ls.Id
     LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
     LEFT JOIN Classes c ON c.Id = ctu.ClassId
     WHERE u.email = $1
-      GROUP BY u.Name, u.Bio, ls.Name, u.Profileimage
+      GROUP BY u.id, u.Name, u.Bio, ls.Name
   `;
   try{
     const result = await db.one(query, [useremail])
     console.log(result);
     res.render('pages/profile', {
       //i think this is where im having trouble reading in
-      name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage
+      userID: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches
     })
   }
   catch(error){
     console.error("error loading profile:", error)
+    res.render('pages/profile', {message: [{ text: 'The server ran into an error!', level: 'danger'}]});
+    return;
+  }
+});
+
+app.get('/calendar/reset', async(req, res) => {
+  const query = `SELECT EventID FROM UsersToEvents WHERE UserId = $1`;
+  const query2 = `DELETE FROM Events WHERE EventId = $1`;
+  console.log("Deleting");
+  try{
+    const eventIds = await db.manyOrNone(query, req.query.userID);
+    for(let e of eventIds){
+      console.log(e);
+      await db.none(query2, e.eventid);
+    }
+    console.log("Done Deleting");
+    return res.status(200).send("Done Deleting");
+  } catch (error){
+    console.log("ERROR: ", error);
+  }
+})
+
+app.get('/calendar/events', async(req, res) => {
+  console.log("Gathering user event information");
+  const eventIDQuery = `SELECT EventId FROM UsersToEvents WHERE UserId = $1`;
+  let eventsInfo = [];
+  const eventInfoQuery = `SELECT e.EventId as id, e.EventName as title, e.EventDay as day, e.EventDescription as description, et.TypeName as type,
+                          e.EventStartTime as start, e.EventEndTime as end, ef.FormatName as format 
+                          FROM Events e 
+                          JOIN EventFormats ef ON e.EventFormat = ef.FormatID
+                          JOIN EventTypes et ON e.EventType = et.TypeID
+                          WHERE e.EventId = $1`;
+  try{
+    const eventIds = await db.manyOrNone(eventIDQuery, req.query.userID);
+    console.log(eventIds);
+    for(let e of eventIds){
+      const event = await db.oneOrNone(eventInfoQuery, e.eventid)
+      if(!event){
+        console.log(`Event not found for ID: ${e.eventid}`);
+        continue;
+      }
+      else{
+        let formatted_event = {
+          title: event.title,
+          daysOfWeek: [event.day],
+          description: event.description,
+          startTime: event.start,
+          endTime: event.end,
+          type: event.type,
+          id: event.id,
+          format: event.format
+        }
+        eventsInfo.push(formatted_event);
+      }
+    }
+    console.log('GET', eventsInfo);
+    return res.json(eventsInfo);
+  } catch(error){
+    console.log("Error accessing user events calendar: ", error);
+    return res.status(500).json({message: "Server Error"});
+  }
+});
+
+app.post('/calendar/updateAvailability', async (req, res) => {
+  console.log("post method");
+  const query = `INSERT INTO EVENTS (EventName, EventType, EventDay, EventStartTime, EventEndTime, EventFormat)
+                  VALUES ($1, $2, $3, $4, $5, $6)
+                  RETURNING EventId`;
+  let userID = req.body.userid;
+  console.log(userID);
+  let eventName = req.body.name;
+  let eventType = req.body.type;
+  let eventDay = req.body.day;
+  let eventStartTime = req.body.startTime;
+  let eventEndTime = req.body.endTime;
+
+  //insert checks
+  let eventFormat = null;
+  if(req.body.format){
+    eventFormat=req.body.format;
+  }
+  else{
+    eventFormat=3;
+  }
+  try{
+    const result = await db.one(query, [eventName, eventType, eventDay, eventStartTime, eventEndTime, eventFormat]);
+    console.log(result);
+    const query1 = `INSERT INTO UsersToEvents (UserID, EventID)
+                    VALUES ($1, $2)
+                    RETURNING UserID, EventID`;
+    const result1 = await db.manyOrNone(query1, [userID, result.eventid]);
+    console.log("result: ", result1);
+    res.send(200);
+    return;
+  } catch(error){
+    console.error('Error: ', error);
   }
 });
 
@@ -576,7 +727,8 @@ app.get('/matching/:index?', async (req, res) => {
     });
   } catch (err){ //in case of database error
     console.error('DB error:', err);
-    res.status(500).send('Server error');
+    res.render('pages/matching', {message: [{ text: 'The server ran into an error!', level: 'danger'}]});
+    return;
   }
 });
 
@@ -614,17 +766,19 @@ app.post('/like', async (req, res) => {
     console.log('Current MatchedUsers:', allMatches);
 
     //tutor email
-    // const tutorEmail = await db.one(
-    //   `SELECT Email
-    //   FROM users
-    //   Where Id =tutorID`,
-    //   [tutorEmail]
-    // );
-    // console.log(tutorEmail);
+    const tutorData = await db.one(
+      `SELECT Name, Email
+      FROM users
+      Where Id =$1`,
+      [tutorID]
+    );
+    console.log(tutorData);
+    //to student confirming request
+    sendEmail(req.session.user.email, "New Tutor Added!", `New tutor match with ${tutorData.name} has been added to Tudr profile!` );
+    //to tutor informing of request
+    sendEmail(tutorData.email, "New Student Added!", `New student match with ${req.session.user.name} has been added to Tudr profile!` );
 
     // Redirect to next match
-    //sendEmail(req.session.user.email, "Meeting request sent!", `New match with ${tutorUser} has been added!` );
-    //sendEmail(req.body.tutorUser, "Meeting request sent!", `New match with ${userID} has been added!` );
     res.redirect(`/matching/${nextIndex}`);
   } catch (err) {
     console.error('Error handling match:', err);
@@ -673,6 +827,11 @@ function sendEmail(toEmail, subject, message){
       pass: 'lmjt mrum ichb frvn',
     },
   });
+
+  //email check for fake emails
+  console.log("to", toEmail);
+  console.log("sub", subject);
+  console.log("body", message);
 
   const mailOptions = {
     from: '"Tudr.com" <tudr.alerts@gmail.com>',
@@ -741,6 +900,7 @@ const tutorUser = {
   classes: ['compsci', 'math'],
   learning: 'visual'
 };
+
 
 const jonas = {
   password: 'pass',
@@ -814,21 +974,6 @@ const molly = {
   learning: 'hands'
 };
 
-/*
-INSERT INTO LearningStyles (Name) VALUES
-('visual'),
-('auditory'),
-('hands'),
-('writing');
-
-INSERT INTO users (Id, Password, Email, UserType, Name, Degree, Year, Bio, LearningStyle) VALUES
-(1, 'pass', 'me@mail.com', 'Tutor', 'Jonas', 'Business', 'Junior', 'I am German', 1 ),
-(2, 'pass', 'mail@mail.com', 'Student', 'Connor', 'CSCI', 'Senior', 'I am tired', 3 ),
-(3, 'pass', 'me@me.com', 'Tutor', 'Lukas', 'Psych', 'Junior', 'I am Cop', 4 ),
-(4, 'pass', 'mail@me.com', 'Tutor', 'Bjorn', 'Business', 'Junior', 'I am Norwegian', 3 ),
-(5, 'pass', 'mailme@mail.com', 'Tutor', 'Kate', 'Aero', 'Freshman', 'I am freshman', 2 ),
-(6, 'pass', 'mailme@me.com', 'Tutor', 'Molly', 'CSCI', 'Junior', 'I am hurt', 3 );
-*/
 createTestUser(studentUser);
 createTestUser(tutorUser);
 createTestUser(jonas);

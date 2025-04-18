@@ -1,7 +1,144 @@
 /**
  * Calendar scripts
  */
-document.addEventListener('DOMContentLoaded', function() {
+let calendar;
+
+document.addEventListener('DOMContentLoaded', function() {   
+  initializeCalendar();
+
+    document.querySelectorAll('.add-time').forEach(function(button){
+      button.addEventListener('click', function(){
+        const day = this.getAttribute('day');
+        const timeSlots = document.getElementById(`selector${day}`);
+        const newSlot = document.createElement('div');
+        newSlot.className = `time-slot`;
+        newSlot.innerHTML =`
+            <select class="form-select start-time">
+              <option value="" disabled selected>Start Time</option>
+              <option value="08:00:00">8:00 AM</option>
+              <option value="08:30:00">8:30 AM</option>
+              <option value="09:00:00">9:00 AM</option>
+              <option value="09:30:00">9:30 AM</option>
+              <option value="10:00:00">10:00 AM</option>
+              <option value="10:30:00">10:30 AM</option>
+              <option value="11:00:00">11:00 AM</option>
+              <option value="11:30:00">11:30 AM</option>
+              <option value="12:00:00">12:00 PM</option>
+              <option value="12:30:00">12:30 PM</option>
+              <option value="13:00:00">1:00 PM</option>
+              <option value="13:30:00">1:30 PM</option>
+              <option value="14:00:00">2:00 PM</option>
+              <option value="14:30:00">2:30 PM</option>
+              <option value="15:00:00">3:00 PM</option>
+              <option value="15:30:00">3:30 PM</option>
+              <option value="16:00:00">4:00 PM</option>
+              <option value="16:30:00">4:30 PM</option>
+              <option value="17:00:00">5:00 PM</option>
+              <option value="17:30:00">5:30 PM</option>
+              <option value="18:00:00">6:00 PM</option>
+              <option value="18:30:00">6:30 PM</option>
+              <option value="19:00:00">7:00 PM</option>
+              <option value="19:30:00">7:30 PM</option>
+              <option value="20:00:00">8:00 PM</option>
+              <option value="20:30:00">8:30 PM</option>
+            </select>
+            <span>to</span>
+            <select class="form-select end-time">
+              <option value="" disabled selected>End Time</option>
+              <option value="08:30:00">8:30 AM</option>
+              <option value="09:00:00">9:00 AM</option>
+              <option value="09:30:00">9:30 AM</option>
+              <option value="10:00:00">10:00 AM</option>
+              <option value="10:30:00">10:30 AM</option>
+              <option value="11:00:00">11:00 AM</option>
+              <option value="11:30:00">11:30 AM</option>
+              <option value="12:00:00">12:00 PM</option>
+              <option value="12:30:00">12:30 PM</option>
+              <option value="13:00:00">1:00 PM</option>
+              <option value="13:30:00">1:30 PM</option>
+              <option value="14:00:00">2:00 PM</option>
+              <option value="14:30:00">2:30 PM</option>
+              <option value="15:00:00">3:00 PM</option>
+              <option value="15:30:00">3:30 PM</option>
+              <option value="16:00:00">4:00 PM</option>
+              <option value="16:30:00">4:30 PM</option>
+              <option value="17:00:00">5:00 PM</option>
+              <option value="17:30:00">5:30 PM</option>
+              <option value="18:00:00">6:00 PM</option>
+              <option value="18:30:00">6:30 PM</option>
+              <option value="19:00:00">7:00 PM</option>
+              <option value="19:30:00">7:30 PM</option>
+              <option value="20:00:00">8:00 PM</option>
+              <option value="20:30:00">8:30 PM</option>
+              <option value="21:00:00">9:00 PM</option>
+            </select>
+            <button type="button" class="btn btn-sm btn-outline-danger remove-time">Remove</button>
+          `;
+        //verify end time is after start time
+        timeSlots.appendChild(newSlot);
+        if(timeSlots.querySelectorAll('.time-slot').length > 5){
+          timeSlots.removeChild(newSlot);
+        }
+        newSlot.querySelector('.remove-time').addEventListener('click', function(){
+          this.closest('.time-slot').remove();
+        });
+      });
+    });
+
+    document.getElementById('save-button').addEventListener('click', function(){
+      saveAvailabilityEvent();
+    });
+});
+
+async function saveAvailabilityEvent(){
+  let day = 0;
+  try{
+    //remove previous events
+    console.log("here");
+    const userID = document.getElementById("calendar").getAttribute("data-user-id");
+    console.log(userID);
+    const response = await fetch(`/calendar/reset?userID=${userID}`);
+    if(!response.ok){
+      console.error("ERROR RESET CALENDAR")
+    }
+    while(day<7){
+      console.log(day);
+      const input = document.querySelectorAll(`#selector${day} .time-slot`);
+      console.log("list: ", input);
+      for(let select of input) {
+        let start = select.querySelector('.start-time').value;
+        console.log("start", start);
+        let end = select.querySelector('.end-time').value;
+        console.log("end", end);
+        if(start&&end){
+          console.log("post");
+          await fetch('/calendar/updateAvailability', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              userid: userID,
+              name: "Available",
+              type: "1",
+              day: day,
+              startTime: start,
+              endTime: end
+            })
+          });
+          console.log("update done");
+        }
+      }
+    day++;
+    }
+  initializeCalendar();
+} catch(error) {
+    console.log("ERROR: ", error);
+  }
+}
+
+async function initializeCalendar(){
+  /* add time slots */
   console.log("DOM loaded, initializing calendar...");
   const calendarEl = document.getElementById('calendar');
 
@@ -10,15 +147,36 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error("FullCalendar library not loaded");
       return; // Exit early if library isn't loaded
   }
-  
+  const userID = document.getElementById("calendar").getAttribute("data-user-id");
+  console.log(userID);
+
+  const response = await fetch(`/calendar/events?userID=${userID}`);
+  console.log("cal done");
+  const userEvents = await response.json();
+
   try {
       console.log("Creating calendar instance...");
-      const calendar = new FullCalendar.Calendar(calendarEl, {  
-        initialView: 'timeGridWeek',
+      calendar = new FullCalendar.Calendar(calendarEl, {  
+          initialView: 'timeGridWeek',
           headerToolbar: {
-              left: '',
+              left: 'updateAvailability',
               center: 'title'/*user name's calendar*/,
-              right: 'button' /*Update availability button*/
+              right: '' /*Update availability button*/
+          },
+          customButtons: {
+              updateAvailability: {
+                  text: 'Update Availability',
+                  click: function() {
+                      //create button, click it, remove it
+                      const tmp_button = document.createElement('button');
+                      tmp_button.setAttribute('data-bs-toggle', 'modal');
+                      tmp_button.setAttribute('data-bs-target', '#availability-modal');
+                      document.getElementById('parent').appendChild(tmp_button);
+                      tmp_button.click();
+                      document.getElementById('parent').removeChild(tmp_button);
+                      populateModal(userID);
+                  }
+              }
           },
           nowIndicator: true,
           stickyHeaderDates: true,
@@ -28,25 +186,21 @@ document.addEventListener('DOMContentLoaded', function() {
           slotMaxTime: '21:00:00',
           scrollTime: '08:00:00',
           dayHeaderFormat: { weekday: 'short' },
-          events: [
-              { title: 'Meeting', daysOfWeek: [2,3], startTime: '10:30:00', end: '12:30:00' },
-              { title: 'Lunch', start: '2025-04-04T12:00:00' },
-              { title: 'Meeting', start: '2025-04-04T14:30:00' },
-              { title: 'Birthday Party', start: '2025-04-05T07:00:00' }
-          ],
           eventTimeFormat: {
-            hour: 'numeric',
-            minute: '2-digit',
-            meridiem: 'short'
-          },
+              hour: 'numeric',
+              minute: '2-digit',
+              meridiem: 'short'
+          }, 
           allDaySlot: false,
           expandRows: true,
           navLinks: false,
           editable: false,
           selectable: false,
           height: '100%',
+          events: userEvents
       });
-      
+
+      console.log(calendar.events);
       console.log("Rendering calendar...");
       // Remove updateSize call, only render
       calendar.render();
@@ -54,137 +208,98 @@ document.addEventListener('DOMContentLoaded', function() {
   } catch (error) {
       console.error("Error creating calendar:", error);
   }
-});
-/*
-  
-    // // Get the user ID from the data attribute
-    // //const userId = document.getElementById('calendar').dataset.userId;
-    // Check if FullCalendar is available
-    
-    // // Initialize FullCalendar
-    const calendarEl = document.getElementById('calendar');
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'timeGridWeek',
-      initialDate: '2025-04-07', //TODO: replace with current date
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'timeGridWeek,timeGridDay'
-      },
-      timeZone: 'America/Denver', // MST timezone
-      //events: `calendar/events?userId=${userId}`, //get events using api TODO: add route
-      events: [
-        {
-          title: 'All Day Event',
-          start: '2025-04-06'
-        },
-        {
-          title: 'Long Event',
-          start: '2025-04-07',
-          end: '2025-04-10'
-        },
-        {
-          title: 'Conference',
-          start: '2025-04-11',
-          end: '2025-04-13'
-        },
-        {
-          title: 'Meeting',
-          start: '2025-04-12T10:30:00',
-          end: '2025-04-12T12:30:00'
-        },
-        {
-          title: 'Lunch',
-          start: '2025-04-12T12:00:00'
-        },
-        {
-          title: 'Meeting',
-          start: '2025-04-12T14:30:00'
-        },
-        {
-          title: 'Birthday Party',
-          start: '2025-04-13T07:00:00'
-        },
-      ],
-      editable: false, // Read-only
-      selectable: false,
-      allDaySlot: true,
-      allDayContent: 'All Day', // customize label if needed
-      height: 'auto', // let the container determine height
-      expandRows: true, // expand rows to fill available height
-      stickyHeaderDates: true
-    //   eventClassNames: function(arg) {
-    //     return [arg.event.extendedProps.type];
-    //   },
-      
-    //   // Handle event click (view event details)
-    //   eventClick: function(info) {
-    //     if(info.event.exportable){
-    //       openExportModal(info.event);
-    //     }
-    //   }
-    });
-    
-    // Render the calendar
-    calendar.render();
-    
-    // // Modal elements
-    // const exportModal = new bootstrap.Modal(document.getElementById('export-modal'));
-    // //TODO: const eventDetailsModal = new bootstrap.Modal(document.getElementById('event-details-modal'));
-    
-    
-    // function openExportModal(event) {
-    //   // Set up download links
-    //   const downloadLink = document.getElementById('download-ical');
-    //   downloadLink.href = `/calendar/export/event/${event.id}`;
-      
-    //   // Set up Google Calendar link
-    //   const googleLink = document.getElementById('add-to-google');
-    //   const startTime = formatDateForGoogle(event.start);
-    //   const endTime = formatDateForGoogle(event.end);
-    //   const title = encodeURIComponent(event.title);
-    //   const description = encodeURIComponent(event.extendedProps.description || '');
-      
-    //   googleLink.href = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startTime}/${endTime}&details=${description}&ctz=America/Denver`;
-      
-    //   exportModal.show();
-    // }
-    
-    // // Helper function to format date for Google Calendar - from ClaudeAI. See Documentation
-    // function formatDateForGoogle(date) {
-    //   return date.toISOString().replace(/-|:|\.\d+/g, '');
-    // }
+}
 
-    /* TODO: Functions for event details
-    function openEventDetailsModal(event) {
-      // Populate details
-      document.getElementById('detail-event-title').textContent = event.title;
-      
-      // Format dates
-      const options = { 
-        weekday: 'short', 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        timeZone: 'America/Denver'
-      };
-      
-      document.getElementById('detail-event-start').textContent = event.start.toLocaleString('en-US', options);
-      document.getElementById('detail-event-end').textContent = event.end.toLocaleString('en-US', options);
-      
-      // Event type with capitalized first letter
-      const eventType = event.extendedProps.type || 'event';
-      document.getElementById('detail-event-type').textContent = 
-        eventType.charAt(0).toUpperCase() + eventType.slice(1);
-      
-      // Description
-      document.getElementById('detail-event-description').textContent = 
-        event.extendedProps.description || 'No description provided.';
-      
-      // Set export button event ID
-      document.getElementById('export-event-btn').setAttribute('data-event-id', event.id);
-      
-      eventDetailsModal.show();
-    }*/
+async function populateModal(id){
+  for (let i = 0; i < 7; i++) {
+    let selector = document.getElementById(`selector${i}`)
+    while(selector.firstChild){
+      selector.removeChild(selector.firstChild);
+    }
+  }
+  try{
+    const response = await fetch(`/calendar/events?userID=${id}`);
+    const userEvents = await response.json();
+    console.log(userEvents);
+    for(let e of userEvents){
+      day = e.daysOfWeek[0];
+      startTime = e.startTime;
+      endTime = e.endTime;
+      const timeSlots = document.getElementById(`selector${day}`);
+      const newSlot = document.createElement('div');
+      newSlot.className = `time-slot`;
+      newSlot.innerHTML =`
+          <select class="form-select start-time">
+            <option value="" disabled>Start Time</option>
+            <option value="08:00:00" ${startTime === "08:00:00" ? "selected" : ""}>8:00 AM</option>
+            <option value="08:30:00" ${startTime === "08:30:00" ? "selected" : ""}>8:30 AM</option>
+            <option value="09:00:00" ${startTime === "09:00:00" ? "selected" : ""}>9:00 AM</option>
+            <option value="09:30:00" ${startTime === "09:30:00" ? "selected" : ""}>9:30 AM</option>
+            <option value="10:00:00" ${startTime === "10:00:00" ? "selected" : ""}>10:00 AM</option>
+            <option value="10:30:00" ${startTime === "10:30:00" ? "selected" : ""}>10:30 AM</option>
+            <option value="11:00:00" ${startTime === "11:00:00" ? "selected" : ""}>11:00 AM</option>
+            <option value="11:30:00" ${startTime === "11:30:00" ? "selected" : ""}>11:30 AM</option>
+            <option value="12:00:00" ${startTime === "12:00:00" ? "selected" : ""}>12:00 PM</option>
+            <option value="12:30:00" ${startTime === "12:30:00" ? "selected" : ""}>12:30 PM</option>
+            <option value="13:00:00" ${startTime === "13:00:00" ? "selected" : ""}>1:00 PM</option>
+            <option value="13:30:00" ${startTime === "13:30:00" ? "selected" : ""}>1:30 PM</option>
+            <option value="14:00:00" ${startTime === "14:00:00" ? "selected" : ""}>2:00 PM</option>
+            <option value="14:30:00" ${startTime === "14:30:00" ? "selected" : ""}>2:30 PM</option>
+            <option value="15:00:00" ${startTime === "15:00:00" ? "selected" : ""}>3:00 PM</option>
+            <option value="15:30:00" ${startTime === "15:30:00" ? "selected" : ""}>3:30 PM</option>
+            <option value="16:00:00" ${startTime === "16:00:00" ? "selected" : ""}>4:00 PM</option>
+            <option value="16:30:00" ${startTime === "16:30:00" ? "selected" : ""}>4:30 PM</option>
+            <option value="17:00:00" ${startTime === "17:00:00" ? "selected" : ""}>5:00 PM</option>
+            <option value="17:30:00" ${startTime === "17:30:00" ? "selected" : ""}>5:30 PM</option>
+            <option value="18:00:00" ${startTime === "18:00:00" ? "selected" : ""}>6:00 PM</option>
+            <option value="18:30:00" ${startTime === "18:30:00" ? "selected" : ""}>6:30 PM</option>
+            <option value="19:00:00" ${startTime === "19:00:00" ? "selected" : ""}>7:00 PM</option>
+            <option value="19:30:00" ${startTime === "19:30:00" ? "selected" : ""}>7:30 PM</option>
+            <option value="20:00:00" ${startTime === "20:00:00" ? "selected" : ""}>8:00 PM</option>
+            <option value="20:30:00" ${startTime === "20:30:00" ? "selected" : ""}>8:30 PM</option>
+          </select>
+          <span>to</span>
+          <select class="form-select end-time">
+            <option value="" disabled>End Time</option>
+            <option value="08:30:00" ${endTime === "08:30:00" ? "selected" : ""}>8:30 AM</option>
+            <option value="09:00:00" ${endTime === "09:00:00" ? "selected" : ""}>9:00 AM</option>
+            <option value="09:30:00" ${endTime === "09:30:00" ? "selected" : ""}>9:30 AM</option>
+            <option value="10:00:00" ${endTime === "10:00:00" ? "selected" : ""}>10:00 AM</option>
+            <option value="10:30:00" ${endTime === "10:30:00" ? "selected" : ""}>10:30 AM</option>
+            <option value="11:00:00" ${endTime === "11:00:00" ? "selected" : ""}>11:00 AM</option>
+            <option value="11:30:00" ${endTime === "11:30:00" ? "selected" : ""}>11:30 AM</option>
+            <option value="12:00:00" ${endTime === "12:00:00" ? "selected" : ""}>12:00 PM</option>
+            <option value="12:30:00" ${endTime === "12:30:00" ? "selected" : ""}>12:30 PM</option>
+            <option value="13:00:00" ${endTime === "13:00:00" ? "selected" : ""}>1:00 PM</option>
+            <option value="13:30:00" ${endTime === "13:30:00" ? "selected" : ""}>1:30 PM</option>
+            <option value="14:00:00" ${endTime === "14:00:00" ? "selected" : ""}>2:00 PM</option>
+            <option value="14:30:00" ${endTime === "14:30:00" ? "selected" : ""}>2:30 PM</option>
+            <option value="15:00:00" ${endTime === "15:00:00" ? "selected" : ""}>3:00 PM</option>
+            <option value="15:30:00" ${endTime === "15:30:00" ? "selected" : ""}>3:30 PM</option>
+            <option value="16:00:00" ${endTime === "16:00:00" ? "selected" : ""}>4:00 PM</option>
+            <option value="16:30:00" ${endTime === "16:30:00" ? "selected" : ""}>4:30 PM</option>
+            <option value="17:00:00" ${endTime === "17:00:00" ? "selected" : ""}>5:00 PM</option>
+            <option value="17:30:00" ${endTime === "17:30:00" ? "selected" : ""}>5:30 PM</option>
+            <option value="18:00:00" ${endTime === "18:00:00" ? "selected" : ""}>6:00 PM</option>
+            <option value="18:30:00" ${endTime === "18:30:00" ? "selected" : ""}>6:30 PM</option>
+            <option value="19:00:00" ${endTime === "19:00:00" ? "selected" : ""}>7:00 PM</option>
+            <option value="19:30:00" ${endTime === "19:30:00" ? "selected" : ""}>7:30 PM</option>
+            <option value="20:00:00" ${endTime === "20:00:00" ? "selected" : ""}>8:00 PM</option>
+            <option value="20:30:00" ${endTime === "20:30:00" ? "selected" : ""}>8:30 PM</option>
+            <option value="21:00:00" ${endTime === "21:00:00" ? "selected" : ""}>9:00 PM</option>
+          </select>
+          <button type="button" class="btn btn-sm btn-outline-danger remove-time">Remove</button>
+        `;
+      timeSlots.appendChild(newSlot);
+      newSlot.querySelector('.remove-time').addEventListener('click', function(){
+        this.closest('.time-slot').remove();
+      });
+    }
+  } catch(error){
+    console.error("ERROR: ", error);
+  }
+  // const timeSlots = document.getElementById(`selector${day}`);
+  // const newSlot = document.createElement('div');
+  // newSlot.className = `time-slot`;
+  // newSlot.innerHTML =``;
+}
