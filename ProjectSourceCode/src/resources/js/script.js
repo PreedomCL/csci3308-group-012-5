@@ -90,10 +90,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('save-button').addEventListener('click', function(){
       saveAvailabilityEvent();
     });
-
-    // document.getElementById('download-button').addEventListener('click', function(){
-    //   downloadEvent();
-    // })
 });
 
 async function saveAvailabilityEvent(){
@@ -333,6 +329,7 @@ function populateDownload(event){
   const type = event.extendedProps.type;
   const description = event.extendedProps.description || "No description";
 
+  //clear previous event info
   const modal = document.getElementById('body');
   if(modal.childNodes){
     modal.replaceChildren();
@@ -379,17 +376,6 @@ function populateDownload(event){
 function downloadEvent(){
   try {
     console.log(eventView);
-    // const weekstart = new Date();
-    // weekstart.setDate(weekstart.getDate() - weekstart.getDay()); // start of current week (Sunday)
-    // const start = new Date(eventView.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    // const end = new Date(eventView.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    // start.setDate()
-    // startdate.setDate(eventView.start.day);
-    // startdate.setHours(eventView.start.hour, eventView.start.minute);
-    // const enddate = new Date();
-    // enddate.setDate(eventView.start.day);
-    // enddate.setHours(eventView.end.hour, eventView.end.minute);
-    console.log(eventView.start);
     const calEvent = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TUDR//EN']; //starts icalendar ICS format 
     calEvent.push(
           'BEGIN:VEVENT',  //each vevent is a individual calendar entry
