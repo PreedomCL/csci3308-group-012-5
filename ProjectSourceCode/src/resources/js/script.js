@@ -139,8 +139,53 @@ async function saveAvailabilityEvent(){
   }
 }
 
-async function requestSession(){
-  console.log('Request');
+async function requestSession(event){
+  document.getElementById('request-button').addEventListener('click', async function(){
+    console.log('Request');
+    console.log("Available: ", event);
+    // const aStartH = new Date(event.start).getHours().toString().padStart(2, '0');;
+    // console.log(aStartH);
+    // const aStartM = new Date(event.start).getMinutes().toString().padStart(2, '0');;
+    // console.log(aStartM);
+    // const aEndH = new Date(event.end).getHours().toString().padStart(2, '0');;
+    // console.log(aEndH);
+    // const aEndM = new Date(event.end).getMinutes().toString().padStart(2, '0');;
+    // console.log(aEndM);
+
+    // const availableStart = new Date(event.start).toLocaleDateString([], {hour: '2-digit', minute: '2-digit'});
+    // const availableEnd = new Date(event.end).toLocaleDateString([], {hour: '2-digit', minute: '2-digit'});
+    // console.log("start: ", availableStart);
+
+    const day = new Date(event.start).getDay();
+    const inputStart = document.getElementById('request-start');
+    let meetingStart = inputStart.querySelector('.start-time').value;
+    const inputEnd = document.getElementById('request-end');
+    let meetingEnd = inputEnd.querySelector('.end-time').value;
+    console.log(meetingStart);
+    console.log(meetingEnd);
+    //TODO: data validation
+
+    const studentID = document.getElementById('calendar').getAttribute('data-user-id');
+    const tutorID = document.getElementById('match-calendar').getAttribute('data-user-id');
+    await fetch('/calendar/requestMeeting', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: 
+        JSON.stringify({
+          userid: userID,
+          name: "Available",
+          type: "1",
+          day: day,
+          startTime: start,
+          endTime: end
+        })
+    });
+  });
+
+  
+
 }
 
 async function initializeUserCalendar(){
@@ -382,8 +427,7 @@ async function populateModal(id){
 }
 
 function clickUserEvent(event){
-  //create button, click it, remove it
-  if(event.extendedProps.type=='Available' /* && caltype==tutor*/){
+  if(event.extendedProps.type!='Available' /* && caltype==tutor*/){
     const downloadModal = document.getElementById('download-modal');
     const newModal = new bootstrap.Modal(downloadModal);
     newModal.show();
@@ -393,12 +437,6 @@ function clickUserEvent(event){
 }
 
 function clickMatchEvent(event){
-  // const tmp_button = document.createElement('button');
-  // tmp_button.setAttribute('data-bs-toggle', 'modal');
-  // tmp_button.setAttribute('data-bs-target', '#request-modal');
-  // document.getElementById('parent').appendChild(tmp_button);
-  // tmp_button.click();
-  // document.getElementById('parent').removeChild(tmp_button);
   const requestModal = document.getElementById('request-modal');
   const newModal = new bootstrap.Modal(requestModal,{
     backdrop: true,
@@ -406,6 +444,7 @@ function clickMatchEvent(event){
   newModal.show();
   console.log('show modal');
   populateRequest(event);
+  requestSession(event);
 }
 
 function populateRequest(event){
@@ -433,10 +472,40 @@ function populateRequest(event){
             </div>
           </div>
           <div class="row">
-            <div class="col-6">
+            <div class="col-6" id="request-start">
                 <select class="form-select start-time">
-                <option value="" disabled>Start Time</option>
-                <option value="08:00:00">8:00 AM</option>
+                  <option value="" disabled>Start Time</option>
+                  <option value="08:00:00">8:00 AM</option>
+                  <option value="08:30:00">8:30 AM</option>
+                  <option value="09:00:00">9:00 AM</option>
+                  <option value="09:30:00">9:30 AM</option>
+                  <option value="10:00:00">10:00 AM</option>
+                  <option value="10:30:00">10:30 AM</option>
+                  <option value="11:00:00">11:00 AM</option>
+                  <option value="11:30:00">11:30 AM</option>
+                  <option value="12:00:00">12:00 PM</option>
+                  <option value="12:30:00">12:30 PM</option>
+                  <option value="13:00:00">1:00 PM</option>
+                  <option value="13:30:00">1:30 PM</option>
+                  <option value="14:00:00">2:00 PM</option>
+                  <option value="14:30:00">2:30 PM</option>
+                  <option value="15:00:00">3:00 PM</option>
+                  <option value="15:30:00">3:30 PM</option>
+                  <option value="16:00:00">4:00 PM</option>
+                  <option value="16:30:00">4:30 PM</option>
+                  <option value="17:00:00">5:00 PM</option>
+                  <option value="17:30:00">5:30 PM</option>
+                  <option value="18:00:00">6:00 PM</option>
+                  <option value="18:30:00">6:30 PM</option>
+                  <option value="19:00:00">7:00 PM</option>
+                  <option value="19:30:00">7:30 PM</option>
+                  <option value="20:00:00">8:00 PM</option>
+                  <option value="20:30:00">8:30 PM</option>
+                </select>
+            </div>
+            <div class="col-6" id="request-end">
+              <select class="form-select end-time">
+                <option value="" disabled>End Time</option>
                 <option value="08:30:00">8:30 AM</option>
                 <option value="09:00:00">9:00 AM</option>
                 <option value="09:30:00">9:30 AM</option>
@@ -462,38 +531,8 @@ function populateRequest(event){
                 <option value="19:30:00">7:30 PM</option>
                 <option value="20:00:00">8:00 PM</option>
                 <option value="20:30:00">8:30 PM</option>
-                </select>
-            </div>
-            <div class="col-6">
-            <select class="form-select end-time">
-              <option value="" disabled>End Time</option>
-              <option value="08:30:00">8:30 AM</option>
-              <option value="09:00:00">9:00 AM</option>
-              <option value="09:30:00">9:30 AM</option>
-              <option value="10:00:00">10:00 AM</option>
-              <option value="10:30:00">10:30 AM</option>
-              <option value="11:00:00">11:00 AM</option>
-              <option value="11:30:00">11:30 AM</option>
-              <option value="12:00:00">12:00 PM</option>
-              <option value="12:30:00">12:30 PM</option>
-              <option value="13:00:00">1:00 PM</option>
-              <option value="13:30:00">1:30 PM</option>
-              <option value="14:00:00">2:00 PM</option>
-              <option value="14:30:00">2:30 PM</option>
-              <option value="15:00:00">3:00 PM</option>
-              <option value="15:30:00">3:30 PM</option>
-              <option value="16:00:00">4:00 PM</option>
-              <option value="16:30:00">4:30 PM</option>
-              <option value="17:00:00">5:00 PM</option>
-              <option value="17:30:00">5:30 PM</option>
-              <option value="18:00:00">6:00 PM</option>
-              <option value="18:30:00">6:30 PM</option>
-              <option value="19:00:00">7:00 PM</option>
-              <option value="19:30:00">7:30 PM</option>
-              <option value="20:00:00">8:00 PM</option>
-              <option value="20:30:00">8:30 PM</option>
-              <option value="21:00:00">9:00 PM</option>
-            </select>
+                <option value="21:00:00">9:00 PM</option>
+              </select>
             </div>
           </div>`;
   modal.appendChild(request);
