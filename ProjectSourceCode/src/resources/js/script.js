@@ -163,25 +163,38 @@ async function requestSession(event){
     let meetingEnd = inputEnd.querySelector('.end-time').value;
     console.log(meetingStart);
     console.log(meetingEnd);
+    const inputFormat = document.getElementById('request-format');
+    let meetingFormat = inputFormat.querySelector('.format').value;
     //TODO: data validation
 
     const studentID = document.getElementById('calendar').getAttribute('data-user-id');
+    const studentName = document.getElementById('calendar').getAttribute('data-user-name');
+
     const tutorID = document.getElementById('match-calendar').getAttribute('data-user-id');
-    await fetch('/calendar/requestMeeting', {
+    const tutorName = document.getElementById('match-calendar').getAttribute('data-user-name');
+
+    
+
+    await fetch('/requestMeeting', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: 
         JSON.stringify({
-          userid: userID,
-          name: "Available",
-          type: "1",
+          studentid: studentID,
+          tutorid: tutorID,
+          name: `Proposed Tutoring Session - ${studentName} & ${tutorName}`,
+          type: "2",
           day: day,
-          startTime: start,
-          endTime: end
+          description: `${studentName} is requesting to meet for a tutoring session with ${tutorName}`,
+          format: meetingFormat,
+          startTime: meetingStart,
+          endTime: meetingEnd
         })
     });
+    initializeMatchCalendar();
+    initializeUserCalendar();
   });
 
   
@@ -470,12 +483,52 @@ function populateRequest(event){
               <div class="col-md-5 fw-bold">Available From:</div>
               <div class="col-md-7">${Astart} - ${Aend}</div>
             </div>
-          </div>
-          <div class="row">
-            <div class="col-6" id="request-start">
-                <select class="form-select start-time">
-                  <option value="" disabled>Start Time</option>
-                  <option value="08:00:00">8:00 AM</option>
+            <div class="row mb-2">
+              <div class="col-md-5 fw-bold">Format:</div>
+              <div class="col-md-7" id="request-format">
+                <select class="form-select format">
+                  <option value="" disabled>Meeting Format</option>
+                  <option value="1">In-Person</option>
+                  <option value="2">Online</option>
+                  <option value="3">Hybrid</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-6" id="request-start">
+                  <select class="form-select start-time">
+                    <option value="" disabled>Start Time</option>
+                    <option value="08:00:00">8:00 AM</option>
+                    <option value="08:30:00">8:30 AM</option>
+                    <option value="09:00:00">9:00 AM</option>
+                    <option value="09:30:00">9:30 AM</option>
+                    <option value="10:00:00">10:00 AM</option>
+                    <option value="10:30:00">10:30 AM</option>
+                    <option value="11:00:00">11:00 AM</option>
+                    <option value="11:30:00">11:30 AM</option>
+                    <option value="12:00:00">12:00 PM</option>
+                    <option value="12:30:00">12:30 PM</option>
+                    <option value="13:00:00">1:00 PM</option>
+                    <option value="13:30:00">1:30 PM</option>
+                    <option value="14:00:00">2:00 PM</option>
+                    <option value="14:30:00">2:30 PM</option>
+                    <option value="15:00:00">3:00 PM</option>
+                    <option value="15:30:00">3:30 PM</option>
+                    <option value="16:00:00">4:00 PM</option>
+                    <option value="16:30:00">4:30 PM</option>
+                    <option value="17:00:00">5:00 PM</option>
+                    <option value="17:30:00">5:30 PM</option>
+                    <option value="18:00:00">6:00 PM</option>
+                    <option value="18:30:00">6:30 PM</option>
+                    <option value="19:00:00">7:00 PM</option>
+                    <option value="19:30:00">7:30 PM</option>
+                    <option value="20:00:00">8:00 PM</option>
+                    <option value="20:30:00">8:30 PM</option>
+                  </select>
+              </div>
+              <div class="col-6" id="request-end">
+                <select class="form-select end-time">
+                  <option value="" disabled>End Time</option>
                   <option value="08:30:00">8:30 AM</option>
                   <option value="09:00:00">9:00 AM</option>
                   <option value="09:30:00">9:30 AM</option>
@@ -501,38 +554,9 @@ function populateRequest(event){
                   <option value="19:30:00">7:30 PM</option>
                   <option value="20:00:00">8:00 PM</option>
                   <option value="20:30:00">8:30 PM</option>
+                  <option value="21:00:00">9:00 PM</option>
                 </select>
-            </div>
-            <div class="col-6" id="request-end">
-              <select class="form-select end-time">
-                <option value="" disabled>End Time</option>
-                <option value="08:30:00">8:30 AM</option>
-                <option value="09:00:00">9:00 AM</option>
-                <option value="09:30:00">9:30 AM</option>
-                <option value="10:00:00">10:00 AM</option>
-                <option value="10:30:00">10:30 AM</option>
-                <option value="11:00:00">11:00 AM</option>
-                <option value="11:30:00">11:30 AM</option>
-                <option value="12:00:00">12:00 PM</option>
-                <option value="12:30:00">12:30 PM</option>
-                <option value="13:00:00">1:00 PM</option>
-                <option value="13:30:00">1:30 PM</option>
-                <option value="14:00:00">2:00 PM</option>
-                <option value="14:30:00">2:30 PM</option>
-                <option value="15:00:00">3:00 PM</option>
-                <option value="15:30:00">3:30 PM</option>
-                <option value="16:00:00">4:00 PM</option>
-                <option value="16:30:00">4:30 PM</option>
-                <option value="17:00:00">5:00 PM</option>
-                <option value="17:30:00">5:30 PM</option>
-                <option value="18:00:00">6:00 PM</option>
-                <option value="18:30:00">6:30 PM</option>
-                <option value="19:00:00">7:00 PM</option>
-                <option value="19:30:00">7:30 PM</option>
-                <option value="20:00:00">8:00 PM</option>
-                <option value="20:30:00">8:30 PM</option>
-                <option value="21:00:00">9:00 PM</option>
-              </select>
+              </div>
             </div>
           </div>`;
   modal.appendChild(request);

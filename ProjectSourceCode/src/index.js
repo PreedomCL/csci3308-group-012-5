@@ -651,8 +651,42 @@ app.get('/calendar/events/match', async(req, res) => {
   }
 });
 
+app.post('/requestMeeting', async (req, res) => {
+  const query = `INSERT INTO EVENTS (EventName, EventType, EventDay, EventStartTime, EventEndTime, EventFormat)
+                  VALUES ($1, $2, $3, $4, $5, $6)
+                  RETURNING EventId`;
+  const query1 = `INSERT INTO UsersToEvents (UserID, EventID)
+                  VALUES ($1, $2)
+                  RETURNING UserID, EventID`;
+  const query2 = `INSERT INTO UsersToEvents (UserID, EventID)
+                  VALUES ($1, $2)
+                  RETURNING UserID, EventID`;
+  
+  let studentID = req.body.studentid;
+  let tutorID = req.body.tutorid;
+  let eventName = req.body.name;
+  let eventType = req.body.type;
+  let eventDay = req.body.day;
+  let eventStartTime = req.body.startTime;
+  let eventEndTime = req.body.endTime;
+  let eventFormat = req.body.format;
+  console.log(req.body);
+
+  try{
+    const result = await db.one(query, [eventName, eventType, eventDay, eventStartTime, eventEndTime, eventFormat]);
+    const result1 = await db.manyOrNone(query1, [studentID, result.eventid]);
+    console.log('1:', result1);
+    const result2 = await db.manyOrNone(query2, [tutorID, result.eventid]);
+    console.log('1:', result2);
+    res.status(200).send("new meeting requested");
+    return;
+  }
+  catch (error){
+    console.error("ERROR: ", error);
+  }
+});
+
 app.post('/calendar/updateAvailability', async (req, res) => {
-  console.log("post method");
   const query = `INSERT INTO EVENTS (EventName, EventType, EventDay, EventStartTime, EventEndTime, EventFormat)
                   VALUES ($1, $2, $3, $4, $5, $6)
                   RETURNING EventId`;
@@ -680,7 +714,7 @@ app.post('/calendar/updateAvailability', async (req, res) => {
                     RETURNING UserID, EventID`;
     const result1 = await db.manyOrNone(query1, [userID, result.eventid]);
     console.log("result: ", result1);
-    res.send(200);
+    res.status(200).send("Updated availability");
     return;
   } catch(error){
     console.error('Error: ', error);

@@ -141,7 +141,6 @@ section, aside, div {
   padding: 0px;
 }
 
-
 /* More compact event display */
 .fc-event {
   font-size: 0.7em !important;
@@ -153,6 +152,18 @@ section, aside, div {
 .fc-timegrid-slot-label {
   font-size: 0.7em !important;
   text-align: left;
+}
+
+/* Allow events to display side by side */
+.fc-timegrid-event-harness {
+  display: inline-block !important;
+  width: auto !important;
+  max-width: 90% !important; /* Prevent events from taking full width */
+}
+
+/* Add some spacing between side-by-side events */
+.fc-timegrid-event {
+  margin-right: 2px !important;
 }
 
 /* Calendar modal */
@@ -171,6 +182,8 @@ section, aside, div {
   margin-bottom: 10px;
 }
 
+
+/* tinting background */
 #request-modal{
   z-index: 1053;
 }
