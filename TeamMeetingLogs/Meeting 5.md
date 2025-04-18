@@ -8,7 +8,7 @@
   - This week's focus was on getting major features to function, getting the calendar and calendar download to function, changing page display depending on if user is a tutor or student, finishing up the recommendation algorithm, and finishing the external login and email notifications. 
   - The pages have workable layout and interact with each other.
   - Most of the back-end functionality is complete. There are api routes for login and register and the profile page, and these interact with the updated database.
-  - We were reminded that the presenation should be around 7-10 minutes and we should not include individual contributions.
+  - We were reminded that the presentation should be around 7-10 minutes and we should not include individual contributions.
   - In our UAT, we should mention our plan, our tests, the results, and the problems we encountered and solutions we've come up with. 
   - The plan for next week is to completely finish the project:
     - Update and finish the UI: Nick
