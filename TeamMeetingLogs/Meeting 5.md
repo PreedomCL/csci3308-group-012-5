@@ -21,6 +21,5 @@
   - Tickets and subtickets for next week
     - Subtasks will help grader understand who is doing what
   - Sunday meeting:
-    - Workload for last week
     - Update each other on how tasks are going/ who needs help with what. 
     - Discuss page styling, project finalization, and progress towards finishing project 
