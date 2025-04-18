@@ -1,0 +1,26 @@
+## Meeting 5
+
+- **Date:** 4-18-2025  
+- **Time:** 2:15 PM
+- **Environment:** [TA] [GROUP] 
+- **Summary:** Everyone shared their progress this week and plan for next week. We discussed our approach to finishing the project.
+- **Additional Info:**
+  - This week's focus was on getting major features to function, getting the calendar and calendar download to function, changing page display depending on if user is a tutor or student, finishing up the recommendation algorithm, and finishing the external login and email notifications. 
+  - The pages have workable layout and interact with each other.
+  - Most of the back-end functionality is complete. There are api routes for login and register and the profile page, and these interact with the updated database.
+  - The plan for next week is to completely finish the project:
+    - Update and finish the UI: Nick
+    - Finalize Backend: Mason 
+    - Complete User Acceptance Tests: Joe
+    - Complete Project Presentation: Curtis 
+    - Make video presentation: Connor
+    - Create more users for overall testing: Joe
+    - Finish calendar and calendar download: Mason
+  - We updated the project board with the plans listed above. 
+  - We were reminded that it is important to open a new issue/branch for each bugfix.
+  - Tickets and subtickets for next week
+    - Subtasks will help grader understand who is doing what
+  - Sunday meeting:
+    - Workload for last week
+    - Update each other on how tasks are going/ who needs help with what. 
+    - Discuss page styling, project finalization, and progress towards finishing project 
