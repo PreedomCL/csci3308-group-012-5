@@ -266,7 +266,15 @@ async function initializeUserCalendar(){
           editable: false,
           selectable: false,
           height: '100%',
-          events: userEvents
+          events: userEvents,
+          eventDidMount: function(info) {
+            if (info.event.extendedProps.type) {
+              info.el.setAttribute('data-event-type', info.event.extendedProps.type);
+            }
+            if (info.event.extendedProps.format) {
+              info.el.setAttribute('data-event-format', info.event.extendedProps.format);
+            }
+          }
       });
 
       console.log(calendar.events);
@@ -353,7 +361,7 @@ async function populateModal(id){
     }
   }
   try{
-    const response = await fetch(`/calendar/events?userID=${id}`);
+    const response = await fetch(`/calendar/events/match?userID=${id}`);
     const userEvents = await response.json();
     console.log(userEvents);
     for(let e of userEvents){

@@ -28,5 +28,5 @@ INSERT INTO EventFormats(FormatName) VALUES
 
 INSERT INTO EventTypes(TypeName) VALUES
 ('Available'),
-('Pending Meeting'),
-('Accepted Meeting');
+('Pending'),
+('Accepted');

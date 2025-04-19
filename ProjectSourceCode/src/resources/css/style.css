@@ -129,10 +129,8 @@ section, aside, div {
   
   /* Event Type Colors */
   --fc-event-available: #10b981;  /* Green */
-  --fc-event-unavailable: #ef4444;  /* Red */
-  --fc-event-pending: #f59e0b;  /* Amber */
-  --fc-event-confirmed: #3b82f6;  /* Blue */
-  --fc-event-completed: #8b5cf6;  /* Purple */
+  --fc-event-pending: #f5de0b;  /* Amber */
+  --fc-event-accepted: #3b82f6;  /* Blue */
   
   /* Format Colors (as borders) */
   --fc-format-virtual: #06b6d4;  /* Cyan */
@@ -301,10 +299,10 @@ section, aside, div {
   border-color: var(--fc-event-pending) !important;
 }
 
-.fc-event[data-event-type="Confirmed"],
-.fc-event.confirmed-event {
-  background-color: var(--fc-event-confirmed) !important;
-  border-color: var(--fc-event-confirmed) !important;
+.fc-event[data-event-type="accepted"],
+.fc-event.accepted-event {
+  background-color: var(--fc-event-accepted) !important;
+  border-color: var(--fc-event-accepted) !important;
 }
 
 .fc-event[data-event-type="Completed"],
