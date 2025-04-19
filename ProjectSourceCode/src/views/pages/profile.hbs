@@ -36,8 +36,10 @@
     </div>
     {{!-- Schedule to be implemented with Calendar API --}}
     <div id="prof-center" class="col-sm-6">
+      <h2 style="text-align: center;">Calendar</h2>
       {{> cal}}
     </div>
+
     {{!-- Matched Tutors --}}
     <div id="prof-right" class = "col-sm-3" >
         <h2 style="text-align: center;">Tutors</h2>
@@ -59,7 +61,7 @@
                 <p class="mb-0">{{this.name}}</p>
               </div>
               <div class="col-auto">
-                <button class="btn btn-primary" type="submit">Message</button>
+                {{> schedule}}
               </div>
             </div>
           </div>
@@ -89,7 +91,7 @@
                 </div>
                 {{/if}}
             <p>{{this.name}}</p>
-            <button class = "btn btn-primary"  type='submit'>View Profile</button><br/>
+            <button class = "btn btn-primary" type='submit'>View Profile</button><br/>
           </div>
           {{/each}}
         </div>
