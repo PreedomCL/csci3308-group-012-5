@@ -170,8 +170,8 @@ async function requestSession(event){
     const studentID = document.getElementById('calendar').getAttribute('data-user-id');
     const studentName = document.getElementById('calendar').getAttribute('data-user-name');
 
-    const tutorID = document.getElementById('match-calendar').getAttribute('data-user-id');
-    const tutorName = document.getElementById('match-calendar').getAttribute('data-user-name');
+    const tutorID = document.getElementById('match-calendar').getAttribute('data-id');
+    const tutorName = document.getElementById('match-calendar').getAttribute('data-name');
 
     
 
@@ -193,7 +193,7 @@ async function requestSession(event){
           endTime: meetingEnd
         })
     });
-    initializeMatchCalendar();
+    initializeMatchCalendar(tutorID, tutorName);
     initializeUserCalendar();
   });
 
@@ -287,7 +287,7 @@ async function initializeUserCalendar(){
   }
 }
 
-async function initializeMatchCalendar(){
+async function initializeMatchCalendar(id, name){
   const modal = document.getElementById('profileModal');
   modal.addEventListener('shown.bs.modal', async function() {
     
@@ -299,9 +299,12 @@ async function initializeMatchCalendar(){
         console.error("FullCalendar library not loaded");
         return; // Exit early if library isn't loaded
     }
-    const userID = McalendarEl.getAttribute("data-user-id");
+    const userID = id;
     console.log('matchid:', userID)
-    const userName = McalendarEl.getAttribute("data-user-name");
+    const userName = name;
+
+    McalendarEl.setAttribute("data-id", `${userID}`);
+    McalendarEl.setAttribute("data-name", `${userName}`);
 
     const response = await fetch(`/calendar/events/match?userID=${userID}`); //TODO
     const MuserEvents = await response.json();

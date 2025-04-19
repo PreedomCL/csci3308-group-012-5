@@ -1,5 +1,5 @@
 <!-- Button trigger modal -->
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#profileModal" onclick="initializeMatchCalendar()">
+<button type="button" id="matchProfile" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#profileModal" onclick="initializeMatchCalendar({{this.id}}, '{{this.name}}')">
   View Profile
 </button>
 
@@ -8,7 +8,7 @@
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="exampleModalLabel">Profile - {{name}}</h1>
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Profile - {{this.name}}</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -23,7 +23,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">Request Session with {{name}}</h1>
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Request Session with {{this.name}}</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="request-body">
