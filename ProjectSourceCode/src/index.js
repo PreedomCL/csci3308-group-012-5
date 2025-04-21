@@ -555,7 +555,7 @@ app.get('/profile', async(req, res) => {
 
 app.get('/calendar/reset', async(req, res) => {
   const query = `SELECT EventID FROM UsersToEvents WHERE UserId = $1`;
-  const query2 = `DELETE FROM Events WHERE EventId = $1`;
+  const query2 = `DELETE FROM Events WHERE EventId = $1 AND EventType=1`;
   console.log("Deleting");
   try{
     const eventIds = await db.manyOrNone(query, req.query.userID);

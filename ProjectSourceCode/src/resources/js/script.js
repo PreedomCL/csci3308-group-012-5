@@ -191,7 +191,7 @@ async function requestSession(event, id){
           endTime: meetingEnd
         })
     });
-    initializeMatchCalendar(tutorID, tutorName);
+    initializeMatchCalendar(id, tutorName);
     initializeUserCalendar();
   });
 
