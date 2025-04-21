@@ -6,7 +6,7 @@
         <div class="card-prof">
         <div class="row align-items-center">  
           <div class="col-auto mx-auto text-center">
-            <img src="{{profileimage}}" alt="profile pic"class="rounded-circle" style="width: 200px; height: 200px; object-fit: cover;">
+            <img src={{#if profilepic}}"{{profilepic}}"{{else}}"https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg"{{/if}} alt="profile pic"class="rounded-circle" style="width: 200px; height: 200px; object-fit: cover;">
           </div>
           <div class="col-auto mx-auto text-center">
             <h2>{{name}}</h2>
@@ -17,7 +17,7 @@
         </div>
         </div>
         <div class="card-prof">
-          <p>Courses needing tutoring for:</p>
+          <p>{{#if student}}Classes you're learning:{{else}}Classes you're teaching:{{/if}}</p>
             <ul>
               {{#each classes}}
               <li> 
@@ -27,7 +27,7 @@
             </ul>
         </div>
         <div class="card-prof">
-          <p>Learning Style: {{learningstyle}}</p>
+          <p>{{#if student}}Learning Style{{else}}Teaching Style{{/if}}: {{learningstyle}}</p>
         </div>
         <div class="card-prof">
           <p>Bio: {{bio}}</p>
@@ -42,7 +42,7 @@
 
     {{!-- Matched Tutors --}}
     <div id="prof-right" class = "col-sm-3" >
-        <h2 style="text-align: center;">Tutors</h2>
+        <h2 style="text-align: center;">{{#if student}}Tutors{{else}}Students{{/if}}</h2>
         <div class="card-group-vert">
           {{#if allMatches}}
           {{#each allMatches}}
@@ -61,7 +61,9 @@
                 <p class="mb-0">{{this.name}}</p>
               </div>
               <div class="col-auto">
-                {{> schedule}}
+                <button type="button" id="matchProfile" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#profileModal" onclick="initializeMatchCalendar({{this.id}}, '{{this.name}}')">
+                  View Profile
+                </button>
               </div>
             </div>
           </div>
@@ -76,7 +78,7 @@
       {{!-- Potential Tutors --}}
       <row>
         <br>
-        <h2 style="text-align: center;"> Potential Tutors</h2>
+        <h2 style="text-align: center;">Potential {{#if student}}Tutors{{else}}Students{{/if}}</h2>
         <div class="card-group">
           {{#if potentialmatches}}
           {{#each potentialmatches}}
@@ -91,7 +93,9 @@
                 </div>
                 {{/if}}
             <p>{{this.name}}</p>
-            {{> schedule}}
+            <button type="button" id="matchProfile" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#profileModal" onclick="initializeMatchCalendar({{this.id}}, '{{this.name}}')">
+              View Profile
+            </button>
           </div>
           {{/each}}
         </div>
@@ -105,9 +109,10 @@
               </div>
     
               <div class="col-auto">
-                <p class="mb-0">No More Tutors Available</p>
+                <p class="mb-0">No More {{#if student}}Tutors{{else}}Students{{/if}} Available</p>
               </div>
         {{/if}}
     </div>
+  </div>
   </div>
 </div>

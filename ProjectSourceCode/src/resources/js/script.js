@@ -1,7 +1,8 @@
 /**
  * Calendar scripts
  */
-let calendar;
+let userCalendar;
+let matchCalendar;
 
 let eventView;
 
@@ -219,7 +220,7 @@ async function initializeUserCalendar(){
 
   try {
       console.log("Creating calendar instance...");
-      calendar = new FullCalendar.Calendar(calendarEl, {  
+      userCalendar = new FullCalendar.Calendar(calendarEl, {  
           initialView: 'timeGridWeek',
           headerToolbar: {
             left: 'updateAvailability',
@@ -276,21 +277,23 @@ async function initializeUserCalendar(){
             }
           }
       });
-
-      console.log(calendar.events);
       console.log("Rendering calendar...");
       // Remove updateSize call, only render
-      calendar.render();
+      userCalendar.render();
       console.log("Calendar render complete");
   } catch (error) {
       console.error("Error creating calendar:", error);
   }
 }
 
-async function initializeMatchCalendar(id, name){
+function initializeMatchCalendar(id, name){
+  console.log(id,name);
+  document.getElementById('match-calendar').replaceChildren();
+
   const modal = document.getElementById('profileModal');
-  modal.addEventListener('shown.bs.modal', async function() {
-    
+  modal.addEventListener('shown.bs.modal', async function matchCalRender() {
+    modal.removeEventListener('shown.bs.modal', matchCalRender);
+
     console.log("Initializing match calendar...");
     const McalendarEl = document.getElementById('match-calendar');
 
@@ -302,7 +305,6 @@ async function initializeMatchCalendar(id, name){
     const userID = id;
     console.log('matchid:', userID)
     const userName = name;
-
     McalendarEl.setAttribute("data-id", `${userID}`);
     McalendarEl.setAttribute("data-name", `${userName}`);
 
@@ -311,7 +313,7 @@ async function initializeMatchCalendar(id, name){
 
     try {
         console.log("Creating match calendar instance...");
-        calendar = new FullCalendar.Calendar(McalendarEl, {  
+        matchCalendar = new FullCalendar.Calendar(McalendarEl, {  
             initialView: 'timeGridWeek',
             headerToolbar: {
               left: '',
@@ -345,10 +347,8 @@ async function initializeMatchCalendar(id, name){
             height: '100%',
             events: MuserEvents
         });
-
-        console.log(calendar.events);
         console.log("Rendering match calendar...");
-        calendar.render();
+        matchCalendar.render();
         console.log("Match Calendar render complete");
     } catch (error) {
         console.error("Error creating calendar:", error);
@@ -673,3 +673,7 @@ function formaticsdate(date) {
   );
 }
 
+function killCal(){
+  matchCalendar.destroy();
+  matchCalendar=null;
+}
