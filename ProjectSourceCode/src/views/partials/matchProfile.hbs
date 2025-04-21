@@ -36,7 +36,9 @@
     </div>
     {{!-- Schedule to be implemented with Calendar API --}}
     <div id="prof-center" class="col-sm-9">
-      {{> matchCal}}
+      <div class="calendar-container">
+          <div id="match-calendar-{{id}}" data-id="" data-name=""></div>
+      </div>
     </div>
   </div>
 </div>

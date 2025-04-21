@@ -140,8 +140,8 @@ async function saveAvailabilityEvent(){
   }
 }
 
-async function requestSession(event){
-  document.getElementById('request-button').addEventListener('click', async function(){
+async function requestSession(event, id){
+  document.getElementById(`request-button-${id}`).addEventListener('click', async function(){
     console.log('Request');
     console.log("Available: ", event);
     // const aStartH = new Date(event.start).getHours().toString().padStart(2, '0');;
@@ -171,10 +171,7 @@ async function requestSession(event){
     const studentID = document.getElementById('calendar').getAttribute('data-user-id');
     const studentName = document.getElementById('calendar').getAttribute('data-user-name');
 
-    const tutorID = document.getElementById('match-calendar').getAttribute('data-id');
-    const tutorName = document.getElementById('match-calendar').getAttribute('data-name');
-
-    
+    const tutorName = document.getElementById(`match-calendar-${id}`).getAttribute('data-name');
 
     await fetch('/requestMeeting', {
       method: 'POST',
@@ -184,7 +181,7 @@ async function requestSession(event){
       body: 
         JSON.stringify({
           studentid: studentID,
-          tutorid: tutorID,
+          tutorid: id,
           name: `Proposed Tutoring Session - ${studentName} & ${tutorName}`,
           type: "2",
           day: day,
@@ -288,14 +285,13 @@ async function initializeUserCalendar(){
 
 function initializeMatchCalendar(id, name){
   console.log(id,name);
-  document.getElementById('match-calendar').replaceChildren();
 
-  const modal = document.getElementById('profileModal');
+  const modal = document.getElementById(`profileModal-${id}`);
   modal.addEventListener('shown.bs.modal', async function matchCalRender() {
     modal.removeEventListener('shown.bs.modal', matchCalRender);
-
+    
     console.log("Initializing match calendar...");
-    const McalendarEl = document.getElementById('match-calendar');
+    const McalendarEl = document.getElementById(`match-calendar-${id}`);
 
     // Check if FullCalendar library is available
     if (typeof FullCalendar === 'undefined') {
@@ -325,7 +321,7 @@ function initializeMatchCalendar(id, name){
             },
             eventClick: function(info){
               console.log('Match click: ', info);
-              clickMatchEvent(info.event);
+              clickMatchEvent(info.event, id);
             },
             nowIndicator: true,
             stickyHeaderDates: true,
@@ -460,24 +456,23 @@ function clickUserEvent(event){
   }
 }
 
-function clickMatchEvent(event){
-  const requestModal = document.getElementById('request-modal');
+function clickMatchEvent(event, id){
+  const requestModal = document.getElementById(`request-modal-${id}`);
   const newModal = new bootstrap.Modal(requestModal,{
     backdrop: true,
   });
   newModal.show();
   console.log('show modal');
-  populateRequest(event);
-  requestSession(event);
+  populateRequest(event, id);
+  requestSession(event, id);
 }
 
-function populateRequest(event){
+function populateRequest(event, id){
   const Astart = new Date(event.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   const Aend = new Date(event.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   const Aday = new Date(event.start).toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
 
-  const modal = document.getElementById('request-body');
-  console.log(modal);
+  const modal = document.querySelector(`#request-modal-${id} .modal-body`);
   if(modal.childNodes){
     modal.replaceChildren();
   }
@@ -673,7 +668,7 @@ function formaticsdate(date) {
   );
 }
 
-function killCal(){
-  matchCalendar.destroy();
-  matchCalendar=null;
-}
+// function killCal(){
+//   matchCalendar.destroy();
+//   matchCalendar=null;
+// }

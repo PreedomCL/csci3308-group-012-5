@@ -365,38 +365,6 @@ section, aside, div {
   }
 }
 
-/* Dark Mode (Optional) - Add a class 'dark-mode' to parent element to activate */
-.dark-mode .fc {
-  background-color: #1e1e2e;
-  border-color: #313244;
-  color: #cdd6f4;
-}
-
-.dark-mode .fc .fc-toolbar {
-  background-color: #313244;
-}
-
-.dark-mode .fc .fc-col-header {
-  background-color: #292c3c;
-}
-
-.dark-mode .fc .fc-col-header-cell-cushion {
-  color: #cdd6f4;
-}
-
-.dark-mode .fc-day-today {
-  background-color: rgba(67, 97, 238, 0.1) !important;
-}
-
-.dark-mode .fc .fc-timegrid-slot {
-  border-color: #313244;
-}
-
-.dark-mode .fc .fc-timegrid-axis,
-.dark-mode .fc .fc-timegrid-slot-label {
-  color: #a6adc8;
-}
-
 /* Calendar modal */
 .day{
   padding: 10px 0;
@@ -415,14 +383,17 @@ section, aside, div {
 
 
 /* tinting background */
-#request-modal{
-  z-index: 1053;
+.modal {
+  z-index: 1050;
 }
 
-#profileModal{
-  z-index: 1051;
+.reqModal{
+  z-index: 1055 !important;
+}
+.profModal{
+  z-index: 1051 !important;
 }
 
 .modal-backdrop + .modal-backdrop {
-  z-index: 1052;
+  z-index: 1052 !important;
 }

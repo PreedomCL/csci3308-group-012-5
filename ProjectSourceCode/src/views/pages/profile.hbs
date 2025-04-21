@@ -61,9 +61,7 @@
                 <p class="mb-0">{{this.name}}</p>
               </div>
               <div class="col-auto">
-                <button type="button" id="matchProfile" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#profileModal" onclick="initializeMatchCalendar({{this.id}}, '{{this.name}}')">
-                  View Profile
-                </button>
+                {{> match}}
               </div>
             </div>
           </div>
@@ -93,9 +91,7 @@
                 </div>
                 {{/if}}
             <p>{{this.name}}</p>
-            <button type="button" id="matchProfile" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#profileModal" onclick="initializeMatchCalendar({{this.id}}, '{{this.name}}')">
-              View Profile
-            </button>
+            {{> match}}
           </div>
           {{/each}}
         </div>
