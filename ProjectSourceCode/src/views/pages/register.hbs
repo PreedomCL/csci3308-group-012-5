@@ -15,7 +15,7 @@
             {{/if}}
             <div class="dropdown mr-1">
                 <label for="user_type">Account Type</label> <br />
-                <select id="user_type" name="type" class="form-select" onchange="" required>
+                <select id="user_type" name="type" class="form-select" required>
                     <option value="" selected disabled>Select Account Type</option>
                     <option value="Student">Student</option>
                     <option value="Tutor">Tutor</option>
@@ -80,7 +80,7 @@
 
         <div class="row">
             <div class="dropdown col-md-6 mr-1">
-                <label for="classes_input">Classes Needing Tutoring For</label> <br />
+                <label id="classes_label" for="classes_input">Classes Needing Tutoring For</label> <br />
                 <select id="classes_input" name="classes" class="form-control" size="6" onchange="" multiple
                     data-bs-toggle="dropdown" aria-expanded="false" required>
                     <option value="" disabled>(Hold ctrl to select multiple)</option>
@@ -93,9 +93,9 @@
             </div>
 
             <div class="dropdown col-md-6 mr-1">
-                <label for="learning_input">Pick Your Learning Style</label> <br />
+                <label id="learning_label" for="learning_input">Pick Your Learning Style</label> <br />
                 <select id="learning_input" name="learning" class="form-select" onchange="" required>
-                    <option value="" selected disabled>Select Learning Style</option>
+                    <option value="" selected disabled>Select Style</option>
                     <option value="Visual">Visual</option>
                     <option value="Auditory">Auditory</option>
                     <option value="Hands">Hands-on</option>
@@ -113,6 +113,8 @@
         </div>
     </form>
 </div>
+
+<script src="/resources/js/register.js"></script>
 
 <script>
     // function to display user image in registration 

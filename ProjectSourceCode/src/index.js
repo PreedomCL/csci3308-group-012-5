@@ -529,7 +529,7 @@ app.get('/profile', async(req, res) => {
     return;
   }
   const query = `
-  SELECT u.Id as userid, u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames 
+  SELECT u.Id as userid, u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames, u.UserType as usertype
   FROM Users u 
     JOIN LearningStyles ls ON u.LearningStyle = ls.Id
     LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
@@ -540,9 +540,10 @@ app.get('/profile', async(req, res) => {
   try{
     const result = await db.one(query, [useremail])
     console.log(result);
+    console.log("student or tutor", result.usertype)
     res.render('pages/profile', {
       //i think this is where im having trouble reading in
-      userID: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches
+      student: result.usertype == 'student', userID: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches
     })
   }
   catch(error){
