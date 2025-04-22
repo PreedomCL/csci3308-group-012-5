@@ -265,6 +265,18 @@ async function initializeUserCalendar(){
 
 function initializeMatchCalendar(id, name){
   console.log(id,name);
+  const type = document.getElementById(`matchButton-${id}`).parentElement.id;
+  if(type=='potential'){
+    const parent = document.getElementById(`matchProfileMatch-${id}`);
+    const newDiv = document.createElement('div');
+    newDiv.innerHTML=`
+          <form action="/like" method="POST" style="padding: 10%;">
+            <input type="hidden" name="tutorID" value="{{id}}">
+            <button class="btn btn-primary" type="submit">Match</button>
+          </form>`;
+    parent.replaceChildren();
+    parent.appendChild(newDiv);
+  }
 
   const modal = document.getElementById(`profileModal-${id}`);
   modal.addEventListener('shown.bs.modal', async function matchCalRender() {
@@ -302,7 +314,6 @@ function initializeMatchCalendar(id, name){
             eventClick: function(info){
               console.log('Match click: ', info);
               //only continue if matched
-              const type = document.getElementById(`matchButton-${id}`).parentElement.id;
               if(type=='match'){
                 clickMatchEvent(info.event, id);
               }

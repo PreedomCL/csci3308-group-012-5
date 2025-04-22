@@ -849,9 +849,13 @@ app.post('/like', async (req, res) => {
     sendEmail(req.session.user.email, "New Tutor Added!", `New tutor match with ${tutorData.name} has been added to Tudr profile!` );
     //to tutor informing of request
     sendEmail(tutorData.email, "New Student Added!", `New student match with ${req.session.user.name} has been added to Tudr profile!` );
-
-    // Redirect to next match
-    res.redirect(`/matching/${nextIndex}`);
+    if(nextIndex){
+      // Redirect to next match
+      res.redirect(`/matching/${nextIndex}`);
+    }
+    else{
+      res.redirect(`/profile`);
+    }
   } catch (err) {
     console.error('Error handling match:', err);
     res.status(500).send('Server error');
