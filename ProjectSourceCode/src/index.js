@@ -16,6 +16,7 @@ const fileupload = require('express-fileupload');
 const fs = require('fs');
 const { EventEmitterAsyncResource } = require('events');
 const e = require('express');
+const { runInNewContext } = require('vm');
 
 // *****************************************************
 // <!-- Section 2 : Connect to DB -->
@@ -244,9 +245,9 @@ app.post('/register', async (req, res) => {
       return;
     }
     try {
-      const classId = await db.oneOrNone(classIdQuery, c.toLowerCase())
+      const classId = await db.oneOrNone(classIdQuery, c)
       if(classId === null) {
-        res.status(400).send('invalid class name');
+        res.status(400).send(`${c} - invalid class name`);
         return;
       }
       classIds.push(classId.id);
@@ -293,13 +294,14 @@ app.post('/register', async (req, res) => {
   // insert the user data into the db
   try {
     // Make this a SQL transaction so that if any part fails, the whole transaction fails
+    let userId;
     await db.tx(async t => {
       // hash the password using bcrypt library
       const passwordHash = gUser ? null : await bcrypt.hash(registerInfo.password, 10);
       
-      const insertUserQuery = 'INSERT INTO Users (Password, Email, UserType, Name, Degree, Year, Bio, LearningStyle, Profileimage, GoogleId) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)';
+      const insertUserQuery = 'INSERT INTO Users (Password, Email, UserType, Name, Degree, Year, Bio, LearningStyle, Profileimage, GoogleId) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING Id';
 
-      await t.none(insertUserQuery, [
+      userId = await t.one(insertUserQuery, [
         passwordHash,
         registerInfo.email,
         registerInfo.type,
@@ -311,17 +313,16 @@ app.post('/register', async (req, res) => {
         profileImagePath,
         gUser ? gUser.gid : null
       ]);
-  
-      // get the userId for the user we just created
-      const userIdQuery = 'SELECT Id FROM Users WHERE Email = $1';
-      const userId = await t.one(userIdQuery, registerInfo.email);
-  
+      
       // insert the class to user mappings
       const insertClassesToUsersQuery = 'INSERT INTO ClassesToUsers (ClassId, UserId) VALUES ($1, $2)';
       for(let classId of registerInfo.classes) {
         await t.none(insertClassesToUsersQuery, [classId, userId.id]);
       }
     });
+    if(registerInfo.type=='student'){
+      await initializeRecommendedTutors(userId.id);
+    }
 
     // Successful register, redirect the user to the login page
     sendEmail(registerInfo.email, "Tudr Account Created!", `Welcome to Tudr ${registerInfo.name}!`);
@@ -478,53 +479,60 @@ app.use((req, res, next) => {
 // All routes that require login below
 
 app.get('/profile', async(req, res) => {
-  const useremail = req.session.user.email;
-  console.log(req.session.user.email);
-  const userID = req.session.user.id;
-  const userData = await db.one(
-    `SELECT LearningStyle, UserType, Degree
-    FROM users
-    WHERE Id = $1`,
-    [userID]
-  );
+  const alert = req.query.alert;
+  let message;
+  if(alert==1){
+    message = [{ text: 'As a tutor, you must wait for students to request to match with you.\nMake sure your profile and availability are up to date!', level: 'warning'}];
+  }
+  else if(alert==2){
+    message = [{ text: 'Like Sent!', level: 'success'}];
+  }
+  
+  const userData = req.session.user;
+  console.log(userData);
 
-  const potentials = await db.any(
-    `SELECT Id, Name, Degree, Year, Bio, LearningStyle 
-    FROM users 
-    WHERE LearningStyle = $1
-      AND UserType != $2
-      AND Degree = $3
-      AND Id IN (
-        SELECT TutorID FROM MatchedUsers WHERE UserID = $4
-      )`,
-    [userData.learningstyle, userData.usertype, userData.degree, userID]
-  );
-
-  // start with initial index
-  const index = parseInt(req.params.index) || 0;
-  const match = potentials[index];
-
-  const allMatches = await db.any(
-    `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
-     FROM users u
-     INNER JOIN MatchedUsers m ON u.Id = m.TutorID
-     WHERE m.UserID = $1 AND m.Action = 'like'`,
-    [userID]
-  );
-  const potentialmatches = await db.any(
-    `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
-     FROM users u
-     WHERE u.Id != $1
-       AND u.UserType != $2
-       AND u.Degree = $3
-       AND u.LearningStyle = $4
-       AND u.Id NOT IN (
-         SELECT TutorID FROM MatchedUsers WHERE UserID = $1
-       ) LIMIT 3`,
-    [userID, userData.usertype, userData.degree, userData.learningstyle]
-  );  
-
-  if(!useremail)
+  let allMatches, potentialmatches, matchRequests;    
+  if(userData.usertype =='student'){
+    allMatches = await db.any(
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      FROM Users u
+      INNER JOIN Matches m ON u.Id = m.TutorID
+      WHERE m.StudentID = $1 AND m.Status = 4`,
+      [userData.id]
+    );
+    potentialmatches = await db.any(
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      FROM Users u
+      JOIN Matches m ON m.TutorID = u.Id
+      WHERE m.StudentID = $1 AND m.Status = 1
+      LIMIT 3`,
+      [userData.id]
+    ); 
+    matchRequests = await db.any(
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      FROM Users u
+      JOIN Matches m ON m.TutorID = u.Id
+      WHERE m.StudentID = $1 AND m.Status = 2`,
+      [userData.id]
+    )
+  }
+  else{
+    allMatches = await db.any(
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      FROM Users u
+      INNER JOIN Matches m ON u.Id = m.StudentID
+      WHERE m.TutorID = $1 AND m.Status = 4`,
+      [userData.id]
+    );
+    potentialmatches = await db.any(
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      FROM Users u
+      JOIN Matches m ON m.StudentID = u.Id
+      WHERE m.TutorID = $1 AND m.Status = 2
+      LIMIT 3`,
+      [userData.id]);
+  }
+  if(!userData.email)
   {
     console.log('A user session has been corrupted: ');
     console.log(user);
@@ -541,12 +549,10 @@ app.get('/profile', async(req, res) => {
       GROUP BY u.id, u.Name, u.Bio, ls.Name
   `;
   try{
-    const result = await db.one(query, [useremail])
+    const result = await db.one(query, [userData.email])
     console.log(result);
-    console.log("student or tutor", result.usertype)
     res.render('pages/profile', {
-      //i think this is where im having trouble reading in
-      student: result.usertype == 'student', userid: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches
+      student: result.usertype == 'student', userid: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches, matchRequests: matchRequests, message: message
     })
   }
   catch(error){
@@ -584,7 +590,7 @@ app.get('/calendar/events', async(req, res) => {
                           JOIN EventTypes et ON e.EventType = et.TypeID
                           WHERE e.EventId = $1`;
   try{
-    const eventIds = await db.manyOrNone(eventIDQuery, req.query.userID);
+    const eventIds = await db.manyOrNone(eventIDQuery, req.session.user.id);
     console.log(eventIds);
     for(let e of eventIds){
       const event = await db.oneOrNone(eventInfoQuery, e.eventid)
@@ -725,18 +731,13 @@ app.post('/calendar/updateAvailability', async (req, res) => {
   }
 });
 
-/**
- * Logout API
- */
-app.get('/logout', (req, res) => {
-  req.session.destroy(function(err) {
-    res.render('pages/logout');
-  });
-});
-
-
 app.get('/matching', (req, res) => {
-  res.redirect('/matching/0');
+  if(req.session.user.usertype == 'student'){
+    res.redirect('/matching/0');
+  }
+  else{
+    res.redirect('/profile?alert=1');
+  }
 });
 
 app.get('/matching/:index?', async (req, res) => {
@@ -744,49 +745,28 @@ app.get('/matching/:index?', async (req, res) => {
     //get the user id
     const userID=req.session.user.id;
 
-    //check if user id exists
-    if(!userID){
-      return res.redirect ('/login');
-    }
+    // //get user data based on user id
+    // const userData = await db.one(
+    //   `SELECT LearningStyle, Degree
+    //   FROM users
+    //   Where Id =$1`,
+    //   [userID]
+    // );
 
-    //get user data based on user id
-    const userData = await db.one(
-      `SELECT LearningStyle, UserType, Degree
-      FROM users
-      Where Id =$1`,
-      [userID]
-    );
-
-    console.log(userData);
-    //find potential tutor matches based on Learning Style, the opposte User Type, and Degree
+    //find potential tutor matches based on Learning Style and Degree
     //Could change to classes via "classes" table when fully implemented
     const potentials = await db.any(
-      `SELECT Id, Name, Degree, Year, Bio, LearningStyle 
-      FROM users 
-      WHERE LearningStyle =$1
-      AND UserType!=$2
-      AND Degree=$3
-      AND Id NOT IN (
-        SELECT TutorID FROM MatchedUsers WHERE UserID = $4
-      )`,
-    [userData.learningstyle, userData.usertype, userData.degree, userID]
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      FROM Users u
+      JOIN Matches m ON m.TutorID = u.Id
+      WHERE m.StudentID = $1 AND m.Status = 1`,
+      [userID]
     );
-
-    
-
+ 
     //start with initial index
     const index = parseInt(req.params.index) || 0;
     const match = potentials[index];
 
-    /*const styleMap = {
-      1: 'Visual',
-      2: 'Auditory',
-      3: 'Hands-on',
-      4: 'Writing'
-    };
-    
-      match.learningstyle = styleMap[match.learningstyle] || 'Unknown';*/
-    console.log(potentials);
     //check if match exists
     //if no matches, send to login redirect page
     if (!match) {
@@ -794,11 +774,11 @@ app.get('/matching/:index?', async (req, res) => {
         noMatches: true
       });
     }
-    console.log(potentials);
+    console.log(match);
     //if matches, start rendering by index
     res.render('pages/matching', {
       match,
-      nextIndex: index + 1
+      index
     });
   } catch (err){ //in case of database error
     console.error('DB error:', err);
@@ -810,35 +790,33 @@ app.get('/matching/:index?', async (req, res) => {
 //When like button clicked, add to matched users
 app.post('/like', async (req, res) => {
   try {
-    const userID = req.session.user.id;
+    const studentID = req.session.user.id;
     const tutorID = req.body.tutorID;
-    const nextIndex = req.body.nextIndex;
+    const index = req.body.index;
 
-    if (!userID || !tutorID) {
+    if (!studentID || !tutorID) {
       console.error('Missing userID or tutorID');
       return res.status(400).send('Missing data');
     }
 
     // Check if the match already exists
     const existingMatch = await db.query(
-      'SELECT * FROM MatchedUsers WHERE TutorID = $1 AND UserID = $2',
-      [tutorID, userID]
+      'SELECT * FROM Matches WHERE TutorID = $1 AND StudentID = $2 AND Status = 4',
+      [tutorID, studentID]
     );
 
     if (existingMatch.length > 0) {
-      console.log(`Match already exists: UserID ${userID} and TutorID ${tutorID}`);
+      res.status(304).send(`Match already exists: StudentID ${studentID} and TutorID ${tutorID}`);
     } else {
       // Insert new match
       await db.query(
-        'INSERT INTO MatchedUsers (TutorID, UserID, Action) VALUES ($1, $2, $3)',
-        [tutorID, userID, 'like']
+        `UPDATE Matches
+        SET Status = 2
+        WHERE TutorID=$1 AND StudentID=$2`,
+        [tutorID, studentID]
       );
-      console.log(`New match stored: UserID ${userID} liked TutorID ${tutorID}`);
+      console.log(`New match stored: Student ${studentID} liked TutorID ${tutorID}`);
     }
-
-    // Log current matches
-    const allMatches = await db.query('SELECT * FROM MatchedUsers');
-    console.log('Current MatchedUsers:', allMatches);
 
     //tutor email
     const tutorData = await db.one(
@@ -848,13 +826,15 @@ app.post('/like', async (req, res) => {
       [tutorID]
     );
     console.log(tutorData);
-    //to student confirming request
-    sendEmail(req.session.user.email, "New Tutor Added!", `New tutor match with ${tutorData.name} has been added to Tudr profile!` );
     //to tutor informing of request
-    sendEmail(tutorData.email, "New Student Added!", `New student match with ${req.session.user.name} has been added to Tudr profile!` );
-
-    // Redirect to next match
-    res.redirect(`/matching/${nextIndex}`);
+    sendEmail(tutorData.email, "New Student wants to Connect!", `${req.session.user.name} liked your Tudr Profile and wants to match! Check it out on Tudr!` );
+    if(index==-1){
+      res.redirect('/profile?alert=2');
+    }
+    else{
+      // Redirect to next match
+      res.redirect(`/matching/${index}`);
+    }
   } catch (err) {
     console.error('Error handling match:', err);
     res.status(500).send('Server error');
@@ -862,29 +842,93 @@ app.post('/like', async (req, res) => {
 });
 
 app.post('/skip', async (req, res) => {
+  let index = req.body.index;
+  console.log(index);
+  index = Number(index)+1;
+  console.log(index);
+  res.redirect(`/matching/${index}`);
+});
+
+app.post('/dislike', async (req, res) => {
   try {
-    console.log("Session:", req.session);
-    const userID = req.session.user.id;
+    const studentID = req.session.user.id;
+    const tutorID = req.body.tutorID;
+    const index = req.body.index;
 
-    const { matchID, nextIndex } = req.body;
-    console.log("matchID:", matchID, "nextIndex:", nextIndex);
-
-    if (!matchID) {
-      return res.status(400).send('Missing match ID');
+    if (!tutorID) {
+      return res.status(400).send('Missing tutor ID');
     }
 
     await db.query(
-      `INSERT INTO MatchedUsers (TutorID, UserID, Action)
-       VALUES ($1, $2, 'skip')`,
-      [matchID, userID]
+      `UPDATE Matches
+      SET Status = 3
+      WHERE TutorID=$1 AND StudentID=$2`,
+      [tutorID, studentID]
     );
 
-    console.log(`User ${userID} skipped match ${matchID}`);
-    res.redirect(`/matching/${nextIndex}`);
+    res.redirect(`/matching/${index}`);
   } catch (err) {
-    console.error('Skip error:', err);
+    console.error('Dislike error:', err);
     res.status(500).send('Server error');
   }
+});
+
+app.post('/unmatch', async (req, res) => {
+  try {
+    const userID = req.session.user.id;
+    const matchID = req.body.matchID;
+    const index = req.body.index;
+    const studentID = (req.session.user.usertype == 'student')?userID:matchID;
+    const tutorID = (req.session.user.usertype == 'tutor')?userID:matchID;
+    if (!tutorID || !studentID) {
+      return res.status(400).send('Missing tutor ID');
+    }
+
+    await db.query(
+      `UPDATE Matches
+      SET Status = 3
+      WHERE TutorID=$1 AND StudentID=$2`,
+      [tutorID, studentID]
+    );
+
+    res.redirect(`/profile`);
+  } catch (err) {
+    console.error('Dislike error:', err);
+    res.status(500).send('Server error');
+  }
+});
+
+app.post('/match', async (req, res) => {
+  try {
+    const tutorID = req.session.user.id;
+    const studentID = req.body.studentID;
+    const index = req.body.index;
+
+    if (!tutorID) {
+      return res.status(400).send('Missing tutor ID');
+    }
+
+    await db.query(
+      `UPDATE Matches
+      SET Status = 4
+      WHERE TutorID=$1 AND StudentID=$2`,
+      [tutorID, studentID]
+    );
+
+    res.redirect(`/profile`);
+  } catch (err) {
+    console.error('Match error:', err);
+    res.status(500).send('Server error');
+  }
+});
+
+/**
+ * Logout API
+ */
+app.get('/logout', (req, res) => {
+  req.session.destroy(function(err) {
+    res.render('pages/logout');
+  });
 });
 
 // *****************************************************
@@ -923,7 +967,28 @@ function sendEmail(toEmail, subject, message){
   });
 }
 
-
+async function initializeRecommendedTutors(id){
+  //student info
+  const userData = await db.one(
+    `SELECT *
+    FROM Users u
+    Where u.Id=$1;`, [id]);
+  //fetch matching criteria
+  const result = await db.any(
+    `SELECT u.Id as tutorid
+    FROM users u
+    WHERE u.Id != $1
+      AND u.UserType = 'tutor'
+      AND u.Degree = $2
+      AND u.LearningStyle = $3`,
+    [userData.id, userData.degree, userData.learningstyle]);
+  console.log("result:", result);
+  //for each matching critera, insert into matches table
+  for(let r of result){
+    const back = await db.one(`INSERT INTO Matches (TutorID, StudentID, Status) VALUES ($1, $2, 1) RETURNING TutorID, StudentID, Status`, [r.tutorid, userData.id]);
+    console.log(back);
+  } 
+}
 
 
 // *****************************************************
@@ -960,7 +1025,7 @@ const studentUser = {
   degree: 'Computer Science',
   year: 'freshman',
   bio: 'I am a test student',
-  classes: ['compsci', 'math'],
+  classes: ['CSCI', 'MATH'],
   learning: 'visual'
 };
 
@@ -972,7 +1037,7 @@ const tutorUser = {
   degree: 'Computer Science',
   year: 'senior',
   bio: 'I am a test tutor',
-  classes: ['compsci', 'math'],
+  classes: ['CSCI', 'MATH'],
   learning: 'visual'
 };
 
@@ -985,7 +1050,7 @@ const jonas = {
   degree: 'Computer Science',
   year: 'sophomore',
   bio: 'I am German',
-  classes: ['business', 'math'],
+  classes: ['ECON', 'MATH'],
   learning: 'hands'
 };
 
@@ -997,7 +1062,7 @@ const connor = {
   degree: 'Computer Science',
   year: 'senior',
   bio: 'I am old',
-  classes: ['compsci', 'engineering'],
+  classes: ['CSCI', 'ENES'],
   learning: 'hands'
 };
 
@@ -1009,7 +1074,7 @@ const lukas = {
   degree: 'Computer Science',
   year: 'sophomore',
   bio: 'I am cop',
-  classes: ['math', 'history'],
+  classes: ['MATH', 'HIST'],
   learning: 'hands'
 };
 
@@ -1021,7 +1086,7 @@ const bjorn = {
   degree: 'Computer Science',
   year: 'grad',
   bio: 'I am Norwegian',
-  classes: ['math', 'business'],
+  classes: ['MATH', 'MKTG'],
   learning: 'hands'
 };
 
@@ -1033,7 +1098,7 @@ const kate = {
   degree: 'Computer Science',
   year: 'freshman',
   bio: 'I am freshman',
-  classes: ['math', 'engineering'],
+  classes: ['MATH', 'MCEN'],
   learning: 'hands'
 };
 
@@ -1045,15 +1110,15 @@ const molly = {
   degree: 'Computer Science',
   year: 'Senior',
   bio: 'I am hurt',
-  classes: ['compsci', 'engineering'],
+  classes: ['CSCI', 'ASEN'],
   learning: 'hands'
 };
 
 createTestUser(studentUser);
 createTestUser(tutorUser);
 createTestUser(jonas);
-createTestUser(connor);
 createTestUser(lukas);
 createTestUser(bjorn);
 createTestUser(kate);
 createTestUser(molly);
+createTestUser(connor);

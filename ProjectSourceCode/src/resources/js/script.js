@@ -192,7 +192,7 @@ async function initializeUserCalendar(){
   const userName = calendarEl.getAttribute("data-user-name");
   const userType = calendarEl.getAttribute("data-user-type");
 
-  const response = await fetch(`/calendar/events?userID=${userID}`);
+  const response = await fetch(`/calendar/events`);
   console.log("cal done");
   const userEvents = await response.json();
 
@@ -266,6 +266,61 @@ async function initializeUserCalendar(){
 
 function initializeMatchCalendar(id, name){
   console.log(id,name);
+  const type = document.getElementById(`matchButton-${id}`).parentElement.id;
+  if(type=='potential'){
+    const parent = document.getElementById(`matchProfileMatch-${id}`);
+    const newDiv = document.createElement('div');
+    newDiv.innerHTML=`
+          <form action="/like" method="POST" style="padding: 10%;">
+            <input type="hidden" name="tutorID" value="${id}">
+            <input type="hidden" name="index" value="-1">
+            <button class="btn btn-primary" type="submit">Like</button>
+          </form>`;
+    parent.replaceChildren();
+    parent.appendChild(newDiv);
+  }
+  else if(type=='request'){
+    const parent = document.getElementById(`matchProfileMatch-${id}`);
+    const newDiv = document.createElement('div');
+    newDiv.innerHTML=`
+          <form action="/match" method="POST" style="padding: 10%;">
+            <input type="hidden" name="studentID" value="${id}">
+            <input type="hidden" name="index" value="-1">
+            <button class="btn btn-primary" type="submit">Match!</button>
+          </form>`;
+    parent.replaceChildren();
+    parent.appendChild(newDiv);
+  }
+  else if(type=='match'){
+    const parent = document.getElementById(`matchProfileMatch-${id}`);
+    let newDiv = document.createElement('div');
+    newDiv.innerHTML=`
+          <form action="/unmatch" method="POST" style="padding: 10%;">
+            <input type="hidden" name="matchID" value="${id}">
+            <input type="hidden" name="index" value="-1">
+            <button class="btn btn-primary" type="submit">Remove Match</button>
+          </form>`;
+    parent.replaceChildren();
+    parent.appendChild(newDiv);
+    const inst = document.getElementById(`instructions-${id}`);
+    newDiv = null;
+    newDiv = document.createElement('div');
+    newDiv.innerHTML=`<h5 style="text-align:center">Click on an available time slot to schedule a meeting with ${name}.</h5>`
+    inst.replaceChildren();
+    inst.appendChild(newDiv);
+  }
+  else if(type=='matched'){
+    const parent = document.getElementById(`matchProfileMatch-${id}`);
+    let newDiv = document.createElement('div');
+    newDiv.innerHTML=`
+          <form action="/unmatch" method="POST" style="padding: 10%;">
+            <input type="hidden" name="matchID" value="${id}">
+            <input type="hidden" name="index" value="-1">
+            <button class="btn btn-primary" type="submit">Remove Match</button>
+          </form>`;
+    parent.replaceChildren();
+    parent.appendChild(newDiv);
+  }
 
   const modal = document.getElementById(`profileModal-${id}`);
   modal.addEventListener('shown.bs.modal', async function matchCalRender() {
@@ -295,7 +350,7 @@ function initializeMatchCalendar(id, name){
             headerToolbar: {
               left: '',
               center: 'title'/*user name's calendar*/,
-              right: '' /*Update availability button*/
+              right: ''
             },
             titleFormat: function(){
               return `${userName}'s Calendar`;
@@ -303,7 +358,6 @@ function initializeMatchCalendar(id, name){
             eventClick: function(info){
               console.log('Match click: ', info);
               //only continue if matched
-              const type = document.getElementById(`matchButton-${id}`).parentElement.id;
               if(type=='match'){
                 clickMatchEvent(info.event, id);
               }
@@ -425,8 +479,8 @@ async function populateModal(id){
         this.closest('.time-slot').remove();
       });
     }
-  } catch(error){
-    console.error("ERROR: ", error);
+  } catch{
+    console.log("ERROR: ", error);
   }
   // const timeSlots = document.getElementById(`selector${day}`);
   // const newSlot = document.createElement('div');
