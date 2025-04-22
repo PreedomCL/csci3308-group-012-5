@@ -70,7 +70,7 @@
           {{/each}}
           {{else}}
           <p align="center">
-           <a class = "btn btn-primary" class="nav-link" href="/matching">No Matches, Let's Get Started!</a>
+           <a class = "btn btn-color" class="nav-link" href="/matching">No Matches, Let's Get Started!</a>
           </p>
           {{/if}}
 
@@ -82,7 +82,7 @@
         <div class="card-group">
           {{#if potentialmatches}}
           {{#each potentialmatches}}
-          <div class="card">
+          <div class="card p-3 text-center">
                 {{#if this.Profileimage}}
                 <div class="text-center">
                   <img class="mb-0" id="selectedAvatar" src="{{this.Profileimage}}" width="60" height="60">
@@ -115,4 +115,5 @@
     </div>
   </div>
   </div>
+</div>
 </div>

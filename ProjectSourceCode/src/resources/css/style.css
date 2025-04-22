@@ -6,11 +6,46 @@
 .home-form{
   float: right;
 }
+a.btn.btn-color {
+  background-color: #C79946 !important;
+  color: white !important;
+  border: none !important;
+}
+a.btn.btn-color:hover {
+  background-color: #A78F39 !important;
+}
+.btn.btn-color {
+  background-color: #C79946 !important;
+  color: white !important;
+  border: none !important;
+}
 
+.btn.btn-color:hover {
+  background-color: #A78F39 !important;
+}
+.navbar-custom {
+  background-color: #C79946;
+}
+.navbar-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  width: 100%;
+}
+.footer-custom {
+  background-color: #C79946; 
+  color: white; 
+}
+.navbar-top {
+  z-index: 1000; 
+  position: relative; 
+}
 /* matching */
 body {
   background-color: #f8f9fa;
-  padding-top: 50px;
+  padding-top: 0px;
 }
 
 .profile-card {
@@ -44,7 +79,7 @@ button:hover, a:hover {
 }
 section, aside, div {
   padding: 10px;
-  border-radius: 12px;
+  border-radius: 6px;
 }
 .flex-container{
   display: flex;
@@ -117,9 +152,9 @@ section, aside, div {
 /* Root Variables for Easy Customization */
 :root {
   /* Primary Color Palette */
-  --fc-primary: #4361ee;
-  --fc-primary-light: #738ffc;
-  --fc-primary-dark: #3a56d4;
+  --fc-primary: #C79946;
+  --fc-primary-light: #ecc988;
+  --fc-primary-dark: #ac843b;
   
   /* Neutral Colors */
   --fc-neutral-bg: #ffffff;
@@ -180,16 +215,26 @@ section, aside, div {
 }
 
 .fc .fc-button-primary:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #1a1a1a;
   border-color: rgba(255, 255, 255, 0.5);
 }
 
 .fc .fc-button-primary:not(:disabled):active,
 .fc .fc-button-primary:not(:disabled).fc-button-active {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: #1a1a1a;
   border-color: rgba(255, 255, 255, 0.7);
 }
 
+.btn-outline-color {
+  color: #C79946 !important;
+  border-color: #C79946 !important;
+}
+
+.btn-outline-color:hover {
+  color: #fff !important;
+  background-color: #C79946 !important;
+  border-color: #C79946 !important;
+}
 /* Day Header Styling */
 .fc .fc-col-header {
   background-color: #f8f9fa;

@@ -1,9 +1,16 @@
+<link href="csci3308-group-012-5/ProjectSourceCode/src/resources/css/style.css" rel="stylesheet">
 <div class="card text-start" style="width: 25rem;">
     <div class="card-body">
         <form class="needs-validation" method="post" action="/login" novalidate>
             <div class="row">
                 <div class="col">
-                    <legend>Login</legend>
+                    <legend class="text-center">
+                        <img src="../../resources/img/logo.png" alt="Logo" width="75" height="75" class="me-2">
+                    </legend>
+                    <h2 class="text-center">
+                        Welcome to Tudr
+                    </h2>
+                    {{!-- <legend>Login</legend>   --}}
 
                     <label for="email" class="form-label">Email</label>
                     <input type="email" name="email" class="form-control" pattern="^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,4}$"
@@ -15,7 +22,7 @@
             </div>
             <div class="row align-items-center">
                 <div class="col col-3">
-                    <button class="btn btn-primary" type='submit'>Login</button>
+                    <button class="btn btn-color" type='submit'>Login</button>
                 </div>
                 <div class="col">
                     {{!-- Sign in with Google button --}}

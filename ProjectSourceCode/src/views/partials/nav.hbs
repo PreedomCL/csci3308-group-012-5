@@ -1,5 +1,5 @@
 <header>
- <nav class="navbar navbar-expand-sm border-bottom">
+ <nav class="navbar navbar-expand-sm navbar-custom navbar-top border-bottom">
    <div class="container">
      <button
        class="navbar-toggler ms-auto"
@@ -11,11 +11,16 @@
        aria-label="Toggle navigation">
        <span class="navbar-toggler-icon"></span>
      </button>
+          <a class="navbar-brand" href="/">
+            Tudr
+            <img src="../../resources/img/logo.png" alt="Logo" width="30" height="30" class="me-2">
+          </a>
+
      <div class="collapse navbar-collapse" id="navbar-collapse">
-       <ul class="navbar-nav me-auto">
-        <li class="nav-item">
+       <ul class="navbar-nav position-absolute start-50 translate-middle-x">
+        {{!-- <li class="nav-item">
            <a class="nav-link" href="/">Home</a>
-         </li>
+         </li> --}}
          <li class="nav-item">
            <a class="nav-link" href="/profile">My Profile</a>
          </li>
@@ -23,7 +28,7 @@
            <a class="nav-link" href="/matching">Let's Match!</a>
          </li>
        </ul>
-       <div class="nav-item me-1">
+       <div class="ms-auto d-flex align-items-center">
          <a class="nav-link" href="/logout">Log out</a>
        </div>
      </div>
