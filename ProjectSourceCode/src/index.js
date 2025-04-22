@@ -480,8 +480,11 @@ app.use((req, res, next) => {
 app.get('/profile', async(req, res) => {
   const alert = req.query.alert;
   let message;
-  if(alert){
+  if(alert==1){
     message = [{ text: 'As a tutor, you must wait for students to request to match with you.\nMake sure your profile and availability are up to date!', level: 'warning'}];
+  }
+  else if(alert==2){
+    message = [{ text: 'Like Sent!', level: 'success'}];
   }
   
   const userData = req.session.user;
@@ -827,9 +830,13 @@ app.post('/like', async (req, res) => {
     sendEmail(req.session.user.email, "New Tutor Added!", `New tutor match with ${tutorData.name} has been added to Tudr profile!` );
     //to tutor informing of request
     sendEmail(tutorData.email, "New Student Added!", `New student match with ${req.session.user.name} has been added to Tudr profile!` );
-
-    // Redirect to next match
-    res.redirect(`/matching/${index}`);
+    if(index==-1){
+      res.redirect('/profile?alert=2');
+    }
+    else{
+      // Redirect to next match
+      res.redirect(`/matching/${index}`);
+    }
   } catch (err) {
     console.error('Error handling match:', err);
     res.status(500).send('Server error');

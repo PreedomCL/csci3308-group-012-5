@@ -271,8 +271,9 @@ function initializeMatchCalendar(id, name){
     const newDiv = document.createElement('div');
     newDiv.innerHTML=`
           <form action="/like" method="POST" style="padding: 10%;">
-            <input type="hidden" name="tutorID" value="{{id}}">
-            <button class="btn btn-primary" type="submit">Match</button>
+            <input type="hidden" name="tutorID" value="${id}">
+            <input type="hidden" name="index" value="-1">
+            <button class="btn btn-primary" type="submit">Like</button>
           </form>`;
     parent.replaceChildren();
     parent.appendChild(newDiv);
