@@ -11,8 +11,16 @@ a.btn.btn-color {
   color: white !important;
   border: none !important;
 }
-
 a.btn.btn-color:hover {
+  background-color: #A78F39 !important;
+}
+.btn.btn-color {
+  background-color: #C79946 !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn.btn-color:hover {
   background-color: #A78F39 !important;
 }
 .navbar-custom {
