@@ -424,8 +424,8 @@ async function populateModal(id){
         this.closest('.time-slot').remove();
       });
     }
-  } catch(error){
-    console.error("ERROR: ", error);
+  } catch{
+    console.log("ERROR: ", error);
   }
   // const timeSlots = document.getElementById(`selector${day}`);
   // const newSlot = document.createElement('div');

@@ -56,15 +56,27 @@
                 <input type="text" name="name" class="form-control" id="name_input" placeholder="Enter full name" {{#if
                     name}}value="{{name}}" disabled{{/if}} required maxlength="50">
             </div>
+            <div class="dropdown col-md-6">
+                <label for="year_input">Select Your Year of Schooling</label> <br />
+                <select id="year_input" name="year" class="form-select" onchange="" required>
+                    <option value="" selected disabled>Select Year</option>
+                    <option value="Freshman">Freshman</option>
+                    <option value="Sophomore">Sophomore</option>
+                    <option value="Junior">Junior</option>
+                    <option value="Senior">Senior</option>
+                    <option value="Grad">Grad</option>
+                </select>
+            </div>
+        <div class="row">
             <div class="form-group col-md-6">
                 <label for="degree_input">Degree Focus</label>
-                <select id="degree_input" name="degree" class="form-control" size="6" onchange=""
+                <select id="degree_input" name="degree" class="form-control" onchange=""
                     data-bs-toggle="dropdown" aria-expanded="false" required>
-                    <option value="" disabled selected>Degree</option>
+                    <option value="" disabled selected>Select Degree Focus</option>
                     <option value="Arts & Humanities">Arts & Humanities</option>
                     <option value="Business & Economics">Business & Economics</option>
                     <option value="Communication & Media">Communication & Media</option>
-                    <option value="Computer Science & Information Technology">Computer Science & Information Technology</option>
+                    <option value="Computer Science">Computer Science</option>
                     <option value="Education">Education</option>
                     <option value="Engineering & Technology">Engineering & Technology</option>
                     <option value="Environmental Studies">Environmental Studies</option>
@@ -77,27 +89,8 @@
                     <option value="Social Sciences">Social Sciences</option>
                 </select>
             </div>
-            <div class="dropdown col-md-6">
-                <label for="year_input">Select Your Year of Schooling</label> <br />
-                <select id="year_input" name="year" class="form-select" onchange="" required>
-                    <option value="" selected disabled>Select Year</option>
-                    <option value="Freshman">Freshman</option>
-                    <option value="Sophomore">Sophomore</option>
-                    <option value="Junior">Junior</option>
-                    <option value="Senior">Senior</option>
-                    <option value="Grad">Grad</option>
-                </select>
-            </div>
-            <div class="form-group col-md-6">
-                <label for="bio_input">Bio</label>
-                <textarea type="text" name="bio" class="form-control" id="bio_input" placeholder="Enter a Short Bio"
-                    required maxlength="200" rows="4" style="resize: none;"></textarea>
-            </div>
-        </div>
-
-        <div class="row">
             <div class="dropdown col-md-6 mr-1">
-                <label id="classes_label" for="classes_input">Classes Needing Tutoring For</label> <br />
+                <label id="classes_label" for="classes_input">Classes Needing Tutoring For</label>
                 <select id="classes_input" name="classes" class="form-control" size="6" onchange="" multiple
                     data-bs-toggle="dropdown" aria-expanded="false" required>
                     <option value="" disabled>(Hold ctrl to select multiple)</option>
@@ -258,7 +251,15 @@
                     <option value="WRTG">Writing and Rhetoric (WRTG)</div></div>
                 </select>
             </div>
+        </div>
+        <div class="row">
 
+        </div>
+            <div class="form-group col-md-6">
+                <label for="bio_input">Bio</label>
+                <textarea type="text" name="bio" class="form-control" id="bio_input" placeholder="Enter a Short Bio"
+                    required maxlength="200" rows="4" style="resize: none;"></textarea>
+            </div>          
             <div class="dropdown col-md-6 mr-1">
                 <label id="learning_label" for="learning_input">Pick Your Learning Style</label> <br />
                 <select id="learning_input" name="learning" class="form-select" onchange="" required>
