@@ -872,6 +872,30 @@ app.post('/dislike', async (req, res) => {
   }
 });
 
+app.post('/match', async (req, res) => {
+  try {
+    const tutorID = req.session.user.id;
+    const studentID = req.body.studentID;
+    const index = req.body.index;
+
+    if (!tutorID) {
+      return res.status(400).send('Missing tutor ID');
+    }
+
+    await db.query(
+      `UPDATE Matches
+      SET Status = 4
+      WHERE TutorID=$1 AND StudentID=$2`,
+      [tutorID, studentID]
+    );
+
+    res.redirect(`/profile`);
+  } catch (err) {
+    console.error('Match error:', err);
+    res.status(500).send('Server error');
+  }
+});
+
 /**
  * Logout API
  */

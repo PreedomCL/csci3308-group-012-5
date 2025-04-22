@@ -142,7 +142,71 @@
       </div>
     {{else}}
     <div id="prof-right" class = "col-sm-3" >
-      
+      <h2 style="text-align: center;">Matches</h2>
+          <div class="card-group-vert">
+            {{#if allMatches}}
+            {{#each allMatches}}
+            <div class="card-vert">
+              <div class="row align-items-center">
+                {{#if this.Profileimage}}
+                <div class="col-auto">
+                    <img class="mb-0" id="selectedAvatar" src="{{this.Profileimage}}" width="60" height="60">
+                </div>
+                {{else }}
+                <div class="col-auto">
+                  <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+                </div>
+                {{/if}}
+                <div class="col-auto">
+                  <p class="mb-0">{{this.name}}</p>
+                </div>
+                <div class="col-auto">
+                  <div id="match">
+                    {{> match}}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {{/each}}
+            {{else}}
+            <p align="center">
+            <a class = "btn btn-primary" class="nav-link">No Matches<br>Update Availability or View Requests!</a>
+            </p>
+            {{/if}}
+          </div>
+
+          <h2 style="text-align: center;">Requests</h2>
+          <div class="card-group-vert">
+            {{#if potentialmatches}}
+            {{#each potentialmatches}}
+            <div class="card-vert">
+              <div class="row align-items-center">
+                {{#if this.Profileimage}}
+                <div class="col-auto">
+                    <img class="mb-0" id="selectedAvatar" src="{{this.Profileimage}}" width="60" height="60">
+                </div>
+                {{else }}
+                <div class="col-auto">
+                  <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+                </div>
+                {{/if}}
+                <div class="col-auto">
+                  <p class="mb-0">{{this.name}}</p>
+                </div>
+                <div class="col-auto">
+                  <div id="request">
+                    {{> match}}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {{/each}}
+            {{else}}
+            <p align="center">
+            <a class = "btn btn-primary" class="nav-link">No Matches<br>Update Availability or View Requests!</a>
+            </p>
+            {{/if}}
+          </div>
     </div>
     {{/if}}
   </div>

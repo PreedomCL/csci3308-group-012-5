@@ -278,6 +278,20 @@ function initializeMatchCalendar(id, name){
     parent.replaceChildren();
     parent.appendChild(newDiv);
   }
+  else if(type=='request'){
+    const parent = document.getElementById(`matchProfileMatch-${id}`);
+    const newDiv = document.createElement('div');
+    newDiv.innerHTML=`
+          <form action="/match" method="POST" style="padding: 10%;">
+            <input type="hidden" name="studentID" value="${id}">
+            <input type="hidden" name="index" value="-1">
+            <button class="btn btn-primary" type="submit">Match!</button>
+          </form>`;
+    parent.replaceChildren();
+    parent.appendChild(newDiv);
+  }
+  const inst = document.getElementById(`instructions-${id}`);
+  inst.innerHTML=`<h5 style="text-align:center">Click on an available time slot to schedule a meeting with ${name}.</h5>`
 
   const modal = document.getElementById(`profileModal-${id}`);
   modal.addEventListener('shown.bs.modal', async function matchCalRender() {
@@ -307,7 +321,7 @@ function initializeMatchCalendar(id, name){
             headerToolbar: {
               left: '',
               center: 'title'/*user name's calendar*/,
-              right: '' /*Update availability button*/
+              right: ''
             },
             titleFormat: function(){
               return `${userName}'s Calendar`;
