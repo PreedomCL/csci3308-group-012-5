@@ -148,8 +148,6 @@ async function requestSession(id){
     let meetingStart = inputStart.querySelector('.start-time').value;
     const inputEnd = document.getElementById('request-end');
     let meetingEnd = inputEnd.querySelector('.end-time').value;
-    console.log(meetingStart);
-    console.log(meetingEnd);
     const inputFormat = document.getElementById('request-format');
     let meetingFormat = inputFormat.querySelector('.format').value;
     //TODO: data validation
@@ -303,7 +301,11 @@ function initializeMatchCalendar(id, name){
             },
             eventClick: function(info){
               console.log('Match click: ', info);
-              clickMatchEvent(info.event, id);
+              //only continue if matched
+              const type = document.getElementById(`matchButton-${id}`).parentElement.id;
+              if(type=='match'){
+                clickMatchEvent(info.event, id);
+              }
             },
             nowIndicator: true,
             stickyHeaderDates: true,

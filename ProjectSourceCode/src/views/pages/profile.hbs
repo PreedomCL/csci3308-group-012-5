@@ -61,7 +61,9 @@
                 <p class="mb-0">{{this.name}}</p>
               </div>
               <div class="col-auto">
-                {{> match}}
+                <div id="match">
+                  {{> match}}
+                </div>
               </div>
             </div>
           </div>
@@ -91,7 +93,9 @@
                 </div>
                 {{/if}}
             <p>{{this.name}}</p>
-            {{> match}}
+            <div id="potential">
+              {{> match}}
+            </div>
           </div>
           {{/each}}
         </div>
