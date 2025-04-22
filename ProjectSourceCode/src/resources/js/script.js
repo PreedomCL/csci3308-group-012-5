@@ -210,6 +210,7 @@ async function initializeUserCalendar(){
   }
   const userID = calendarEl.getAttribute("data-user-id");
   const userName = calendarEl.getAttribute("data-user-name");
+  const userType = calendarEl.getAttribute("data-user-type");
 
   const response = await fetch(`/calendar/events?userID=${userID}`);
   console.log("cal done");
@@ -244,7 +245,7 @@ async function initializeUserCalendar(){
           },
           eventClick: function(info){
             console.log('Click: ', info);
-            clickUserEvent(info.event);
+            clickUserEvent(info.event, userType);
           },
           nowIndicator: true,
           stickyHeaderDates: true,
@@ -446,13 +447,18 @@ async function populateModal(id){
   // newSlot.innerHTML =``;
 }
 
-function clickUserEvent(event){
-  if(event.extendedProps.type!='Available' /* && caltype==tutor*/){
+function clickUserEvent(event, type){
+  //student
+  if(event.extendedProps.type!='Available' && type){
     const downloadModal = document.getElementById('download-modal');
     const newModal = new bootstrap.Modal(downloadModal);
     newModal.show();
     console.log('show modal');
     populateDownload(event);
+  }
+  //tutor
+  else if(event.extendedProps.type=='Pending' && !type){
+    //TODO accept meeeting
   }
 }
 
