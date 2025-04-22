@@ -6,7 +6,7 @@
         <div class="card-prof">
         <div class="row align-items-center">  
           <div class="col-auto mx-auto text-center">
-            <img src={{#if profilepic}}"{{profilepic}}"{{else}}"https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg"{{/if}} alt="profile pic"class="rounded-circle" style="width: 200px; height: 200px; object-fit: cover;">
+            <img src={{#if profileimage}}"{{profileimage}}"{{else}}"https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg"{{/if}} alt="profile pic"class="rounded-circle" style="width: 200px; height: 200px; object-fit: cover;">
           </div>
           <div class="col-auto mx-auto text-center">
             <h2>{{name}}</h2>
@@ -70,7 +70,7 @@
           {{/each}}
           {{else}}
           <p align="center">
-           <a class = "btn btn-primary" class="nav-link" href="/matching">No Matches, Let's Get Started!</a>
+           <a class = "btn btn-color" class="nav-link" href="/matching">No Matches, Let's Get Started!</a>
           </p>
           {{/if}}
 
@@ -82,7 +82,7 @@
         <div class="card-group">
           {{#if potentialmatches}}
           {{#each potentialmatches}}
-          <div class="card">
+          <div class="card p-3 text-center">
                 {{#if this.Profileimage}}
                 <div class="text-center">
                   <img class="mb-0" id="selectedAvatar" src="{{this.Profileimage}}" width="60" height="60">
@@ -115,4 +115,5 @@
     </div>
   </div>
   </div>
+</div>
 </div>

@@ -1,18 +1,32 @@
-<div class="container mt-1">
-<body>
-    <div class="container">
-        <div class="desc">
-        <h1>What is Tudr?</h1>
-        <br>
-        <p>For students who need academic tutoring. Tudr is a matchmaking application that connects students with compatible tutors qualified to meet their academic needs. Tudr helps students find meaningful and lasting tutorships based on its complex matchmaking algorithm.</p>
-        </div>  
-            <div class="home-form">
-            <img class = "mb-4" id="selectedAvatar" src="../../resources/img/logo.png" width="300" height="300">
-                <form class = "text-center">
-                    <a href="/register" class="btn btn-primary btn-lg active" role="button" aria-pressed="true"> Register For Tutoring Now! </a>
-                    <p>Already have an account? <a href = '/login'>Login</a> </p> 
-                </form>
-            </div>
-        </div>
-</body>
+<link href="csci3308-group-012-5/ProjectSourceCode/src/resources/css/style.css" rel="stylesheet">
+<div class="container mt-5">
+  <!-- Title -->
+  <header class="text-center mb-4">
+    <h1>Welcome to Tudr</h1>
+    <p class="lead">Your pathway to finding the best academic tutors for your needs.</p>
+    <img id="selectedAvatar" src="../../resources/img/logo.png" width="300" height="300" class="mb-4" alt="Tudr Logo">
+  </header>
+
+  <div class="row justify-content-center align-items-center">
+    
+    <!-- Description -->
+    <div class="col-lg-6 text-center">
+      <h2>What is Tudr?</h2>
+      <p class="lead mt-3">
+        For students who need academic tutoring, Tudr is a matchmaking application that connects students with compatible tutors qualified to meet their academic needs. Tudr helps students find meaningful and lasting tutorships based on its complex matchmaking algorithm.
+      </p>
+    </div>
+    
+    <!-- Login -->
+    <div class="col-lg-4">
+      <div class="text-center bg-light p-4 rounded shadow-sm">
+        <form class="d-flex flex-column align-items-center">
+          <a href="/register" class="btn btn-color btn-lg mb-3" role="button" aria-pressed="true">Register For Tutoring Now!</a>
+          <p>Already have an account? <a href="/login">Login</a></p>
+        </form>
+      </div>
+    </div>
+    
+  </div>
 </div>
+
