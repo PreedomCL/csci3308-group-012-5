@@ -140,30 +140,14 @@ async function saveAvailabilityEvent(){
   }
 }
 
-async function requestSession(event, id){
-  document.getElementById(`request-button-${id}`).addEventListener('click', async function(){
+async function requestSession(id){
     console.log('Request');
-    console.log("Available: ", event);
-    // const aStartH = new Date(event.start).getHours().toString().padStart(2, '0');;
-    // console.log(aStartH);
-    // const aStartM = new Date(event.start).getMinutes().toString().padStart(2, '0');;
-    // console.log(aStartM);
-    // const aEndH = new Date(event.end).getHours().toString().padStart(2, '0');;
-    // console.log(aEndH);
-    // const aEndM = new Date(event.end).getMinutes().toString().padStart(2, '0');;
-    // console.log(aEndM);
-
-    // const availableStart = new Date(event.start).toLocaleDateString([], {hour: '2-digit', minute: '2-digit'});
-    // const availableEnd = new Date(event.end).toLocaleDateString([], {hour: '2-digit', minute: '2-digit'});
-    // console.log("start: ", availableStart);
-
-    const day = new Date(event.start).getDay();
+    const day = new Date(eventView.start).getDay();
+    console.log(day);
     const inputStart = document.getElementById('request-start');
     let meetingStart = inputStart.querySelector('.start-time').value;
     const inputEnd = document.getElementById('request-end');
     let meetingEnd = inputEnd.querySelector('.end-time').value;
-    console.log(meetingStart);
-    console.log(meetingEnd);
     const inputFormat = document.getElementById('request-format');
     let meetingFormat = inputFormat.querySelector('.format').value;
     //TODO: data validation
@@ -193,10 +177,6 @@ async function requestSession(event, id){
     });
     initializeMatchCalendar(id, tutorName);
     initializeUserCalendar();
-  });
-
-  
-
 }
 
 async function initializeUserCalendar(){
@@ -221,9 +201,9 @@ async function initializeUserCalendar(){
       userCalendar = new FullCalendar.Calendar(calendarEl, {  
           initialView: 'timeGridWeek',
           headerToolbar: {
-            left: 'updateAvailability',
+            left: 'updateAvailability', /*Update availability button*/
             center: 'title'/*user name's calendar*/,
-            right: '' /*Update availability button*/
+            right: '' 
           },
           customButtons: {
             updateAvailability: {
@@ -322,7 +302,14 @@ function initializeMatchCalendar(id, name){
             },
             eventClick: function(info){
               console.log('Match click: ', info);
-              clickMatchEvent(info.event, id);
+              //only continue if matched
+              const type = document.getElementById(`matchButton-${id}`).parentElement.id;
+              if(type=='match'){
+                clickMatchEvent(info.event, id);
+              }
+              else{
+                alert(`Match with ${name} before scheduling a tutoring session.`);
+              }
             },
             nowIndicator: true,
             stickyHeaderDates: true,
@@ -470,10 +457,10 @@ function clickMatchEvent(event, id){
   newModal.show();
   console.log('show modal');
   populateRequest(event, id);
-  requestSession(event, id);
 }
 
 function populateRequest(event, id){
+  eventView = event;
   const Astart = new Date(event.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   const Aend = new Date(event.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   const Aday = new Date(event.start).toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
@@ -484,12 +471,12 @@ function populateRequest(event, id){
   }
   const request = document.createElement('div');
 
-  request.className = 'card';
+  request.className = `card`;
   request.innerHTML=`
           <div class="card-body">
             <div class="row mb-2">
               <div class="col-md-5 fw-bold">Day:</div>
-              <div class="col-md-7">${Aday}</div>
+              <div class="col-md-7 dayInput">${Aday}</div>
             </div>
             <div class="row mb-2">
               <div class="col-md-5 fw-bold">Available From:</div>
@@ -509,7 +496,7 @@ function populateRequest(event, id){
             <div class="row">
               <div class="col-6" id="request-start">
                   <select class="form-select start-time">
-                    <option value="" disabled>Start Time</option>
+                    <option value="" disabled selected>Start Time</option>
                     <option value="08:00:00">8:00 AM</option>
                     <option value="08:30:00">8:30 AM</option>
                     <option value="09:00:00">9:00 AM</option>
@@ -540,7 +527,7 @@ function populateRequest(event, id){
               </div>
               <div class="col-6" id="request-end">
                 <select class="form-select end-time">
-                  <option value="" disabled>End Time</option>
+                  <option value="" disabled selected>End Time</option>
                   <option value="08:30:00">8:30 AM</option>
                   <option value="09:00:00">9:00 AM</option>
                   <option value="09:30:00">9:30 AM</option>
