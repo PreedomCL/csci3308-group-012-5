@@ -306,6 +306,9 @@ function initializeMatchCalendar(id, name){
               if(type=='match'){
                 clickMatchEvent(info.event, id);
               }
+              else{
+                alert(`Match with ${name} before scheduling a tutoring session.`);
+              }
             },
             nowIndicator: true,
             stickyHeaderDates: true,

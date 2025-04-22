@@ -287,32 +287,21 @@ section, aside, div {
   border-color: var(--fc-event-available) !important;
 }
 
-.fc-event[data-event-type="Unavailable"],
-.fc-event.unavailable-event {
-  background-color: var(--fc-event-unavailable) !important;
-  border-color: var(--fc-event-unavailable) !important;
-}
-
 .fc-event[data-event-type="Pending"],
 .fc-event.pending-event {
   background-color: var(--fc-event-pending) !important;
   border-color: var(--fc-event-pending) !important;
 }
 
-.fc-event[data-event-type="accepted"],
+.fc-event[data-event-type="Accepted"],
 .fc-event.accepted-event {
   background-color: var(--fc-event-accepted) !important;
   border-color: var(--fc-event-accepted) !important;
 }
 
-.fc-event[data-event-type="Completed"],
-.fc-event.completed-event {
-  background-color: var(--fc-event-completed) !important;
-  border-color: var(--fc-event-completed) !important;
-}
 
 /* Event Format - Border Styling */
-.fc-event[data-event-format="Virtual"],
+.fc-event[data-event-format="Online"],
 .fc-event.virtual-format {
   border-left: 4px solid var(--fc-format-virtual) !important;
 }
