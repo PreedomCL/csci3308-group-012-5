@@ -24,7 +24,7 @@ a.btn.btn-color:hover {
   background-color: #A78F39 !important;
 }
 .navbar-custom {
-  background-color: #C79946;  /* Replace with your desired color */
+  background-color: #C79946;
 }
 .navbar-top {
   position: fixed;
@@ -35,8 +35,12 @@ a.btn.btn-color:hover {
   width: 100%;
 }
 .footer-custom {
-  background-color: #C79946;  /* Replace with your desired color */
-  color: white;  /* Change text color to something readable */
+  background-color: #C79946; 
+  color: white; 
+}
+.navbar-top {
+  z-index: 1000; 
+  position: relative; 
 }
 /* matching */
 body {
@@ -148,9 +152,9 @@ section, aside, div {
 /* Root Variables for Easy Customization */
 :root {
   /* Primary Color Palette */
-  --fc-primary: #4361ee;
-  --fc-primary-light: #738ffc;
-  --fc-primary-dark: #3a56d4;
+  --fc-primary: #C79946;
+  --fc-primary-light: #DBB96E;
+  --fc-primary-dark: #A17330;
   
   /* Neutral Colors */
   --fc-neutral-bg: #ffffff;
@@ -221,6 +225,16 @@ section, aside, div {
   border-color: rgba(255, 255, 255, 0.7);
 }
 
+.btn-outline-color {
+  color: #C79946 !important;
+  border-color: #C79946 !important;
+}
+
+.btn-outline-color:hover {
+  color: #fff !important;
+  background-color: #C79946 !important;
+  border-color: #C79946 !important;
+}
 /* Day Header Styling */
 .fc .fc-col-header {
   background-color: #f8f9fa;
