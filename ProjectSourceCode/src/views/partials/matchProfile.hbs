@@ -1,0 +1,45 @@
+<div>
+  <div class="row">
+    <div id="prof-left" class = "col-sm-3">
+      <h2 style="text-align: center;">Personal Info</h2>
+      <form method="post" action="/"></form>
+        <div class="card-prof">
+        <div class="row align-items-center">  
+          <div class="col-auto mx-auto text-center">
+            <img src="{{profileimage}}" alt="profile pic"class="rounded-circle" style="width: 200px; height: 200px; object-fit: cover;">
+          </div>
+          <div class="col-auto mx-auto text-center">
+            <h2>{{name}}</h2>
+          </div>
+          <div class="col-auto">
+            <h3>{{degree}}</h3>
+          </div>
+        </div>
+        </div>
+        <div class="card-prof">
+          <p>Courses needing tutoring for:</p>
+            <ul>
+              {{#each classes}}
+              <li> 
+                {{this}}
+              </li>
+              {{/each}}
+            </ul>
+        </div>
+        <div class="card-prof">
+          <p>Learning Style: {{learningstyle}}</p>
+        </div>
+        <div class="card-prof">
+          <p>Bio: {{bio}}</p>
+        </div>
+      </form>
+    </div>
+    {{!-- Schedule to be implemented with Calendar API --}}
+    <div id="prof-center" class="col-sm-9">
+      <div class="calendar-container">
+          <div id="match-calendar-{{id}}" data-id="" data-name="" data-matched=""></div>
+      </div>
+    </div>
+  </div>
+</div>
+

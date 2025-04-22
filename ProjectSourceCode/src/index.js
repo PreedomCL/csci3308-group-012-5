@@ -543,7 +543,7 @@ app.get('/profile', async(req, res) => {
     console.log("student or tutor", result.usertype)
     res.render('pages/profile', {
       //i think this is where im having trouble reading in
-      student: result.usertype == 'student', userID: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches
+      student: result.usertype == 'student', userid: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches
     })
   }
   catch(error){
@@ -555,7 +555,7 @@ app.get('/profile', async(req, res) => {
 
 app.get('/calendar/reset', async(req, res) => {
   const query = `SELECT EventID FROM UsersToEvents WHERE UserId = $1`;
-  const query2 = `DELETE FROM Events WHERE EventId = $1`;
+  const query2 = `DELETE FROM Events WHERE EventId = $1 AND EventType=1`;
   console.log("Deleting");
   try{
     const eventIds = await db.manyOrNone(query, req.query.userID);
@@ -611,8 +611,83 @@ app.get('/calendar/events', async(req, res) => {
   }
 });
 
+app.get('/calendar/events/match', async(req, res) => {
+  console.log("Gathering user event information");
+  const eventIDQuery = `SELECT EventId FROM UsersToEvents WHERE UserId = $1`;
+  let eventsInfo = [];
+  const eventInfoQuery = `SELECT e.EventId as id, e.EventName as title, e.EventDay as day, e.EventDescription as description, et.TypeName as type,
+                          e.EventStartTime as start, e.EventEndTime as end, ef.FormatName as format 
+                          FROM Events e 
+                          JOIN EventFormats ef ON e.EventFormat = ef.FormatID
+                          JOIN EventTypes et ON e.EventType = et.TypeID
+                          WHERE e.EventId=$1 AND et.TypeName='Available'`;
+  try{
+    const eventIds = await db.manyOrNone(eventIDQuery, req.query.userID);
+    console.log(eventIds);
+    for(let e of eventIds){
+      const event = await db.oneOrNone(eventInfoQuery, e.eventid)
+      if(!event){
+        console.log(`Event not found for ID: ${e.eventid}`);
+        continue;
+      }
+      else{
+        let formatted_event = {
+          title: event.title,
+          daysOfWeek: [event.day],
+          description: event.description,
+          startTime: event.start,
+          endTime: event.end,
+          type: event.type,
+          id: event.id,
+          format: event.format
+        }
+        eventsInfo.push(formatted_event);
+      }
+    }
+    console.log('GET', eventsInfo);
+    return res.json(eventsInfo);
+  } catch(error){
+    console.log("Error accessing user events calendar: ", error);
+    return res.status(500).json({message: "Server Error"});
+  }
+});
+
+app.post('/requestMeeting', async (req, res) => {
+  const query = `INSERT INTO EVENTS (EventName, EventType, EventDay, EventStartTime, EventEndTime, EventFormat)
+                  VALUES ($1, $2, $3, $4, $5, $6)
+                  RETURNING EventId`;
+  const query1 = `INSERT INTO UsersToEvents (UserID, EventID)
+                  VALUES ($1, $2)
+                  RETURNING UserID, EventID`;
+  const query2 = `INSERT INTO UsersToEvents (UserID, EventID)
+                  VALUES ($1, $2)
+                  RETURNING UserID, EventID`;
+  
+  let studentID = req.body.studentid;
+  let tutorID = req.body.tutorid;
+  let eventName = req.body.name;
+  let eventType = req.body.type;
+  let eventDay = req.body.day;
+  let eventStartTime = req.body.startTime;
+  let eventEndTime = req.body.endTime;
+  let eventFormat = req.body.format;
+  console.log(req.body);
+
+  try{
+    const result = await db.one(query, [eventName, eventType, eventDay, eventStartTime, eventEndTime, eventFormat]);
+    const result1 = await db.manyOrNone(query1, [studentID, result.eventid]);
+    console.log('1:', result1);
+    const result2 = await db.manyOrNone(query2, [tutorID, result.eventid]);
+    console.log('1:', result2);
+    res.status(200).send("new meeting requested");
+    return;
+  }
+  catch (error){
+    console.error("ERROR: ", error);
+  }
+});
+
 app.post('/calendar/updateAvailability', async (req, res) => {
-  console.log("post method");
   const query = `INSERT INTO EVENTS (EventName, EventType, EventDay, EventStartTime, EventEndTime, EventFormat)
                   VALUES ($1, $2, $3, $4, $5, $6)
                   RETURNING EventId`;
@@ -640,7 +715,7 @@ app.post('/calendar/updateAvailability', async (req, res) => {
                     RETURNING UserID, EventID`;
     const result1 = await db.manyOrNone(query1, [userID, result.eventid]);
     console.log("result: ", result1);
-    res.send(200);
+    res.status(200).send("Updated availability");
     return;
   } catch(error){
     console.error('Error: ', error);
