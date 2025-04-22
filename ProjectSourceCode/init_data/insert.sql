@@ -184,5 +184,5 @@ INSERT INTO EventTypes(TypeName) VALUES
 INSERT INTO MatchStatus(Status) VALUES
 ('Rec'),
 ('Liked'),
-('Skipped'),
+('Dislike'),
 ('Matched');

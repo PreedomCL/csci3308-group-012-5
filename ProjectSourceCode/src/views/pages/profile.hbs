@@ -42,7 +42,7 @@
     {{#if student}}
       {{!-- Matched Tutors --}}
       <div id="prof-right" class = "col-sm-3" >
-          <h2 style="text-align: center;">Tutors</h2>
+          <h2 style="text-align: center;">Matched Tutors</h2>
           <div class="card-group-vert">
             {{#if allMatches}}
             {{#each allMatches}}
@@ -73,7 +73,7 @@
             <a class = "btn btn-primary" class="nav-link" href="/matching">No Matches, Let's Get Started!</a>
             </p>
             {{/if}}
-
+          </div>
 
         {{!-- Potential Tutors --}}
         <row>
@@ -111,6 +111,34 @@
                   <p class="mb-0">No More Tutors Available</p>
                 </div>
           {{/if}}
+          <div class="card-group-vert">
+            {{#if matchRequests}}
+            <h2 style="text-align: center;">Requests Sent</h2>
+            {{#each matchRequests}}
+            <div class="card-vert">
+              <div class="row align-items-center">
+                {{#if this.Profileimage}}
+                <div class="col-auto">
+                    <img class="mb-0" id="selectedAvatar" src="{{this.Profileimage}}" width="60" height="60">
+                </div>
+                {{else }}
+                <div class="col-auto">
+                  <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+                </div>
+                {{/if}}
+                <div class="col-auto">
+                  <p class="mb-0">{{this.name}}</p>
+                </div>
+                <div class="col-auto">
+                  <div id="potential">
+                    {{> match}}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {{/each}}
+            {{/if}}
+          </div>
       </div>
     {{else}}
     <div id="prof-right" class = "col-sm-3" >

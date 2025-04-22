@@ -475,12 +475,17 @@ app.use((req, res, next) => {
 // All routes that require login below
 
 app.get('/profile', async(req, res) => {
+  const alert = req.query.alert;
+  let message;
+  if(alert){
+    message = [{ text: 'As a tutor, you must wait for students to request to match with you.\nMake sure your profile and availability are up to date!', level: 'warning'}];
+  }
+  
   const userData = req.session.user;
+  console.log(userData);
 
-  let allMatches, potentialmatches;    
-
+  let allMatches, potentialmatches, matchRequests;    
   if(userData.usertype =='student'){
-    console.log('hereprof');
     allMatches = await db.any(
       `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
       FROM Users u
@@ -495,10 +500,16 @@ app.get('/profile', async(req, res) => {
       WHERE m.StudentID = $1 AND m.Status = 1
       LIMIT 3`,
       [userData.id]
-    );  
+    ); 
+    matchRequests = await db.any(
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      FROM Users u
+      JOIN Matches m ON m.TutorID = u.Id
+      WHERE m.StudentID = $1 AND m.Status = 2`,
+      [userData.id]
+    )
   }
   else{
-    console.log('prof');
     allMatches = await db.any(
       `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
       FROM Users u
@@ -533,9 +544,8 @@ app.get('/profile', async(req, res) => {
   try{
     const result = await db.one(query, [userData.email])
     console.log(result);
-    console.log("student or tutor", result.usertype)
     res.render('pages/profile', {
-      student: result.usertype == 'student', userid: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches
+      student: result.usertype == 'student', userid: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches, matchRequests: matchRequests, message: message
     })
   }
   catch(error){
@@ -714,22 +724,12 @@ app.post('/calendar/updateAvailability', async (req, res) => {
   }
 });
 
-/**
- * Logout API
- */
-app.get('/logout', (req, res) => {
-  req.session.destroy(function(err) {
-    res.render('pages/logout');
-  });
-});
-
-
 app.get('/matching', (req, res) => {
   if(req.session.user.usertype == 'student'){
     res.redirect('/matching/0');
   }
   else{
-    res.render('pages/profile', {message: [{ text: 'As a tutor, you must wait for students to request to match with you.\nMake sure your profile and availability are up to date!', level: 'warning'}]});
+    res.redirect('/profile?alert=1');
   }
 });
 
@@ -738,49 +738,28 @@ app.get('/matching/:index?', async (req, res) => {
     //get the user id
     const userID=req.session.user.id;
 
-    //check if user id exists
-    if(!userID){
-      return res.redirect ('/login');
-    }
+    // //get user data based on user id
+    // const userData = await db.one(
+    //   `SELECT LearningStyle, Degree
+    //   FROM users
+    //   Where Id =$1`,
+    //   [userID]
+    // );
 
-    //get user data based on user id
-    const userData = await db.one(
-      `SELECT LearningStyle, UserType, Degree
-      FROM users
-      Where Id =$1`,
-      [userID]
-    );
-
-    console.log('USER DATA', userData);
-    //find potential tutor matches based on Learning Style, the opposte User Type, and Degree
+    //find potential tutor matches based on Learning Style and Degree
     //Could change to classes via "classes" table when fully implemented
     const potentials = await db.any(
-      `SELECT Id, Name, Degree, Year, Bio, LearningStyle 
-      FROM users 
-      WHERE LearningStyle =$1
-      AND UserType!=$2
-      AND Degree=$3
-      AND Id NOT IN (
-        SELECT TutorID FROM MatchedUsers WHERE UserID = $4
-      )`,
-    [userData.learningstyle, userData.usertype, userData.degree, userID]
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      FROM Users u
+      JOIN Matches m ON m.TutorID = u.Id
+      WHERE m.StudentID = $1 AND m.Status = 1`,
+      [userID]
     );
-
-    
-
+ 
     //start with initial index
     const index = parseInt(req.params.index) || 0;
     const match = potentials[index];
 
-    /*const styleMap = {
-      1: 'Visual',
-      2: 'Auditory',
-      3: 'Hands-on',
-      4: 'Writing'
-    };
-    
-      match.learningstyle = styleMap[match.learningstyle] || 'Unknown';*/
-    console.log(potentials);
     //check if match exists
     //if no matches, send to login redirect page
     if (!match) {
@@ -788,11 +767,12 @@ app.get('/matching/:index?', async (req, res) => {
         noMatches: true
       });
     }
-    console.log(potentials);
+    console.log('potentials:', potentials);
+    console.log(match);
     //if matches, start rendering by index
     res.render('pages/matching', {
       match,
-      nextIndex: index + 1
+      index
     });
   } catch (err){ //in case of database error
     console.error('DB error:', err);
@@ -806,7 +786,7 @@ app.post('/like', async (req, res) => {
   try {
     const studentID = req.session.user.id;
     const tutorID = req.body.tutorID;
-    const nextIndex = req.body.nextIndex;
+    const index = req.body.index;
 
     if (!studentID || !tutorID) {
       console.error('Missing userID or tutorID');
@@ -815,12 +795,12 @@ app.post('/like', async (req, res) => {
 
     // Check if the match already exists
     const existingMatch = await db.query(
-      'SELECT * FROM Matches WHERE TutorID = $1 AND UserID = $2 AND Status = 4',
+      'SELECT * FROM Matches WHERE TutorID = $1 AND StudentID = $2 AND Status = 4',
       [tutorID, studentID]
     );
 
     if (existingMatch.length > 0) {
-      console.log(`Match already exists: UserID ${studentID} and TutorID ${tutorID}`);
+      res.status(304).send(`Match already exists: StudentID ${studentID} and TutorID ${tutorID}`);
     } else {
       // Insert new match
       await db.query(
@@ -829,7 +809,7 @@ app.post('/like', async (req, res) => {
         WHERE TutorID=$1 AND StudentID=$2`,
         [tutorID, studentID]
       );
-      console.log(`New match stored: UserID ${studentID} liked TutorID ${tutorID}`);
+      console.log(`New match stored: Student ${studentID} liked TutorID ${tutorID}`);
     }
 
     //tutor email
@@ -846,7 +826,7 @@ app.post('/like', async (req, res) => {
     sendEmail(tutorData.email, "New Student Added!", `New student match with ${req.session.user.name} has been added to Tudr profile!` );
 
     // Redirect to next match
-    res.redirect(`/matching/${nextIndex}`);
+    res.redirect(`/matching/${index}`);
   } catch (err) {
     console.error('Error handling match:', err);
     res.status(500).send('Server error');
@@ -854,12 +834,15 @@ app.post('/like', async (req, res) => {
 });
 
 app.post('/skip', async (req, res) => {
-  try {
-    console.log("Session:", req.session);
-    const studentID = req.session.user.id;
+  const index = req.body.index + 1;
+  res.redirect(`/matching/${index}`);
+});
 
-    const { tutorID, nextIndex } = req.body;
-    console.log("tutorID:", tutorID, "nextIndex:", nextIndex);
+app.post('/dislike', async (req, res) => {
+  try {
+    const studentID = req.session.user.id;
+    const tutorID = req.body.tutorID;
+    const index = req.body.index;
 
     if (!tutorID) {
       return res.status(400).send('Missing tutor ID');
@@ -872,12 +855,20 @@ app.post('/skip', async (req, res) => {
       [tutorID, studentID]
     );
 
-    console.log(`User ${studentID} skipped match ${tutorID}`);
-    res.redirect(`/matching/${nextIndex}`);
+    res.redirect(`/matching/${index}`);
   } catch (err) {
-    console.error('Skip error:', err);
+    console.error('Dislike error:', err);
     res.status(500).send('Server error');
   }
+});
+
+/**
+ * Logout API
+ */
+app.get('/logout', (req, res) => {
+  req.session.destroy(function(err) {
+    res.render('pages/logout');
+  });
 });
 
 // *****************************************************
