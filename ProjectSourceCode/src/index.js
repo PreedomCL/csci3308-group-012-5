@@ -581,7 +581,7 @@ app.get('/calendar/events', async(req, res) => {
                           JOIN EventTypes et ON e.EventType = et.TypeID
                           WHERE e.EventId = $1`;
   try{
-    const eventIds = await db.manyOrNone(eventIDQuery, req.query.userID);
+    const eventIds = await db.manyOrNone(eventIDQuery, req.session.user.id);
     console.log(eventIds);
     for(let e of eventIds){
       const event = await db.oneOrNone(eventInfoQuery, e.eventid)
@@ -733,7 +733,12 @@ app.get('/logout', (req, res) => {
 
 
 app.get('/matching', (req, res) => {
-  res.redirect('/matching/0');
+  if(req.session.user.usertype == 'student'){
+    res.redirect('/matching/0');
+  }
+  else{
+    res.render('pages/profile', {message: [{ text: 'As a tutor, you must wait for students to request to match with you.\nMake sure your profile and availability are up to date!', level: 'warning'}]});
+  }
 });
 
 app.get('/matching/:index?', async (req, res) => {
@@ -754,7 +759,7 @@ app.get('/matching/:index?', async (req, res) => {
       [userID]
     );
 
-    console.log(userData);
+    console.log('USER DATA', userData);
     //find potential tutor matches based on Learning Style, the opposte User Type, and Degree
     //Could change to classes via "classes" table when fully implemented
     const potentials = await db.any(

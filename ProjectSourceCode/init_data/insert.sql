@@ -30,3 +30,9 @@ INSERT INTO EventTypes(TypeName) VALUES
 ('Available'),
 ('Pending'),
 ('Accepted');
+
+INSERT INTO MatchStatus(Status) VALUES
+('Recommended'),
+('Liked'),
+('Skipped'),
+('Matched');

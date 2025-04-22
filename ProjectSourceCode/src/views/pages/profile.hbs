@@ -39,80 +39,84 @@
       <h2 style="text-align: center;">Calendar</h2>
       {{> cal}}
     </div>
-
-    {{!-- Matched Tutors --}}
-    <div id="prof-right" class = "col-sm-3" >
-        <h2 style="text-align: center;">{{#if student}}Tutors{{else}}Students{{/if}}</h2>
-        <div class="card-group-vert">
-          {{#if allMatches}}
-          {{#each allMatches}}
-          <div class="card-vert">
-            <div class="row align-items-center">
-              {{#if this.Profileimage}}
-              <div class="col-auto">
-                  <img class="mb-0" id="selectedAvatar" src="{{this.Profileimage}}" width="60" height="60">
-              </div>
-              {{else }}
-              <div class="col-auto">
-                <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
-              </div>
-              {{/if}}
-              <div class="col-auto">
-                <p class="mb-0">{{this.name}}</p>
-              </div>
-              <div class="col-auto">
-                <div id="match">
-                  {{> match}}
-                </div>
-              </div>
-            </div>
-          </div>
-          {{/each}}
-          {{else}}
-          <p align="center">
-           <a class = "btn btn-primary" class="nav-link" href="/matching">No Matches, Let's Get Started!</a>
-          </p>
-          {{/if}}
-
-
-      {{!-- Potential Tutors --}}
-      <row>
-        <br>
-        <h2 style="text-align: center;">Potential {{#if student}}Tutors{{else}}Students{{/if}}</h2>
-        <div class="card-group">
-          {{#if potentialmatches}}
-          {{#each potentialmatches}}
-          <div class="card">
+    {{#if student}}
+      {{!-- Matched Tutors --}}
+      <div id="prof-right" class = "col-sm-3" >
+          <h2 style="text-align: center;">Tutors</h2>
+          <div class="card-group-vert">
+            {{#if allMatches}}
+            {{#each allMatches}}
+            <div class="card-vert">
+              <div class="row align-items-center">
                 {{#if this.Profileimage}}
-                <div class="text-center">
-                  <img class="mb-0" id="selectedAvatar" src="{{this.Profileimage}}" width="60" height="60">
+                <div class="col-auto">
+                    <img class="mb-0" id="selectedAvatar" src="{{this.Profileimage}}" width="60" height="60">
                 </div>
-                {{else}}
-                <div class="text-center">
+                {{else }}
+                <div class="col-auto">
                   <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
                 </div>
                 {{/if}}
-            <p>{{this.name}}</p>
-            <div id="potential">
-              {{> match}}
+                <div class="col-auto">
+                  <p class="mb-0">{{this.name}}</p>
+                </div>
+                <div class="col-auto">
+                  <div id="match">
+                    {{> match}}
+                  </div>
+                </div>
+              </div>
             </div>
+            {{/each}}
+            {{else}}
+            <p align="center">
+            <a class = "btn btn-primary" class="nav-link" href="/matching">No Matches, Let's Get Started!</a>
+            </p>
+            {{/if}}
+
+
+        {{!-- Potential Tutors --}}
+        <row>
+          <br>
+          <h2 style="text-align: center;">Potential Tutors</h2>
+          <div class="card-group">
+            {{#if potentialmatches}}
+            {{#each potentialmatches}}
+            <div class="card">
+                  {{#if this.Profileimage}}
+                  <div class="text-center">
+                    <img class="mb-0" id="selectedAvatar" src="{{this.Profileimage}}" width="60" height="60">
+                  </div>
+                  {{else}}
+                  <div class="text-center">
+                    <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+                  </div>
+                  {{/if}}
+              <p>{{this.name}}</p>
+              <div id="potential">
+                {{> match}}
+              </div>
+            </div>
+            {{/each}}
           </div>
-          {{/each}}
-        </div>
-      </row>
-          {{else}}
-        {{!-- <h2 style="text-align: center;">Potential Tutors</h2> --}}
-            <div class="card-vert" style="margin-left: -8px;">
-            <div class="row align-items-center">
-                    <div class="col-auto">
-                <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
-              </div>
-    
-              <div class="col-auto">
-                <p class="mb-0">No More {{#if student}}Tutors{{else}}Students{{/if}} Available</p>
-              </div>
-        {{/if}}
+        </row>
+            {{else}}
+              <div class="card-vert" style="margin-left: -8px;">
+              <div class="row align-items-center">
+                      <div class="col-auto">
+                  <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+                </div>
+      
+                <div class="col-auto">
+                  <p class="mb-0">No More Tutors Available</p>
+                </div>
+          {{/if}}
+      </div>
+    {{else}}
+    <div id="prof-right" class = "col-sm-3" >
+      
     </div>
+    {{/if}}
   </div>
   </div>
 </div>

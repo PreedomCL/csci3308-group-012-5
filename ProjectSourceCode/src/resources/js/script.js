@@ -191,7 +191,7 @@ async function initializeUserCalendar(){
   const userID = calendarEl.getAttribute("data-user-id");
   const userName = calendarEl.getAttribute("data-user-name");
 
-  const response = await fetch(`/calendar/events?userID=${userID}`);
+  const response = await fetch(`/calendar/events`);
   console.log("cal done");
   const userEvents = await response.json();
 
