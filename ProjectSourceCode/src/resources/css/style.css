@@ -148,9 +148,9 @@ section, aside, div {
 /* Root Variables for Easy Customization */
 :root {
   /* Primary Color Palette */
-  --fc-primary: #4361ee;
-  --fc-primary-light: #738ffc;
-  --fc-primary-dark: #3a56d4;
+  --fc-primary: #C79946;
+  --fc-primary-light: #ecc988;
+  --fc-primary-dark: #ac843b;
   
   /* Neutral Colors */
   --fc-neutral-bg: #ffffff;
@@ -211,13 +211,13 @@ section, aside, div {
 }
 
 .fc .fc-button-primary:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #1a1a1a;
   border-color: rgba(255, 255, 255, 0.5);
 }
 
 .fc .fc-button-primary:not(:disabled):active,
 .fc .fc-button-primary:not(:disabled).fc-button-active {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: #1a1a1a;
   border-color: rgba(255, 255, 255, 0.7);
 }
 
