@@ -102,14 +102,14 @@
         </row>
             {{else}}
               <div class="card-vert" style="margin-left: -8px;">
-              <div class="row align-items-center">
-                      <div class="col-auto">
-                  <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+                <div class="row align-items-center">
+                  <div class="col-auto">
+                    <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+                  </div>
+                  <div class="col-auto">
+                    <p class="mb-0">No More Tutors Available</p>
                 </div>
-      
-                <div class="col-auto">
-                  <p class="mb-0">No More Tutors Available</p>
-                </div>
+              </div>
           {{/if}}
           <div class="card-group-vert">
             {{#if matchRequests}}
@@ -130,7 +130,7 @@
                   <p class="mb-0">{{this.name}}</p>
                 </div>
                 <div class="col-auto">
-                  <div id="potential">
+                  <div id="liked">
                     {{> match}}
                   </div>
                 </div>
@@ -161,7 +161,7 @@
                   <p class="mb-0">{{this.name}}</p>
                 </div>
                 <div class="col-auto">
-                  <div id="match">
+                  <div id="matched">
                     {{> match}}
                   </div>
                 </div>
@@ -170,7 +170,7 @@
             {{/each}}
             {{else}}
             <p align="center">
-            <a class = "btn btn-primary" class="nav-link">No Matches<br>Update Availability or View Requests!</a>
+            <a class = "btn btn-color" class="nav-link">No Matches<br>Update Availability or View Requests!</a>
             </p>
             {{/if}}
           </div>
@@ -203,7 +203,7 @@
             {{/each}}
             {{else}}
             <p align="center">
-            <a class = "btn btn-primary" class="nav-link">No Matches<br>Update Availability or View Requests!</a>
+            <a class = "btn btn-color" class="nav-link">No Matches<br>Update Availability or View Requests!</a>
             </p>
             {{/if}}
           </div>
@@ -211,5 +211,4 @@
   </div>
     {{/if}}
   </div>
-</div>
 </div>

@@ -16,6 +16,7 @@ const fileupload = require('express-fileupload');
 const fs = require('fs');
 const { EventEmitterAsyncResource } = require('events');
 const e = require('express');
+const { runInNewContext } = require('vm');
 
 // *****************************************************
 // <!-- Section 2 : Connect to DB -->
@@ -773,7 +774,6 @@ app.get('/matching/:index?', async (req, res) => {
         noMatches: true
       });
     }
-    console.log('potentials:', potentials);
     console.log(match);
     //if matches, start rendering by index
     res.render('pages/matching', {
@@ -826,10 +826,8 @@ app.post('/like', async (req, res) => {
       [tutorID]
     );
     console.log(tutorData);
-    //to student confirming request
-    sendEmail(req.session.user.email, "New Tutor Added!", `New tutor match with ${tutorData.name} has been added to Tudr profile!` );
     //to tutor informing of request
-    sendEmail(tutorData.email, "New Student Added!", `New student match with ${req.session.user.name} has been added to Tudr profile!` );
+    sendEmail(tutorData.email, "New Student wants to Connect!", `${req.session.user.name} liked your Tudr Profile and wants to match! Check it out on Tudr!` );
     if(index==-1){
       res.redirect('/profile?alert=2');
     }
@@ -844,7 +842,10 @@ app.post('/like', async (req, res) => {
 });
 
 app.post('/skip', async (req, res) => {
-  const index = req.body.index + 1;
+  let index = req.body.index;
+  console.log(index);
+  index = Number(index)+1;
+  console.log(index);
   res.redirect(`/matching/${index}`);
 });
 
@@ -866,6 +867,31 @@ app.post('/dislike', async (req, res) => {
     );
 
     res.redirect(`/matching/${index}`);
+  } catch (err) {
+    console.error('Dislike error:', err);
+    res.status(500).send('Server error');
+  }
+});
+
+app.post('/unmatch', async (req, res) => {
+  try {
+    const userID = req.session.user.id;
+    const matchID = req.body.matchID;
+    const index = req.body.index;
+    const studentID = (req.session.user.usertype == 'student')?userID:matchID;
+    const tutorID = (req.session.user.usertype == 'tutor')?userID:matchID;
+    if (!tutorID || !studentID) {
+      return res.status(400).send('Missing tutor ID');
+    }
+
+    await db.query(
+      `UPDATE Matches
+      SET Status = 3
+      WHERE TutorID=$1 AND StudentID=$2`,
+      [tutorID, studentID]
+    );
+
+    res.redirect(`/profile`);
   } catch (err) {
     console.error('Dislike error:', err);
     res.status(500).send('Server error');

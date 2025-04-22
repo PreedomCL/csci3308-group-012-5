@@ -290,8 +290,36 @@ function initializeMatchCalendar(id, name){
     parent.replaceChildren();
     parent.appendChild(newDiv);
   }
-  const inst = document.getElementById(`instructions-${id}`);
-  inst.innerHTML=`<h5 style="text-align:center">Click on an available time slot to schedule a meeting with ${name}.</h5>`
+  else if(type=='match'){
+    const parent = document.getElementById(`matchProfileMatch-${id}`);
+    let newDiv = document.createElement('div');
+    newDiv.innerHTML=`
+          <form action="/unmatch" method="POST" style="padding: 10%;">
+            <input type="hidden" name="matchID" value="${id}">
+            <input type="hidden" name="index" value="-1">
+            <button class="btn btn-primary" type="submit">Remove Match</button>
+          </form>`;
+    parent.replaceChildren();
+    parent.appendChild(newDiv);
+    const inst = document.getElementById(`instructions-${id}`);
+    newDiv = null;
+    newDiv = document.createElement('div');
+    newDiv.innerHTML=`<h5 style="text-align:center">Click on an available time slot to schedule a meeting with ${name}.</h5>`
+    inst.replaceChildren();
+    inst.appendChild(newDiv);
+  }
+  else if(type=='matched'){
+    const parent = document.getElementById(`matchProfileMatch-${id}`);
+    let newDiv = document.createElement('div');
+    newDiv.innerHTML=`
+          <form action="/unmatch" method="POST" style="padding: 10%;">
+            <input type="hidden" name="matchID" value="${id}">
+            <input type="hidden" name="index" value="-1">
+            <button class="btn btn-primary" type="submit">Remove Match</button>
+          </form>`;
+    parent.replaceChildren();
+    parent.appendChild(newDiv);
+  }
 
   const modal = document.getElementById(`profileModal-${id}`);
   modal.addEventListener('shown.bs.modal', async function matchCalRender() {
