@@ -1,12 +1,13 @@
 /**
  * Calendar scripts
  */
-let calendar;
+let userCalendar;
+let matchCalendar;
 
 let eventView;
 
 document.addEventListener('DOMContentLoaded', function() {   
-  initializeCalendar();
+  initializeUserCalendar();
 
     document.querySelectorAll('.add-time').forEach(function(button){
       button.addEventListener('click', function(){
@@ -133,15 +134,53 @@ async function saveAvailabilityEvent(){
       }
     day++;
     }
-  initializeCalendar();
+  initializeUserCalendar();
 } catch(error) {
     console.log("ERROR: ", error);
   }
 }
 
-async function initializeCalendar(){
-  /* add time slots */
-  console.log("DOM loaded, initializing calendar...");
+async function requestSession(id){
+    console.log('Request');
+    const day = new Date(eventView.start).getDay();
+    console.log(day);
+    const inputStart = document.getElementById('request-start');
+    let meetingStart = inputStart.querySelector('.start-time').value;
+    const inputEnd = document.getElementById('request-end');
+    let meetingEnd = inputEnd.querySelector('.end-time').value;
+    const inputFormat = document.getElementById('request-format');
+    let meetingFormat = inputFormat.querySelector('.format').value;
+    //TODO: data validation
+
+    const studentID = document.getElementById('calendar').getAttribute('data-user-id');
+    const studentName = document.getElementById('calendar').getAttribute('data-user-name');
+
+    const tutorName = document.getElementById(`match-calendar-${id}`).getAttribute('data-name');
+
+    await fetch('/requestMeeting', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: 
+        JSON.stringify({
+          studentid: studentID,
+          tutorid: id,
+          name: `Proposed Tutoring Session - ${studentName} & ${tutorName}`,
+          type: "2",
+          day: day,
+          description: `${studentName} is requesting to meet for a tutoring session with ${tutorName}`,
+          format: meetingFormat,
+          startTime: meetingStart,
+          endTime: meetingEnd
+        })
+    });
+    initializeMatchCalendar(id, tutorName);
+    initializeUserCalendar();
+}
+
+async function initializeUserCalendar(){
+  console.log("Initializing user calendar...");
   const calendarEl = document.getElementById('calendar');
 
   // Check if FullCalendar library is available
@@ -149,8 +188,8 @@ async function initializeCalendar(){
       console.error("FullCalendar library not loaded");
       return; // Exit early if library isn't loaded
   }
-  const userID = document.getElementById("calendar").getAttribute("data-user-id");
-  const userName = document.getElementById("calendar").getAttribute("data-user-name");
+  const userID = calendarEl.getAttribute("data-user-id");
+  const userName = calendarEl.getAttribute("data-user-name");
 
   const response = await fetch(`/calendar/events?userID=${userID}`);
   console.log("cal done");
@@ -158,12 +197,12 @@ async function initializeCalendar(){
 
   try {
       console.log("Creating calendar instance...");
-      calendar = new FullCalendar.Calendar(calendarEl, {  
+      userCalendar = new FullCalendar.Calendar(calendarEl, {  
           initialView: 'timeGridWeek',
           headerToolbar: {
-            left: 'updateAvailability',
+            left: 'updateAvailability', /*Update availability button*/
             center: 'title'/*user name's calendar*/,
-            right: '' /*Update availability button*/
+            right: '' 
           },
           customButtons: {
             updateAvailability: {
@@ -185,14 +224,7 @@ async function initializeCalendar(){
           },
           eventClick: function(info){
             console.log('Click: ', info);
-            //create button, click it, remove it
-            const tmp_button = document.createElement('button');
-            tmp_button.setAttribute('data-bs-toggle', 'modal');
-            tmp_button.setAttribute('data-bs-target', '#download-modal');
-            document.getElementById('parent').appendChild(tmp_button);
-            tmp_button.click();
-            document.getElementById('parent').removeChild(tmp_button);
-            populateDownload(info.event);
+            clickUserEvent(info.event);
           },
           nowIndicator: true,
           stickyHeaderDates: true,
@@ -212,17 +244,99 @@ async function initializeCalendar(){
           editable: false,
           selectable: false,
           height: '100%',
-          events: userEvents
+          events: userEvents,
+          eventDidMount: function(info) {
+            if (info.event.extendedProps.type) {
+              info.el.setAttribute('data-event-type', info.event.extendedProps.type);
+            }
+            if (info.event.extendedProps.format) {
+              info.el.setAttribute('data-event-format', info.event.extendedProps.format);
+            }
+          }
       });
-
-      console.log(calendar.events);
       console.log("Rendering calendar...");
       // Remove updateSize call, only render
-      calendar.render();
+      userCalendar.render();
       console.log("Calendar render complete");
   } catch (error) {
       console.error("Error creating calendar:", error);
   }
+}
+
+function initializeMatchCalendar(id, name){
+  console.log(id,name);
+
+  const modal = document.getElementById(`profileModal-${id}`);
+  modal.addEventListener('shown.bs.modal', async function matchCalRender() {
+    modal.removeEventListener('shown.bs.modal', matchCalRender);
+    
+    console.log("Initializing match calendar...");
+    const McalendarEl = document.getElementById(`match-calendar-${id}`);
+
+    // Check if FullCalendar library is available
+    if (typeof FullCalendar === 'undefined') {
+        console.error("FullCalendar library not loaded");
+        return; // Exit early if library isn't loaded
+    }
+    const userID = id;
+    console.log('matchid:', userID)
+    const userName = name;
+    McalendarEl.setAttribute("data-id", `${userID}`);
+    McalendarEl.setAttribute("data-name", `${userName}`);
+
+    const response = await fetch(`/calendar/events/match?userID=${userID}`); //TODO
+    const MuserEvents = await response.json();
+
+    try {
+        console.log("Creating match calendar instance...");
+        matchCalendar = new FullCalendar.Calendar(McalendarEl, {  
+            initialView: 'timeGridWeek',
+            headerToolbar: {
+              left: '',
+              center: 'title'/*user name's calendar*/,
+              right: '' /*Update availability button*/
+            },
+            titleFormat: function(){
+              return `${userName}'s Calendar`;
+            },
+            eventClick: function(info){
+              console.log('Match click: ', info);
+              //only continue if matched
+              const type = document.getElementById(`matchButton-${id}`).parentElement.id;
+              if(type=='match'){
+                clickMatchEvent(info.event, id);
+              }
+              else{
+                alert(`Match with ${name} before scheduling a tutoring session.`);
+              }
+            },
+            nowIndicator: true,
+            stickyHeaderDates: true,
+            slotDuration: '00:30:00',  
+            slotMinTime: '08:00:00',  
+            slotMaxTime: '21:00:00',
+            scrollTime: '08:00:00',
+            dayHeaderFormat: { weekday: 'short' },
+            eventTimeFormat: {
+                hour: 'numeric',
+                minute: '2-digit',
+                meridiem: 'short'
+            }, 
+            allDaySlot: false,
+            expandRows: true,
+            navLinks: false,
+            editable: false,
+            selectable: false,
+            height: '100%',
+            events: MuserEvents
+        });
+        console.log("Rendering match calendar...");
+        matchCalendar.render();
+        console.log("Match Calendar render complete");
+    } catch (error) {
+        console.error("Error creating calendar:", error);
+    }
+  });
 }
 
 async function populateModal(id){
@@ -233,7 +347,7 @@ async function populateModal(id){
     }
   }
   try{
-    const response = await fetch(`/calendar/events?userID=${id}`);
+    const response = await fetch(`/calendar/events/match?userID=${id}`);
     const userEvents = await response.json();
     console.log(userEvents);
     for(let e of userEvents){
@@ -319,6 +433,128 @@ async function populateModal(id){
   // newSlot.innerHTML =``;
 }
 
+function clickUserEvent(event){
+  if(event.extendedProps.type!='Available' /* && caltype==tutor*/){
+    const downloadModal = document.getElementById('download-modal');
+    const newModal = new bootstrap.Modal(downloadModal);
+    newModal.show();
+    console.log('show modal');
+    populateDownload(event);
+  }
+}
+
+function clickMatchEvent(event, id){
+  const requestModal = document.getElementById(`request-modal-${id}`);
+  const newModal = new bootstrap.Modal(requestModal,{
+    backdrop: true,
+  });
+  newModal.show();
+  console.log('show modal');
+  populateRequest(event, id);
+}
+
+function populateRequest(event, id){
+  eventView = event;
+  const Astart = new Date(event.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const Aend = new Date(event.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const Aday = new Date(event.start).toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
+
+  const modal = document.querySelector(`#request-modal-${id} .modal-body`);
+  if(modal.childNodes){
+    modal.replaceChildren();
+  }
+  const request = document.createElement('div');
+
+  request.className = `card`;
+  request.innerHTML=`
+          <div class="card-body">
+            <div class="row mb-2">
+              <div class="col-md-5 fw-bold">Day:</div>
+              <div class="col-md-7 dayInput">${Aday}</div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-md-5 fw-bold">Available From:</div>
+              <div class="col-md-7">${Astart} - ${Aend}</div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-md-5 fw-bold">Format:</div>
+              <div class="col-md-7" id="request-format">
+                <select class="form-select format">
+                  <option value="" disabled>Meeting Format</option>
+                  <option value="1">In-Person</option>
+                  <option value="2">Online</option>
+                  <option value="3">Hybrid</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-6" id="request-start">
+                  <select class="form-select start-time">
+                    <option value="" disabled selected>Start Time</option>
+                    <option value="08:00:00">8:00 AM</option>
+                    <option value="08:30:00">8:30 AM</option>
+                    <option value="09:00:00">9:00 AM</option>
+                    <option value="09:30:00">9:30 AM</option>
+                    <option value="10:00:00">10:00 AM</option>
+                    <option value="10:30:00">10:30 AM</option>
+                    <option value="11:00:00">11:00 AM</option>
+                    <option value="11:30:00">11:30 AM</option>
+                    <option value="12:00:00">12:00 PM</option>
+                    <option value="12:30:00">12:30 PM</option>
+                    <option value="13:00:00">1:00 PM</option>
+                    <option value="13:30:00">1:30 PM</option>
+                    <option value="14:00:00">2:00 PM</option>
+                    <option value="14:30:00">2:30 PM</option>
+                    <option value="15:00:00">3:00 PM</option>
+                    <option value="15:30:00">3:30 PM</option>
+                    <option value="16:00:00">4:00 PM</option>
+                    <option value="16:30:00">4:30 PM</option>
+                    <option value="17:00:00">5:00 PM</option>
+                    <option value="17:30:00">5:30 PM</option>
+                    <option value="18:00:00">6:00 PM</option>
+                    <option value="18:30:00">6:30 PM</option>
+                    <option value="19:00:00">7:00 PM</option>
+                    <option value="19:30:00">7:30 PM</option>
+                    <option value="20:00:00">8:00 PM</option>
+                    <option value="20:30:00">8:30 PM</option>
+                  </select>
+              </div>
+              <div class="col-6" id="request-end">
+                <select class="form-select end-time">
+                  <option value="" disabled selected>End Time</option>
+                  <option value="08:30:00">8:30 AM</option>
+                  <option value="09:00:00">9:00 AM</option>
+                  <option value="09:30:00">9:30 AM</option>
+                  <option value="10:00:00">10:00 AM</option>
+                  <option value="10:30:00">10:30 AM</option>
+                  <option value="11:00:00">11:00 AM</option>
+                  <option value="11:30:00">11:30 AM</option>
+                  <option value="12:00:00">12:00 PM</option>
+                  <option value="12:30:00">12:30 PM</option>
+                  <option value="13:00:00">1:00 PM</option>
+                  <option value="13:30:00">1:30 PM</option>
+                  <option value="14:00:00">2:00 PM</option>
+                  <option value="14:30:00">2:30 PM</option>
+                  <option value="15:00:00">3:00 PM</option>
+                  <option value="15:30:00">3:30 PM</option>
+                  <option value="16:00:00">4:00 PM</option>
+                  <option value="16:30:00">4:30 PM</option>
+                  <option value="17:00:00">5:00 PM</option>
+                  <option value="17:30:00">5:30 PM</option>
+                  <option value="18:00:00">6:00 PM</option>
+                  <option value="18:30:00">6:30 PM</option>
+                  <option value="19:00:00">7:00 PM</option>
+                  <option value="19:30:00">7:30 PM</option>
+                  <option value="20:00:00">8:00 PM</option>
+                  <option value="20:30:00">8:30 PM</option>
+                  <option value="21:00:00">9:00 PM</option>
+                </select>
+              </div>
+            </div>
+          </div>`;
+  modal.appendChild(request);
+}
+
 function populateDownload(event){
   eventView = event;
   const title = event.title;
@@ -330,7 +566,7 @@ function populateDownload(event){
   const description = event.extendedProps.description || "No description";
 
   //clear previous event info
-  const modal = document.getElementById('body');
+  const modal = document.getElementById('download-body');
   if(modal.childNodes){
     modal.replaceChildren();
   }
@@ -364,12 +600,10 @@ function populateDownload(event){
       </div>
     </div>
   `;
-  if(type!='Available'){
-    newDiv.innerHTML += `
-    <div class="card-footer">
-      <button class="btn btn-sm id="download-button" btn-outline-secondary me-2" onclick="downloadEvent()">Download</button>
-    </div>`;
-  }
+  newDiv.innerHTML += `
+      <div class="card-footer">
+        <button class="btn btn-sm id="download-button" btn-outline-secondary me-2" onclick="downloadEvent()">Download</button>
+      </div>`;
   modal.appendChild(newDiv);
 }
 
@@ -421,3 +655,7 @@ function formaticsdate(date) {
   );
 }
 
+// function killCal(){
+//   matchCalendar.destroy();
+//   matchCalendar=null;
+// }

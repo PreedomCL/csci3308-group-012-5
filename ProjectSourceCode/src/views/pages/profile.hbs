@@ -6,7 +6,7 @@
         <div class="card-prof">
         <div class="row align-items-center">  
           <div class="col-auto mx-auto text-center">
-            <img src={{#if profilepic}}"{{profilepic}}"{{else}}"https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg"{{/if}} alt="profile pic"class="rounded-circle" style="width: 200px; height: 200px; object-fit: cover;">
+            <img src={{#if profileimage}}"{{profileimage}}"{{else}}"https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg"{{/if}} alt="profile pic"class="rounded-circle" style="width: 200px; height: 200px; object-fit: cover;">
           </div>
           <div class="col-auto mx-auto text-center">
             <h2>{{name}}</h2>
@@ -36,8 +36,10 @@
     </div>
     {{!-- Schedule to be implemented with Calendar API --}}
     <div id="prof-center" class="col-sm-6">
+      <h2 style="text-align: center;">Calendar</h2>
       {{> cal}}
     </div>
+
     {{!-- Matched Tutors --}}
     <div id="prof-right" class = "col-sm-3" >
         <h2 style="text-align: center;">{{#if student}}Tutors{{else}}Students{{/if}}</h2>
@@ -58,9 +60,11 @@
               <div class="col-auto">
                 <p class="mb-0">{{this.name}}</p>
               </div>
-              {{!-- <div class="col-auto">
-                <button class="btn btn-color" type="submit">Message</button>
-              </div> --}}
+              <div class="col-auto">
+                <div id="match">
+                  {{> match}}
+                </div>
+              </div>
             </div>
           </div>
           {{/each}}
@@ -89,7 +93,9 @@
                 </div>
                 {{/if}}
             <p>{{this.name}}</p>
-            <button class = "btn btn-primary"  type='submit'>View Profile</button><br/>
+            <div id="potential">
+              {{> match}}
+            </div>
           </div>
           {{/each}}
         </div>

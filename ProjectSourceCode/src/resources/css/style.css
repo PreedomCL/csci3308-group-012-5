@@ -120,7 +120,7 @@ section, aside, div {
 
 /* Calendar Style */
 
-#calendar-container {
+.calendar-container {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   height: 75vh; /* 75% of viewport height */
   width: 100%;
@@ -139,51 +139,250 @@ section, aside, div {
   }
 }
 @media (max-width: 768px) {
-  #calendar-container {
+  .calendar-container {
     height: 90vh; /* More height on mobile */
   }
 }
+/* ===== FullCalendar Beautiful Weekly View ===== */
 
-/* Allow scrolling */
-.fc .fc-scroller {
-  overflow-x: auto !important; 
-  overflow-y: auto !important;
+/* Root Variables for Easy Customization */
+:root {
+  /* Primary Color Palette */
+  --fc-primary: #4361ee;
+  --fc-primary-light: #738ffc;
+  --fc-primary-dark: #3a56d4;
+  
+  /* Neutral Colors */
+  --fc-neutral-bg: #ffffff;
+  --fc-neutral-border: #e9ecef;
+  --fc-neutral-text: #495057;
+  --fc-neutral-muted: #adb5bd;
+  
+  /* Event Type Colors */
+  --fc-event-available: #10b981;  /* Green */
+  --fc-event-pending: #f5de0b;  /* Amber */
+  --fc-event-accepted: #3b82f6;  /* Blue */
+  
+  /* Format Colors (as borders) */
+  --fc-format-virtual: #06b6d4;  /* Cyan */
+  --fc-format-inperson: #f97316;  /* Orange */
+  --fc-format-hybrid: #8b5cf6;  /* Purple */
+  
+  /* Sizing */
+  --fc-border-radius: 8px;
+  --fc-event-border-radius: 6px;
+  --fc-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  --fc-header-height: 50px;
 }
 
-  /* Reduce general padding and spacing */
-.fc .fc-timegrid-slot {
-  height: 1em; /* Smaller time slots */
+/* Calendar Container */
+.fc {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--fc-neutral-bg);
+  border-radius: var(--fc-border-radius);
+  box-shadow: var(--fc-shadow);
+  border: 1px solid var(--fc-neutral-border);
+  color: var(--fc-neutral-text);
+  max-width: 100%;
+  margin: 0 auto;
 }
 
-/* Slim down the header */
+/* Header Styling */
 .fc .fc-toolbar {
-  margin-bottom: 0.0em;
-  padding: 0em;
+  background-color: var(--fc-primary);
+  color: white;
+  border-radius: var(--fc-border-radius) var(--fc-border-radius) 0 0;
+  padding: 12px 16px;
+  margin-bottom: 0 !important;
 }
 
 .fc .fc-toolbar-title {
-  font-size: 5em; /* Smaller title */
-  padding: 0em;
-  margin: 0em;
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
-/* Compact day headers */
+.fc .fc-button-primary {
+  background-color: transparent;
+  border-color: rgba(255, 255, 255, 0.3);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.fc .fc-button-primary:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.fc .fc-button-primary:not(:disabled):active,
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+/* Day Header Styling */
+.fc .fc-col-header {
+  background-color: #f8f9fa;
+}
+
 .fc .fc-col-header-cell {
-  padding: 0px;
+  padding: 10px 0;
 }
 
+.fc .fc-col-header-cell-cushion {
+  color: var(--fc-neutral-text);
+  font-weight: 600;
+  text-decoration: none !important;
+  padding: 8px;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
 
-/* More compact event display */
+/* Current Day Highlight */
+.fc .fc-day-today {
+  background-color: rgba(67, 97, 238, 0.05) !important;
+}
+
+/* Time Grid Styling */
+.fc .fc-timegrid-slot {
+  height: 3em;
+  border-bottom: 1px solid var(--fc-neutral-border);
+}
+
+.fc .fc-timegrid-axis {
+  padding-right: 10px;
+  font-size: 0.85rem;
+  color: var(--fc-neutral-muted);
+}
+
+.fc .fc-timegrid-slot-label {
+  color: var(--fc-neutral-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.fc .fc-timegrid-divider {
+  display: none;  /* Hide the divider for cleaner look */
+}
+
+/* Now Indicator */
+.fc .fc-timegrid-now-indicator-line {
+  border-color: var(--fc-primary);
+  border-width: 2px;
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+  border-color: var(--fc-primary);
+  border-width: 5px;
+}
+
+/* Event Styling - General */
 .fc-event {
-  font-size: 0.7em !important;
-  line-height: 1 !important;
-  padding: 2px 2px !important;
+  border-radius: var(--fc-event-border-radius) !important;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
-/* Reduce spacing in time labels */
-.fc-timegrid-slot-label {
-  font-size: 0.7em !important;
-  text-align: left;
+.fc-event .fc-event-main {
+  padding: 4px 6px;
+}
+
+.fc-event .fc-event-time {
+  font-weight: 600;
+}
+
+.fc-event .fc-event-title {
+  font-weight: 500;
+}
+
+/* Allow events to display side by side */
+.fc-timegrid-event-harness {
+  display: inline-block !important;
+  width: auto !important;
+  max-width: 90% !important;
+}
+
+/* Add spacing between side-by-side events */
+.fc-timegrid-event {
+  margin-right: 2px !important;
+}
+
+/* Event Types - Color Coding */
+.fc-event[data-event-type="Available"],
+.fc-event.available-event {
+  background-color: var(--fc-event-available) !important;
+  border-color: var(--fc-event-available) !important;
+}
+
+.fc-event[data-event-type="Pending"],
+.fc-event.pending-event {
+  background-color: var(--fc-event-pending) !important;
+  border-color: var(--fc-event-pending) !important;
+}
+
+.fc-event[data-event-type="Accepted"],
+.fc-event.accepted-event {
+  background-color: var(--fc-event-accepted) !important;
+  border-color: var(--fc-event-accepted) !important;
+}
+
+
+/* Event Format - Border Styling */
+.fc-event[data-event-format="Online"],
+.fc-event.virtual-format {
+  border-left: 4px solid var(--fc-format-virtual) !important;
+}
+
+.fc-event[data-event-format="In-Person"],
+.fc-event.in-person-format {
+  border-left: 4px solid var(--fc-format-inperson) !important;
+}
+
+.fc-event[data-event-format="Hybrid"],
+.fc-event.hybrid-format {
+  border-left: 4px solid var(--fc-format-hybrid) !important;
+}
+
+/* Improve text visibility on colored backgrounds */
+.fc-event .fc-event-title,
+.fc-event .fc-event-time {
+  color: white !important;
+  font-weight: bold !important;
+  text-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Hover Effect on Events */
+.fc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .fc .fc-toolbar {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .fc .fc-toolbar-chunk {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .fc-event {
+    font-size: 0.75rem;
+  }
+  
+  .fc .fc-col-header-cell-cushion {
+    font-size: 0.75rem;
+    padding: 4px;
+  }
 }
 
 /* Calendar modal */
@@ -200,4 +399,21 @@ section, aside, div {
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
+}
+
+
+/* tinting background */
+.modal {
+  z-index: 1050;
+}
+
+.reqModal{
+  z-index: 1055 !important;
+}
+.profModal{
+  z-index: 1051 !important;
+}
+
+.modal-backdrop + .modal-backdrop {
+  z-index: 1052 !important;
 }
