@@ -165,13 +165,15 @@ app.post('/register', async (req, res) => {
     res.status(400).send('invalid email');
     return;
   }
+  registerInfo.email = registerInfo.email.toLowerCase();
 
   // validate type
   if(typeof registerInfo.type !== 'string') {
     res.status(400).send('argument "type" must be a string');
     return;
   }
-  switch (registerInfo.type.toLowerCase()) {
+  registerInfo.type = registerInfo.type.toLowerCase();
+  switch (registerInfo.type) {
     case "student":
     case "tutor":
       break;
@@ -205,7 +207,8 @@ app.post('/register', async (req, res) => {
     res.status(400).send('argument "year" must be a string');
     return;
   }
-  switch (registerInfo.year.toLowerCase()) {
+  registerInfo.year = registerInfo.year.toLowerCase();
+  switch (registerInfo.year) {
     case "freshman":
     case "sophomore":
     case "senior":
@@ -529,7 +532,7 @@ app.get('/profile', async(req, res) => {
     return;
   }
   const query = `
-  SELECT u.Id as userid, u.Name AS username, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames, u.UserType as usertype
+  SELECT u.Id as userid, u.Name AS username, u.ProfileImage as Profileimage, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames, u.UserType as usertype
   FROM Users u 
     JOIN LearningStyles ls ON u.LearningStyle = ls.Id
     LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
