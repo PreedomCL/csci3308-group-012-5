@@ -323,6 +323,12 @@ app.post('/register', async (req, res) => {
     if(registerInfo.type=='student'){
       await initializeRecommendedTutors(userId.id);
     }
+    else{
+      const students = await db.any(`SELECT Id FROM Users WHERE UserType='student'`);
+      for(let s of students){
+        await initializeRecommendedTutors(s.id);
+      }
+    }
 
     // Successful register, redirect the user to the login page
     sendEmail(registerInfo.email, "Tudr Account Created!", `Welcome to Tudr ${registerInfo.name}!`);
@@ -662,8 +668,8 @@ app.get('/calendar/events/match', async(req, res) => {
 });
 
 app.post('/requestMeeting', async (req, res) => {
-  const query = `INSERT INTO EVENTS (EventName, EventType, EventDay, EventStartTime, EventEndTime, EventFormat)
-                  VALUES ($1, $2, $3, $4, $5, $6)
+  const query = `INSERT INTO EVENTS (EventName, EventType, EventDay, EventDescription, EventStartTime, EventEndTime, EventFormat)
+                  VALUES ($1, $2, $3, $4, $5, $6, $7)
                   RETURNING EventId`;
   const query1 = `INSERT INTO UsersToEvents (UserID, EventID)
                   VALUES ($1, $2)
@@ -677,13 +683,14 @@ app.post('/requestMeeting', async (req, res) => {
   let eventName = req.body.name;
   let eventType = req.body.type;
   let eventDay = req.body.day;
+  let eventDescription = req.body.description;
   let eventStartTime = req.body.startTime;
   let eventEndTime = req.body.endTime;
   let eventFormat = req.body.format;
   console.log(req.body);
 
   try{
-    const result = await db.one(query, [eventName, eventType, eventDay, eventStartTime, eventEndTime, eventFormat]);
+    const result = await db.one(query, [eventName, eventType, eventDay, eventDescription, eventStartTime, eventEndTime, eventFormat]);
     const result1 = await db.manyOrNone(query1, [studentID, result.eventid]);
     console.log('1:', result1);
     const result2 = await db.manyOrNone(query2, [tutorID, result.eventid]);
@@ -1009,20 +1016,19 @@ async function initializeRecommendedTutors(id){
     `SELECT *
     FROM Users u
     Where u.Id=$1;`, [id]);
+  console.log('id:', id, ' userData:', userData);
   //fetch matching criteria
   const result = await db.any(
     `SELECT u.Id as tutorid
-    FROM users u
+    FROM Users u
     WHERE u.Id != $1
       AND u.UserType = 'tutor'
       AND u.Degree = $2
       AND u.LearningStyle = $3`,
     [userData.id, userData.degree, userData.learningstyle]);
-  console.log("result:", result);
   //for each matching critera, insert into matches table
   for(let r of result){
-    const back = await db.one(`INSERT INTO Matches (TutorID, StudentID, Status) VALUES ($1, $2, 1) RETURNING TutorID, StudentID, Status`, [r.tutorid, userData.id]);
-    console.log(back);
+    await db.none(`INSERT INTO Matches (TutorID, StudentID, Status) VALUES ($1, $2, 1) ON CONFLICT (TutorID, StudentID) DO NOTHING`, [r.tutorid, userData.id]);
   } 
 }
 
