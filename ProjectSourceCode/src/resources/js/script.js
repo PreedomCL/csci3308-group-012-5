@@ -490,7 +490,8 @@ async function populateModal(id){
 
 function clickUserEvent(event, type){
   //student
-  if(event.extendedProps.type!='Available' && type){
+  console.log('TYPE: ', type);
+  if((event.extendedProps.type=='Pending' && type=='true') || (event.extendedProps.type=='Accepted')){
     const downloadModal = document.getElementById('download-modal');
     const newModal = new bootstrap.Modal(downloadModal);
     newModal.show();
@@ -498,8 +499,12 @@ function clickUserEvent(event, type){
     populateDownload(event);
   }
   //tutor
-  else if(event.extendedProps.type=='Pending' && !type){
+  else if(event.extendedProps.type=='Pending' && type=='false'){
     //TODO accept meeeting
+    const meetingModal = document.getElementById('meeting-modal');
+    const newModal = new bootstrap.Modal(meetingModal);
+    newModal.show();
+    populateMeeting(event);
   }
 }
 
@@ -667,6 +672,54 @@ function populateDownload(event){
   modal.appendChild(newDiv);
 }
 
+function populateMeeting(event){
+  eventView = event;
+  const title = event.title;
+  const start = new Date(event.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const end = new Date(event.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const day = new Date(event.start).toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
+  const format = event.extendedProps.format;
+  const type = event.extendedProps.type;
+  const description = event.extendedProps.description || "No description";
+
+  //clear previous event info
+  const modal = document.getElementById('meeting-body');
+  if(modal.childNodes){
+    modal.replaceChildren();
+  }
+  const newDiv = document.createElement('div');
+
+  newDiv.className = 'card';
+  newDiv.innerHTML =`
+    <div class="card-header bg-primary text-white">
+      <h5 class="card-title mb-0">${title}</h5>
+    </div>
+    <div class="card-body">
+      <div class="row mb-2">
+        <div class="col-md-5 fw-bold">Day:</div>
+        <div class="col-md-7">${day}</div>
+      </div>
+      <div class="row mb-2">
+        <div class="col-md-5 fw-bold">Time:</div>
+        <div class="col-md-7">${start} - ${end}</div>
+      </div>
+      <div class="row mb-2">
+        <div class="col-md-5 fw-bold">Format:</div>
+        <div class="col-md-7">${format}</div>
+      </div>
+      <div class="row mb-2">
+        <div class="col-md-5 fw-bold">Type:</div>
+        <div class="col-md-7">${type}</div>
+      </div>
+      <div class="row">
+        <div class="col-md-5 fw-bold">Description:</div>
+        <div class="col-md-7">${description}</div>
+      </div>
+    </div>
+  `;
+  modal.appendChild(newDiv);
+}
+
 function downloadEvent(){
   try {
     console.log(eventView);
@@ -715,7 +768,30 @@ function formaticsdate(date) {
   );
 }
 
-// function killCal(){
-//   matchCalendar.destroy();
-//   matchCalendar=null;
-// }
+async function acceptMeeting(){  
+  await fetch('/acceptMeeting', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: 
+      JSON.stringify({
+        event: eventView,
+      })
+  });
+  initializeUserCalendar();
+}
+
+async function rejectMeeting(){
+  await fetch('/rejectMeeting', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: 
+      JSON.stringify({
+        event: eventView,
+      })
+  });
+  initializeUserCalendar();
+}
