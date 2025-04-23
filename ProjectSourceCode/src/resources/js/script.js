@@ -156,7 +156,7 @@ async function requestSession(id){
     const studentName = document.getElementById('calendar').getAttribute('data-user-name');
 
     const tutorName = document.getElementById(`match-calendar-${id}`).getAttribute('data-name');
-
+    const desc = document.getElementById(`desc`).value;
     await fetch('/requestMeeting', {
       method: 'POST',
       headers: {
@@ -169,7 +169,7 @@ async function requestSession(id){
           name: `Proposed Tutoring Session - ${studentName} & ${tutorName}`,
           type: "2",
           day: day,
-          description: `${studentName} is requesting to meet for a tutoring session with ${tutorName}`,
+          description: desc,
           format: meetingFormat,
           startTime: meetingStart,
           endTime: meetingEnd
@@ -615,6 +615,11 @@ function populateRequest(event, id){
                   <option value="21:00:00">9:00 PM</option>
                 </select>
               </div>
+            </div>
+            <div>
+              <label for="desc">Description</label>
+              <textarea type="text" name="desc" class="form-control" id="desc" placeholder="Enter a short explanation of goals for the tutoring session."
+                    required maxlength="200" rows="4" style="resize: none;"></textarea>
             </div>
           </div>`;
   modal.appendChild(request);
