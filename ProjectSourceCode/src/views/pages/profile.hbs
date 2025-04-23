@@ -17,7 +17,7 @@
         </div>
         <div class="card-prof">
           <h5>Bio:</h5>
-          <p>{{bio}}</p>
+          <body>{{bio}}</body>
         </div>        
         <div class="card-prof">
           <h5 style="margin-bottom: 4px; padding: 2px 0;">{{#if student}}Classes you're learning:{{else}}Classes you're teaching:{{/if}}</h5>
@@ -48,13 +48,13 @@
             {{#each allMatches}}
             <div class="card-vert">
               <div class="row align-items-center">
-                {{#if this.Profileimage}}
+                {{#if this.profileimage}}
                 <div class="col-auto">
-                    <img class="mb-0" id="selectedAvatar" src="{{this.Profileimage}}" width="60" height="60">
+                    <img class="mb-0 rounded-circle" id="selectedAvatar" src="{{this.profileimage}}" width="60" height="60">
                 </div>
                 {{else }}
                 <div class="col-auto">
-                  <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+                  <img class="mb-0 rounded-circle" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
                 </div>
                 {{/if}}
                 <div class="col-auto">
@@ -76,41 +76,40 @@
           </div>
 
         {{!-- Potential Tutors --}}
-        <row>
+        <div class="row">
           <br>
           <h2 style="text-align: center;">Potential Tutors</h2>
-          <div class="card-group">
+          {{!-- <div class="card-vert"> --}}
             {{#if potentialmatches}}
             {{#each potentialmatches}}
             <div class="card p-3 text-center">
-                  {{#if this.Profileimage}}
+                  {{#if this.profileimage}}
                   <div class="text-center">
-                    <img class="mb-0" id="selectedAvatar" src="{{this.Profileimage}}" width="60" height="60">
+                    <img class="mb-0 rounded-circle" id="selectedAvatar" src="{{this.profileimage}}" width="60" height="60">
                   </div>
                   {{else}}
                   <div class="text-center">
-                    <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+                    <img class="mb-0 rounded-circle" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
                   </div>
                   {{/if}}
               <p>{{this.name}}</p>
               <div id="potential">
                 {{> match}}
               </div>
-            </div>
             {{/each}}
-          </div>
-        </row>
             {{else}}
               <div class="card-vert" style="margin-left: -8px;">
                 <div class="row align-items-center">
                   <div class="col-auto">
-                    <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+                    <img class="mb-0 rounded-circle" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
                   </div>
                   <div class="col-auto">
                     <p class="mb-0">No More Tutors Available</p>
                 </div>
               </div>
           {{/if}}
+          {{!-- </div> --}}
+        </div>
           <div class="card-group-vert">
             {{#if matchRequests}}
             <h2 style="text-align: center;">Requests Sent</h2>
@@ -119,11 +118,11 @@
               <div class="row align-items-center">
                 {{#if this.profileimage}}
                 <div class="col-auto">
-                    <img class="mb-0" id="selectedAvatar" src="{{this.profileimage}}" width="60" height="60">
+                    <img class="mb-0 rounded-circle" id="selectedAvatar" src="{{this.profileimage}}" width="60" height="60">
                 </div>
                 {{else }}
                 <div class="col-auto">
-                  <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+                  <img class="mb-0 rounded-circle" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
                 </div>
                 {{/if}}
                 <div class="col-auto">
@@ -148,13 +147,13 @@
             {{#each allMatches}}
             <div class="card-vert">
               <div class="row align-items-center">
-                {{#if this.Profileimage}}
+                {{#if this.profileimage}}
                 <div class="col-auto">
-                    <img class="mb-0" id="selectedAvatar" src="{{this.Profileimage}}" width="60" height="60">
+                    <img class="mb-0 rounded-circle" id="selectedAvatar" src="{{this.profileimage}}" width="60" height="60">
                 </div>
                 {{else }}
                 <div class="col-auto">
-                  <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+                  <img class="mb-0 rounded-circle" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
                 </div>
                 {{/if}}
                 <div class="col-auto">
@@ -179,15 +178,15 @@
           <div class="card-group-vert">
             {{#if potentialmatches}}
             {{#each potentialmatches}}
-            <div class="card-vert">
+            <div class="card-prof">
               <div class="row align-items-center">
-                {{#if this.Profileimage}}
+                {{#if this.profileimage}}
                 <div class="col-auto">
-                    <img class="mb-0" id="selectedAvatar" src="{{this.Profileimage}}" width="60" height="60">
+                    <img class="mb-0 rounded-circle" id="selectedAvatar" src="{{this.profileimage}}" width="60" height="60">
                 </div>
                 {{else }}
                 <div class="col-auto">
-                  <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+                  <img class="mb-0 rounded-circle" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
                 </div>
                 {{/if}}
                 <div class="col-auto">
@@ -197,7 +196,7 @@
                   <div id="request">
                     {{> match}}
                   </div>
-                </div>
+                </div>                
               </div>
             </div>
             {{/each}}

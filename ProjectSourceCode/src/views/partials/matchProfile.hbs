@@ -12,7 +12,7 @@
               {{degree}}
             </p>
             <body>
-              <b>Year:</b> {{year}} <b>{{#if student}}Learning Style{{else}}Teaching Style{{/if}}:</b> {{learningstyle}}
+              <b>Year:</b> {{year}} <b>Style:</b> {{learningstyle}}
             </body>
           </div>
         </div>
@@ -22,7 +22,7 @@
           <p>{{bio}}</p>
         </div> 
       <div class="card-prof">
-          <h5 style="margin-bottom: 4px; padding: 2px 0;">{{#if student}}Classes they're learning:{{else}}Classes they teach:{{/if}}</h5>
+          <h5 style="margin-bottom: 4px; padding: 2px 0;">Classes:</h5>
             <div class="scrollable-list">
               <ul>
                 {{#each classes}}
@@ -31,9 +31,6 @@
               </ul>
             </div>
         </div>
-      {{!-- <div class="card-prof">
-        <p>Learning Style: {{learningstyle}}</p>
-      </div> --}}
       <div class="flex-container" id="matchProfileMatch-{{id}}" style="justify-content: center;">
         
       </div>
