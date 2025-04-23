@@ -323,6 +323,12 @@ app.post('/register', async (req, res) => {
     if(registerInfo.type=='student'){
       await initializeRecommendedTutors(userId.id);
     }
+    else{
+      const students = await db.any(`SELECT Id FROM Users WHERE UserType='student'`);
+      for(let s of students){
+        await initializeRecommendedTutors(s.id);
+      }
+    }
 
     // Successful register, redirect the user to the login page
     sendEmail(registerInfo.email, "Tudr Account Created!", `Welcome to Tudr ${registerInfo.name}!`);
@@ -1010,20 +1016,19 @@ async function initializeRecommendedTutors(id){
     `SELECT *
     FROM Users u
     Where u.Id=$1;`, [id]);
+  console.log('id:', id, ' userData:', userData);
   //fetch matching criteria
   const result = await db.any(
     `SELECT u.Id as tutorid
-    FROM users u
+    FROM Users u
     WHERE u.Id != $1
       AND u.UserType = 'tutor'
       AND u.Degree = $2
       AND u.LearningStyle = $3`,
     [userData.id, userData.degree, userData.learningstyle]);
-  console.log("result:", result);
   //for each matching critera, insert into matches table
   for(let r of result){
-    const back = await db.one(`INSERT INTO Matches (TutorID, StudentID, Status) VALUES ($1, $2, 1) RETURNING TutorID, StudentID, Status`, [r.tutorid, userData.id]);
-    console.log(back);
+    await db.none(`INSERT INTO Matches (TutorID, StudentID, Status) VALUES ($1, $2, 1) ON CONFLICT (TutorID, StudentID) DO NOTHING`, [r.tutorid, userData.id]);
   } 
 }
 
