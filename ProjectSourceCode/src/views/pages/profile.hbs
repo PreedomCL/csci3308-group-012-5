@@ -76,40 +76,50 @@
           </div>
 
         {{!-- Potential Tutors --}}
-        <div class="row">
-          <br>
+        {{!-- <div class="row"> --}}
+          {{!-- <br> --}}
           <h2 style="text-align: center;">Potential Tutors</h2>
-          {{!-- <div class="card-vert"> --}}
+          <div class="card-group-vert">
             {{#if potentialmatches}}
             {{#each potentialmatches}}
-            <div class="card p-3 text-center">
-                  {{#if this.profileimage}}
-                  <div class="text-center">
+            <div class="card-vert">
+              <div class="row align-items-center">
+                {{#if this.profileimage}}
+                <div class="col-auto">
                     <img class="mb-0 rounded-circle" id="selectedAvatar" src="{{this.profileimage}}" width="60" height="60">
+                </div>
+                {{else }}
+                <div class="col-auto">
+                  <img class="mb-0 rounded-circle" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+                </div>
+                {{/if}}
+                <div class="col-auto">
+                  <p class="mb-0">{{this.name}}</p>
+                </div>
+                <div class="col-auto">
+                  <div id="potential">
+                    {{> match}}
                   </div>
-                  {{else}}
-                  <div class="text-center">
-                    <img class="mb-0 rounded-circle" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
-                  </div>
-                  {{/if}}
-              <p>{{this.name}}</p>
-              <div id="potential">
-                {{> match}}
+                </div>
               </div>
+            </div>
             {{/each}}
             {{else}}
-              <div class="card-vert" style="margin-left: -8px;">
+              <div class="card-vert">
                 <div class="row align-items-center">
                   <div class="col-auto">
                     <img class="mb-0 rounded-circle" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
                   </div>
                   <div class="col-auto">
                     <p class="mb-0">No More Tutors Available</p>
+                  </div>
                 </div>
               </div>
-          {{/if}}
+            {{/if}}
+          </div>
+            
+
           {{!-- </div> --}}
-        </div>
           <div class="card-group-vert">
             {{#if matchRequests}}
             <h2 style="text-align: center;">Requests Sent</h2>
