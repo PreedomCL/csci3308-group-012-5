@@ -689,10 +689,46 @@ app.post('/requestMeeting', async (req, res) => {
     const result2 = await db.manyOrNone(query2, [tutorID, result.eventid]);
     console.log('1:', result2);
     res.status(200).send("new meeting requested");
+    res.redirect('/profile');
     return;
   }
   catch (error){
     console.error("ERROR: ", error);
+  }
+});
+
+app.post('/acceptMeeting', async (req, res) => {
+  try{
+    let eventID = req.body.event.id;
+    const users = await db.many(
+      `SELECT u.Name, u.Email
+      FROM Users u 
+        JOIN UsersToEvents ue ON u.Id=ue.UserID
+      WHERE ue.EventID=$1
+      `, [eventID]);
+    console.log(users);
+
+    let eventName = `Accepted Tutoring Session - ${users[0].name} & ${users[1].name}`
+
+    await db.none(
+      `UPDATE Events
+      SET EventType = 3, EventName = $1
+      WHERE EventId=$2 `, [eventName, eventID]);
+    
+    sendEmail(users[0].email, `Tutoring Session Scheduled`, `Your tutoring session with ${users[1].name} is set!`);
+    sendEmail(users[1].email, `Tutoring Session Scheduled`, `Your tutoring session with ${users[0].name} is set!`);
+    res.status(202).send('Meeting Accepted');
+  } catch(err){
+    console.error('Accept Error: ', err);
+  }
+});
+
+app.post('/rejectMeeting', async (req, res) => {
+  try{
+    await db.none(`DELETE FROM events WHERE EventId = $1`, [req.body.event.id]);
+    res.status(206).send('Meeting Rejected');
+  } catch(err){
+    console.error('Reject Error: ', err);
   }
 });
 
