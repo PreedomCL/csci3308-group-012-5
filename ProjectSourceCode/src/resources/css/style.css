@@ -85,7 +85,16 @@ section, aside, div {
 .flex-container{
   display: flex;
 }
-
+.scrollable-list {
+  max-height: 130px; 
+  overflow-y: auto;
+  padding-right: 5px;
+}
+.scrollable-card-list {
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
 /* #prof-left{
   min-width: 100px;
 }
