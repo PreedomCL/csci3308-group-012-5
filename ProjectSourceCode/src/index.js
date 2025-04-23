@@ -662,8 +662,8 @@ app.get('/calendar/events/match', async(req, res) => {
 });
 
 app.post('/requestMeeting', async (req, res) => {
-  const query = `INSERT INTO EVENTS (EventName, EventType, EventDay, EventStartTime, EventEndTime, EventFormat)
-                  VALUES ($1, $2, $3, $4, $5, $6)
+  const query = `INSERT INTO EVENTS (EventName, EventType, EventDay, EventDescription, EventStartTime, EventEndTime, EventFormat)
+                  VALUES ($1, $2, $3, $4, $5, $6, $7)
                   RETURNING EventId`;
   const query1 = `INSERT INTO UsersToEvents (UserID, EventID)
                   VALUES ($1, $2)
@@ -677,13 +677,14 @@ app.post('/requestMeeting', async (req, res) => {
   let eventName = req.body.name;
   let eventType = req.body.type;
   let eventDay = req.body.day;
+  let eventDescription = req.body.description;
   let eventStartTime = req.body.startTime;
   let eventEndTime = req.body.endTime;
   let eventFormat = req.body.format;
   console.log(req.body);
 
   try{
-    const result = await db.one(query, [eventName, eventType, eventDay, eventStartTime, eventEndTime, eventFormat]);
+    const result = await db.one(query, [eventName, eventType, eventDay, eventDescription, eventStartTime, eventEndTime, eventFormat]);
     const result1 = await db.manyOrNone(query1, [studentID, result.eventid]);
     console.log('1:', result1);
     const result2 = await db.manyOrNone(query2, [tutorID, result.eventid]);
