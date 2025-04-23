@@ -1,3 +1,6 @@
+AI tools like ChatGPT and Claude were used as adaptive search engines for syntax and formatting
+use cases as well as the explicit examples shown below.
+
 Did not use all of the code below but wanted to cite it all.
 Prompt:
 how would I check if the user is a student in handlebars without eq or changing JS?
