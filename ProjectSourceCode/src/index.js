@@ -1041,11 +1041,12 @@ const tutorUser = {
   learning: 'visual'
 };
 
+//students
 
 const jonas = {
   password: 'pass',
   email: 'me@mail.com',
-  type: 'tutor',
+  type: 'student',
   name: 'Jonas',
   degree: 'Computer Science',
   year: 'sophomore',
@@ -1065,6 +1066,21 @@ const connor = {
   classes: ['CSCI', 'ENES'],
   learning: 'hands'
 };
+
+const craig = {
+  password: 'pass',
+  email: 'craig@mail.com',
+  type: 'student',
+  name: 'Craig',
+  degree: 'Computer Science',
+  year: 'sophomore',
+  bio: 'I am craig',
+  classes: ['CSCI', 'ENES'],
+  learning: 'hands'
+};
+
+
+// tutors
 
 const lukas = {
   password: 'pass',
@@ -1114,6 +1130,78 @@ const molly = {
   learning: 'hands'
 };
 
+const John = {
+  password: 'pass',
+  email: 'john@mail.com',
+  type: 'tutor',
+  name: 'John',
+  degree: 'Computer Science',
+  year: 'Grad',
+  bio: 'I am John',
+  classes: ['MATH', 'ASEN'],
+  learning: 'visual'
+};
+
+const Bill = {
+  password: 'pass',
+  email: 'Bill@mail.com',
+  type: 'tutor',
+  name: 'Bill',
+  degree: 'Arts & Humanities',
+  year: 'Grad',
+  bio: 'I am Bill',
+  classes: ['CSCI', 'MATH'],
+  learning: 'hands'
+};
+
+const Jake = {
+  password: 'pass',
+  email: 'Jake@mail.com',
+  type: 'tutor',
+  name: 'Jake',
+  degree: 'Law & Legal Studies',
+  year: 'Senior',
+  bio: 'I am Jake',
+  classes: ['CSCI', 'ASEN'],
+  learning: 'hands'
+};
+
+const Mary = {
+  password: 'pass',
+  email: 'Mary@mail.com',
+  type: 'tutor',
+  name: 'Mary',
+  degree: 'Mathematics & Statistics',
+  year: 'Senior',
+  bio: 'I am Mary',
+  classes: ['MCEN', 'ASEN'],
+  learning: 'visual'
+};
+
+const James = {
+  password: 'pass',
+  email: 'James@mail.com',
+  type: 'tutor',
+  name: 'James',
+  degree: 'Mathematics & Statistics',
+  year: 'Senior',
+  bio: 'I am James',
+  classes: ['CSCI', 'MCEN'],
+  learning: 'visual'
+};
+
+const Rhianna = {
+  password: 'pass',
+  email: 'Rhianna@mail.com',
+  type: 'tutor',
+  name: 'Rhianna',
+  degree: 'Mathematics & Statistics',
+  year: 'Senior',
+  bio: 'I am Rhianna',
+  classes: ['MCEN', 'MATH'],
+  learning: 'visual'
+};
+
 createTestUser(studentUser);
 createTestUser(tutorUser);
 createTestUser(jonas);
@@ -1122,3 +1210,10 @@ createTestUser(bjorn);
 createTestUser(kate);
 createTestUser(molly);
 createTestUser(connor);
+createTestUser(John);
+createTestUser(Bill);
+createTestUser(Jake);
+createTestUser(Mary);
+createTestUser(craig);
+createTestUser(James);
+createTestUser(Rhianna);
