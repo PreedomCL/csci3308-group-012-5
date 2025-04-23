@@ -142,7 +142,7 @@ app.post('/register', async (req, res) => {
     learning: req.body.learning,
   };
   // Handle profile image
-    let profileImagePath = '/uploads/default.jpg';
+    let profileImagePath = '';
     if (req.files && req.files.profileimagedata) {
       const image = req.files.profileimagedata;
       const fileName = Date.now() + '-' + image.name;
