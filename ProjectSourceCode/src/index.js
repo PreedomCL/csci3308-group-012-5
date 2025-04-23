@@ -212,11 +212,12 @@ app.post('/register', async (req, res) => {
   switch (registerInfo.year) {
     case "freshman":
     case "sophomore":
+    case "junior":
     case "senior":
     case "grad":
       break;
     default:
-      res.status(400).send('argument "year" must one of {"freshman", "sophomore", "senior", "grad"}');
+      res.status(400).send('argument "year" must one of {"freshman", "sophomore", "junior", "senior", "grad"}');
       return;
   }
 
