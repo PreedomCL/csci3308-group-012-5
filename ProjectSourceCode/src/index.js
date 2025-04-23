@@ -542,8 +542,8 @@ app.get('/profile', async(req, res) => {
       JOIN LearningStyles ls ON u.LearningStyle = ls.Id
       LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
       LEFT JOIN Classes c ON c.Id = ctu.ClassId
-      GROUP BY u.id, u.Name, u.Bio, ls.Name
-      WHERE m.TutorID = $1 AND m.Status = 4`,
+      WHERE m.TutorID = $1 AND m.Status = 4
+      GROUP BY u.id, u.Name, u.Bio, ls.Name`,
       [userData.id]
     );
     potentialmatches = await db.any(
