@@ -274,7 +274,7 @@ function initializeMatchCalendar(id, name){
           <form action="/like" method="POST" style="padding: 10%;">
             <input type="hidden" name="tutorID" value="${id}">
             <input type="hidden" name="index" value="-1">
-            <button class="btn btn-primary" type="submit">Like</button>
+            <button class="btn btn-color" type="submit">Like</button>
           </form>`;
     parent.replaceChildren();
     parent.appendChild(newDiv);
@@ -286,7 +286,7 @@ function initializeMatchCalendar(id, name){
           <form action="/match" method="POST" style="padding: 10%;">
             <input type="hidden" name="studentID" value="${id}">
             <input type="hidden" name="index" value="-1">
-            <button class="btn btn-primary" type="submit">Match!</button>
+            <button class="btn btn-color" type="submit">Match!</button>
           </form>`;
     parent.replaceChildren();
     parent.appendChild(newDiv);
@@ -298,7 +298,7 @@ function initializeMatchCalendar(id, name){
           <form action="/unmatch" method="POST" style="padding: 10%;">
             <input type="hidden" name="matchID" value="${id}">
             <input type="hidden" name="index" value="-1">
-            <button class="btn btn-primary" type="submit">Remove Match</button>
+            <button class="btn btn-color" type="submit">Remove Match</button>
           </form>`;
     parent.replaceChildren();
     parent.appendChild(newDiv);
@@ -316,7 +316,7 @@ function initializeMatchCalendar(id, name){
           <form action="/unmatch" method="POST" style="padding: 10%;">
             <input type="hidden" name="matchID" value="${id}">
             <input type="hidden" name="index" value="-1">
-            <button class="btn btn-primary" type="submit">Remove Match</button>
+            <button class="btn btn-color" type="submit">Remove Match</button>
           </form>`;
     parent.replaceChildren();
     parent.appendChild(newDiv);

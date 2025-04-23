@@ -500,41 +500,61 @@ app.get('/profile', async(req, res) => {
   let allMatches, potentialmatches, matchRequests;    
   if(userData.usertype =='student'){
     allMatches = await db.any(
-      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes
       FROM Users u
-      INNER JOIN Matches m ON u.Id = m.TutorID
-      WHERE m.StudentID = $1 AND m.Status = 4`,
+      JOIN Matches m ON u.Id = m.TutorID
+      JOIN LearningStyles ls ON u.LearningStyle = ls.Id
+      LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
+      LEFT JOIN Classes c ON c.Id = ctu.ClassId
+      WHERE m.StudentID = $1 AND m.Status = 4
+      GROUP BY u.id, u.Name, u.Bio, ls.Name`,
       [userData.id]
     );
     potentialmatches = await db.any(
-      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes
       FROM Users u
       JOIN Matches m ON m.TutorID = u.Id
+      JOIN LearningStyles ls ON u.LearningStyle = ls.Id
+      LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
+      LEFT JOIN Classes c ON c.Id = ctu.ClassId
       WHERE m.StudentID = $1 AND m.Status = 1
+      GROUP BY u.id, u.Name, u.Bio, ls.Name
       LIMIT 3`,
       [userData.id]
     ); 
     matchRequests = await db.any(
-      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes
       FROM Users u
       JOIN Matches m ON m.TutorID = u.Id
-      WHERE m.StudentID = $1 AND m.Status = 2`,
+      JOIN LearningStyles ls ON u.LearningStyle = ls.Id
+      LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
+      LEFT JOIN Classes c ON c.Id = ctu.ClassId
+      WHERE m.StudentID = $1 AND m.Status = 2
+      GROUP BY u.id, u.Name, u.Bio, ls.Name`,
       [userData.id]
     )
   }
   else{
     allMatches = await db.any(
-      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes
       FROM Users u
-      INNER JOIN Matches m ON u.Id = m.StudentID
+      JOIN Matches m ON u.Id = m.StudentID
+      JOIN LearningStyles ls ON u.LearningStyle = ls.Id
+      LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
+      LEFT JOIN Classes c ON c.Id = ctu.ClassId
+      GROUP BY u.id, u.Name, u.Bio, ls.Name
       WHERE m.TutorID = $1 AND m.Status = 4`,
       [userData.id]
     );
     potentialmatches = await db.any(
-      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes
       FROM Users u
       JOIN Matches m ON m.StudentID = u.Id
+      JOIN LearningStyles ls ON u.LearningStyle = ls.Id
+      LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
+      LEFT JOIN Classes c ON c.Id = ctu.ClassId
       WHERE m.TutorID = $1 AND m.Status = 2
+      GROUP BY u.id, u.Name, u.Bio, ls.Name
       LIMIT 3`,
       [userData.id]);
   }
@@ -546,7 +566,7 @@ app.get('/profile', async(req, res) => {
     return;
   }
   const query = `
-  SELECT u.Id as userid, u.Name AS username, u.ProfileImage as Profileimage, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames, u.UserType as usertype
+  SELECT u.Id as userid, u.Name AS username, u.ProfileImage as Profileimage, u.Degree AS degree, u.Year AS year, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames, u.UserType as usertype
   FROM Users u 
     JOIN LearningStyles ls ON u.LearningStyle = ls.Id
     LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
@@ -558,7 +578,7 @@ app.get('/profile', async(req, res) => {
     const result = await db.one(query, [userData.email])
     console.log(result);
     res.render('pages/profile', {
-      student: result.usertype == 'student', userid: result.userid, name: result.username, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches, matchRequests: matchRequests, message: message
+      student: result.usertype == 'student', userid: result.userid, name: result.username, degree: result.degree, year: result.year, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches, matchRequests: matchRequests, message: message
     })
   }
   catch(error){
@@ -1155,7 +1175,77 @@ const molly = {
   classes: ['CSCI', 'ASEN'],
   learning: 'hands'
 };
+const John = {
+  password: 'pass',
+  email: 'john@mail.com',
+  type: 'tutor',
+  name: 'John',
+  degree: 'Computer Science',
+  year: 'Grad',
+  bio: 'I am John',
+  classes: ['MATH', 'ASEN'],
+  learning: 'visual'
+};
 
+const Bill = {
+  password: 'pass',
+  email: 'Bill@mail.com',
+  type: 'tutor',
+  name: 'Bill',
+  degree: 'Arts & Humanities',
+  year: 'Grad',
+  bio: 'I am Bill',
+  classes: ['CSCI', 'MATH'],
+  learning: 'hands'
+};
+
+const Jake = {
+  password: 'pass',
+  email: 'Jake@mail.com',
+  type: 'tutor',
+  name: 'Jake',
+  degree: 'Law & Legal Studies',
+  year: 'Senior',
+  bio: 'I am Jake',
+  classes: ['CSCI', 'ASEN'],
+  learning: 'hands'
+};
+
+const Mary = {
+  password: 'pass',
+  email: 'Mary@mail.com',
+  type: 'tutor',
+  name: 'Mary',
+  degree: 'Mathematics & Statistics',
+  year: 'Senior',
+  bio: 'I am Mary',
+  classes: ['MCEN', 'ASEN'],
+  learning: 'visual'
+};
+
+const James = {
+  password: 'pass',
+  email: 'James@mail.com',
+  type: 'tutor',
+  name: 'James',
+  degree: 'Mathematics & Statistics',
+  year: 'Senior',
+  bio: 'I am James',
+  classes: ['CSCI', 'MCEN'],
+  learning: 'visual'
+};
+
+const Rhianna = {
+  password: 'pass',
+  email: 'Rhianna@mail.com',
+  type: 'tutor',
+  name: 'Rhianna',
+  degree: 'Mathematics & Statistics',
+  year: 'Senior',
+  bio: 'I am Rhianna',
+  classes: ['MCEN', 'MATH'],
+  learning: 'visual'
+};
 createTestUser(studentUser);
 createTestUser(tutorUser);
 createTestUser(jonas);
@@ -1164,3 +1254,9 @@ createTestUser(bjorn);
 createTestUser(kate);
 createTestUser(molly);
 createTestUser(connor);
+createTestUser(John);
+createTestUser(Bill);
+createTestUser(Jake);
+createTestUser(Mary);
+createTestUser(James);
+createTestUser(Rhianna);
