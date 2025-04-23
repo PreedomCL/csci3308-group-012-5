@@ -1,0 +1,399 @@
+Did not use all of the code below but wanted to cite it all.
+Prompt:
+how would I check if the user is a student in handlebars without eq or changing JS?
+const potentialmatches = await db.any(
+    SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+     FROM users u
+     WHERE u.Id != $1
+       AND u.UserType != $2
+       AND u.Degree = $3
+       AND u.LearningStyle = $4
+       AND u.Id NOT IN (
+         SELECT TutorID FROM MatchedUsers WHERE UserID = $1
+       ) LIMIT 3,
+    [userID, userData.usertype, userData.degree, userData.learningstyle]
+  ); 
+
+ChatGPT Response:
+ Use {{#if}} with specific block logic and check the UserType string directly in text
+While you can’t directly compare values, you can do something like this for rendering conditionally:
+{{#each potentialmatches}}
+  {{#if UserType}}
+    {{#if (UserType) }} <!-- This only checks truthiness -->
+      {{!-- Render based on value in a string hacky way --}}
+      {{!-- Just render the UserType and style it or act accordingly --}}
+      {{#if (UserType)}}
+        {{#unless (UserType "tutor")}} <!-- This won't work either unless helper is used -->
+      {{/if}}
+    {{/if}}
+    <p>{{Name}} is a {{UserType}}</p>
+  {{/if}}
+{{/each}}
+But again — you can't check if UserType == "student" in plain Handlebars.
+✅ Absolute closest you can get visually without conditionals:
+Just display the type and style or filter it with CSS/JS on the front end.
+{{#each potentialmatches}}
+  <p>
+    {{Name}} 
+    {{#if UserType}}({{UserType}}){{/if}}
+  </p>
+{{/each}}
+Then in your browser, use JS or CSS to act based on the value of UserType.
+TL;DR
+There’s no way to compare strings in vanilla Handlebars without using a helper or modifying your JS. You’ll need to:
+Use a helper like eq, or
+Preprocess with flags in JS, or
+Handle it with frontend logic (e.g., filter or hide via JS after rendering).
+Let me know if you'd be okay with a tiny inline helper — that's the most elegant fix.
+
+Prompt: 
+ <div class="card-vert">
+            <div class="row align-items-center">
+                    <div class="col-auto">
+                <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+              </div>
+    
+              <div class="col-auto">
+                <p class="mb-0">No More Tutors Available</p>
+              </div>
+
+is there a way I can keep this verbatim and just slightly move it to the left
+
+ChatGPT Response:
+Yes — if you want to keep your markup verbatim and just shift the block slightly left, the cleanest way is to add a Bootstrap utility class or a tiny inline style to offset it. Here are two minimal options:
+✅ Option 1: Use Bootstrap's negative margin class
+Just add this class to the outer <div class="card-vert">:
+<div class="card-vert ms-n2">
+ms-n2 = "margin start -2", shifts the card slightly to the left.
+✅ Option 2: Use a tiny inline left margin tweak
+If you want pixel-level control:
+<div class="card-vert" style="margin-left: -8px;">
+Both approaches will nudge the card left to align better with the ones above. Start with -8px and adjust if needed. Let me know if you'd like to match spacing exactly based on computed styles.
+
+Prompt: 
+{{#each allMatches}}
+          <div class="card-vert">
+            <div class="row align-items-center">
+            <div class="col-auto">
+                <img class="mb-0" id="selectedAvatar" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+              </div>
+              <div class="col-auto">
+                <p class="mb-0">{{@index}}{{this}}</p>
+              </div>
+              <div class="col-auto">
+                <button class="btn btn-primary" type="submit">Message</button>
+              </div>
+            </div>
+          </div>
+          {{/each}}
+const allMatches = await db.query('SELECT * FROM MatchedUsers');
+how do I use the handlebars each operator properly to go through all matches? I want it to loop through all matched users 
+
+ChatGPT Response:
+✅ 1. Update Your Backend Query
+You're currently doing:
+const allMatches = await db.query('SELECT * FROM MatchedUsers');
+But that gives you just the matched user IDs, not the actual user info you want to display.
+To loop through all matched users for the logged-in user, join MatchedUsers with Users to get their names, bios, etc.
+Try this:
+const allMatches = await db.any(
+  `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle
+   FROM users u
+   INNER JOIN MatchedUsers m ON u.Id = m.TutorID
+   WHERE m.UserID = $1`,
+  [userID]
+);
+This gives you all the user info for people matched to the current user (by UserID).
+✅ 2. Pass allMatches to Your Template
+res.render('yourTemplateFile', {
+  allMatches: allMatches
+});
+✅ 3. Update Your Handlebars Template
+{{#each allMatches}}
+  <div class="card-vert">
+    <div class="row align-items-center">
+      <div class="col-auto">
+        <img class="mb-0" src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" width="60" height="60">
+      </div>
+      <div class="col-auto">
+        <p class="mb-0"><strong>{{this.Name}}</strong></p>
+        <p class="mb-0">Degree: {{this.Degree}}</p>
+        <p class="mb-0">Bio: {{this.Bio}}</p>
+      </div>
+      <div class="col-auto">
+        <form action="/message/{{this.Id}}" method="GET">
+          <button class="btn btn-primary" type="submit">Message</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{{/each}}
+
+Prompt:
+How would I get it to show users that you have liked and haven't liked or skipped and limit the amount of potential matches shown in the handlebars to 3??
+
+ChatGPT Response:
+ Updated Query for Only “Liked” Matches:
+Replace your query with this:
+const allMatches = await db.any(
+  `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle
+   FROM users u
+   INNER JOIN MatchedUsers m ON u.Id = m.TutorID
+   WHERE m.UserID = $1 AND m.Action = 'like'`,
+  [userID]
+);
+This ensures:
+You're only getting matched users where Action = 'like'
+You're filtering by the current user's UserID
+Limit in the Backend (Best Performance)
+Modify your query like this:
+const potentialmatches = await db.any(
+  `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle
+   FROM users u
+   WHERE u.Id != $1
+     AND u.UserType != $2
+     AND u.Degree = $3
+     AND u.LearningStyle = $4
+     AND u.Id NOT IN (
+       SELECT TutorID FROM MatchedUsers WHERE UserID = $1
+     )
+   LIMIT 3`,
+  [userID, userData.usertype, userData.degree, userData.learningstyle]
+);
+Then just loop through potentialmatches in Handlebars as normal:
+{{#each potentialmatches}}
+  <!-- display each potential match -->
+{{/each}}
+
+Prompt:
+const allMatches = await db.any(
+    SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+     FROM users u
+     INNER JOIN MatchedUsers m ON u.Id = m.TutorID
+     WHERE m.UserID = $1 AND m.Action = 'like',
+    [userID, profileimage: result.profileimage]
+  );
+how would I read in profile image and add it to my handlebars
+
+ChatGPT Response:
+Fix Your Backend Query and Data Passing
+Your current query is good, but this part:
+[userID, profileimage: result.profileimage]
+is not valid syntax for pg-promise parameters. You only need to pass [userID] if that’s the only placeholder in your SQL.
+If you're trying to include the profile image in your result set, you’ve already done that with:
+SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+So just keep:
+const allMatches = await db.any(
+  `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+   FROM users u
+   INNER JOIN MatchedUsers m ON u.Id = m.TutorID
+   WHERE m.UserID = $1 AND m.Action = 'like'`,
+  [userID]
+);
+Then pass it to your template:
+res.render('yourTemplate', {
+  allMatches: allMatches
+});
+✅ 2. Use It in Your Handlebars Template
+{{#each allMatches}}
+  <div class="card-vert">
+    <div class="row align-items-center">
+      <div class="col-auto">
+        <img class="mb-0" src="{{this.Profileimage}}" alt="Profile image" width="60" height="60">
+      </div>
+      <div class="col-auto">
+        <p class="mb-0"><strong>{{this.Name}}</strong></p>
+        <p class="mb-0">{{this.Bio}}</p>
+      </div>
+      <div class="col-auto">
+        <form action="/message/{{this.Id}}" method="GET">
+          <button class="btn btn-primary" type="submit">Message</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{{/each}}
+
+Prompt:
+function createICSfromevents(eventsInfo){
+    const calendar = ['BEGIN: VCALENDAR', 'VERSION: 2.0', 'PRODID: -//TUDR//EN']; //starts icalendar ICS format 
+    const weekstart = new Date('2025-04-13');
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    eventsInfo.forEach((event,i) => {
+        const daysindex = days.indexOf(event.daysOfWeek[0]);
+        if (daysindex === -1){
+            return;
+        }
+        const startdate = new Date(weekstart);
+        startdate.setDate(startdate.getDate()+daysindex);
+        const [starthour, startmin] = event.startTime.split(':'); //gets hour and min seperated 
+        startdate.setHours(starthour, startmin);
+
+        const enddate = new Date(weekstart);
+        enddate.setDate(enddate.getDate()+daysindex);
+        const [endhour, endmin] = event.endTime.split(':');
+        enddate.setHours(endhour, endmin);
+        
+        calendar.push(
+          'BEGIN: VEVENT',  //each vevent is a individual calendar entry
+          UID: event-${event.id}@tudr.app,
+          DTSTAMP: ${formaticsdate(new Date())}, //when event starts its formatted in ICS|| DTSTAMP is when it was downloaded
+          DTSTART: ${formaticsdate(startdate)},
+          DTEND: ${formaticsdate(enddate)},
+          SUMMARY: ${event.title},
+          DESCRIPTION: ${event.description},
+          CATEGORIES: ${event.type}, ${event.format},
+          'END: VEVENT'
+        )
+    });
+    calendar.push('END: VCALENDAR');
+    return calendar.join('\r\n') // returns/ends entire calendar, ics formatted
+}
+function formaticsdate(date){
+    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  }
+console.log(typeof document);
+if (typeof document !== 'undefined'){
+
+  document.getElementById('downloadICS').addEventListener('click', async function(e){
+    e.preventDefault(); //prevents a tag from navigating to link 
+    console.log("inside get element");
+    console.log(req.query.userID);
+    try{
+      const userID = document.getElementById('user-id').value;
+      const response = await fetch(/calendar/events?userID=${userID}); //html path
+      const eventsinfo = await response.json();
+      console.log(eventsinfo);
+      const icscontent = createICSfromevents(eventsinfo);
+      const blob = new Blob([icscontent], {type: 'text/calendar; charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      this.href = url;
+      this.download = 'availability.ics';
+    }
+    catch(error){
+      console.error('Failed to download calendar');
+    }
+    const icscontent = createICSfromevents()
+});
+}
+why is this not allowing the user to download the ical?
+
+ChatGPT Response:
+Final Corrected createICSfromevents():
+function createICSfromevents(eventsInfo) {
+  const calendar = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TUDR//EN'];
+  // Set weekstart to the most recent Sunday
+  const weekstart = new Date();
+  weekstart.setDate(weekstart.getDate() - weekstart.getDay()); // Sunday = 0
+  eventsInfo.forEach((event, i) => {
+    const dayOffset = event.daysOfWeek[0]; // 0 = Sunday, 1 = Monday, etc.
+    if (typeof dayOffset !== 'number' || dayOffset < 0 || dayOffset > 6) {
+      console.log("Skipping invalid event day:", dayOffset);
+      return;
+    }
+    const startdate = new Date(weekstart);
+    startdate.setDate(weekstart.getDate() + dayOffset);
+    const [starthour, startmin] = event.startTime.split(':');
+    startdate.setHours(starthour, startmin);
+    const enddate = new Date(weekstart);
+    enddate.setDate(weekstart.getDate() + event.daysOfWeek[0]);
+    const [endhour, endmin] = event.endTime.split(':');
+    enddate.setHours(endhour, endmin);
+    calendar.push(
+      'BEGIN:VEVENT',
+      `UID:event-${event.id}@tudr.app`,
+      `DTSTAMP:${formaticsdate(new Date())}`,
+      `DTSTART:${formaticsdate(startdate)}`,
+      `DTEND:${formaticsdate(enddate)}`,
+      `SUMMARY:${event.title}`,
+      `DESCRIPTION:${event.description}`,
+      `CATEGORIES:${event.type}, ${event.format}`,
+      'END:VEVENT'
+    );
+  });
+  calendar.push('END:VCALENDAR');
+  return calendar.join('\r\n');
+}
+✅ Local date formatter (no timezone shift):
+function formaticsdate(date) {
+  const pad = (n) => (n < 10 ? '0' + n : n);
+  return (
+    date.getFullYear().toString() +
+    pad(date.getMonth() + 1) +
+    pad(date.getDate()) + 'T' +
+    pad(date.getHours()) +
+    pad(date.getMinutes()) +
+    pad(date.getSeconds())
+  );
+}
+That’s it!
+✅ Events will now show up on the correct days
+✅ You don't need to worry about timezones
+✅ The .ics file will import cleanly into Apple, Google, Outlook, etc.
+Let me know if you'd like to support multiple days per event too (daysOfWeek: [1, 3, 5]).
+
+Prompt:
+app.post('/login', async (req, res) => {
+  const userQuery = 'SELECT * FROM Users WHERE Email = $1';
+  if (!req.body.username) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+  try {
+    const email = req.body.username.toLowerCase();
+// changed login route to not have nested if statements and work with tests better
+    if(!email){
+      console.log("missing email");
+      return res.status(400).json({message: "Invalid Credentials"});
+    }
+    const user = await db.oneOrNone(userQuery, email);
+    if (!user){
+      console.log("User Not Found");
+      return res.status(400).json({message: "Invalid Credentials"});
+    }
+
+ChatGPT Response:
+Problem
+You're checking:
+if (!req.body.username) {
+  return res.status(400).json({ message: 'Email is required' });
+}
+But your frontend or test is sending email in the body, not username. So req.body.username is undefined, which triggers the "Email is required" response.
+✅ Fix
+You just need to change the key back to email:
+if (!req.body.email) {
+  return res.status(400).json({ message: 'Email is required' });
+}
+const email = req.body.email.toLowerCase();
+
+Prompt:
+  SELECT u.Id as userid, u.Name AS username, u.ProfileImage as Profileimage, u.Degree AS degree, u.Year AS year, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames, u.UserType as usertype
+  FROM Users u 
+    JOIN LearningStyles ls ON u.LearningStyle = ls.Id
+    LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
+    LEFT JOIN Classes c ON c.Id = ctu.ClassId
+    WHERE u.email = $1
+      GROUP BY u.id, u.Name, u.Bio, ls.Name
+  `;
+  try{
+    const result = await db.one(query, [userData.email])
+    console.log(result);
+    res.render('pages/profile', {
+      student: result.usertype == 'student', userid: result.userid, name: result.username, degree: result.degree, year: result.year, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileImagePath, allMatches: allMatches, potentialmatches: potentialmatches, matchRequests: matchRequests, message: message
+    })
+web-1  |   username: 'a',
+web-1  |   bio: 'a',
+web-1  |   learningstyle: 'visual',
+web-1  |   classnames: [ 'math' ],
+web-1  |   profileimage: '/uploads/1744323067994-3287%20HW%205%20Diagram.png'
+web-1  | }
+web-1  | RESULT.profileImagePath: undefined
+
+ChatGPT Response:
+In your res.render() call, you're doing this:
+res.render('pages/profile', {
+  profileimage: result.profileImagePath, // ❌ this is undefined
+});
+Change it to:
+res.render('pages/profile', {
+  profileimage: result.profileimage, // ✅ this has the correct value!
+});
