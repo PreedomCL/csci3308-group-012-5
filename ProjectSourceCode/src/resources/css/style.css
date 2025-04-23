@@ -1,4 +1,5 @@
 /* home page */
+body { font-family: 'Comic Sans', Arial, Helvetica, sans-serif; }
 .desc{
   float: left;
   max-width: 500px;
@@ -221,12 +222,12 @@ section, aside, div {
 
 .fc .fc-button-primary:not(:disabled):active,
 .fc .fc-button-primary:not(:disabled).fc-button-active {
-  background-color: #1a1a1a;
+  background-color: #000000;
   border-color: rgba(255, 255, 255, 0.7);
 }
 
 .btn-outline-color {
-  color: #C79946 !important;
+  color: #1a1a1a !important;
   border-color: #C79946 !important;
 }
 

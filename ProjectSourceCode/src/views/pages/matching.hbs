@@ -15,19 +15,29 @@
       <p>{{match.degree}}</p>
       <h6><em>Bio:</em></h6>
       <p>{{match.bio}}</p>
-
-      <form action="/like" method="POST">
-        <input type="hidden" name="tutorID" value="{{match.id}}">
-        <input type="hidden" name="nextIndex" value="{{nextIndex}}">
-        <button type="submit">Like</button>
-      </form>
-
-
-      <form method="POST" action="/skip">
-        <input type="hidden" name="matchID" value="{{match.id}}">
-        <input type="hidden" name="nextIndex" value="{{nextIndex}}">
-        <button class="btn btn-secondary" type="submit">Skip</button>
-      </form>
+      <div class="flex-container" style="justify-content: center;">
+        <div>
+          <form action="/like" method="POST">
+            <input type="hidden" name="tutorID" value="{{match.id}}">
+            <input type="hidden" name="index" value="{{index}}">
+            <button class="btn btn-primary" type="submit">Like</button>
+          </form>
+        </div>
+        <div>
+          <form method="POST" action="/skip">
+            <input type="hidden" name="index" value="{{index}}">
+            <button class="btn btn-secondary" type="submit">Skip</button>
+          </form>
+        </div>
+        <div>
+          <form method="POST" action="/dislike">
+            <input type="hidden" name="tutorID" value="{{match.id}}">
+            <input type="hidden" name="index" value="{{index}}">
+            <button class="btn btn-danger" type="submit">Nope</button>
+          </form>
+        </div>
+      </div>
+      
     </div>
   {{/if}}
 </div>
