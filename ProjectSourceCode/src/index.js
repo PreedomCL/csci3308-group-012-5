@@ -500,41 +500,61 @@ app.get('/profile', async(req, res) => {
   let allMatches, potentialmatches, matchRequests;    
   if(userData.usertype =='student'){
     allMatches = await db.any(
-      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes
       FROM Users u
-      INNER JOIN Matches m ON u.Id = m.TutorID
-      WHERE m.StudentID = $1 AND m.Status = 4`,
+      JOIN Matches m ON u.Id = m.TutorID
+      JOIN LearningStyles ls ON u.LearningStyle = ls.Id
+      LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
+      LEFT JOIN Classes c ON c.Id = ctu.ClassId
+      WHERE m.StudentID = $1 AND m.Status = 4
+      GROUP BY u.id, u.Name, u.Bio, ls.Name`,
       [userData.id]
     );
     potentialmatches = await db.any(
-      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes
       FROM Users u
       JOIN Matches m ON m.TutorID = u.Id
+      JOIN LearningStyles ls ON u.LearningStyle = ls.Id
+      LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
+      LEFT JOIN Classes c ON c.Id = ctu.ClassId
       WHERE m.StudentID = $1 AND m.Status = 1
+      GROUP BY u.id, u.Name, u.Bio, ls.Name
       LIMIT 3`,
       [userData.id]
     ); 
     matchRequests = await db.any(
-      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes
       FROM Users u
       JOIN Matches m ON m.TutorID = u.Id
-      WHERE m.StudentID = $1 AND m.Status = 2`,
+      JOIN LearningStyles ls ON u.LearningStyle = ls.Id
+      LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
+      LEFT JOIN Classes c ON c.Id = ctu.ClassId
+      WHERE m.StudentID = $1 AND m.Status = 2
+      GROUP BY u.id, u.Name, u.Bio, ls.Name`,
       [userData.id]
     )
   }
   else{
     allMatches = await db.any(
-      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes
       FROM Users u
-      INNER JOIN Matches m ON u.Id = m.StudentID
+      JOIN Matches m ON u.Id = m.StudentID
+      JOIN LearningStyles ls ON u.LearningStyle = ls.Id
+      LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
+      LEFT JOIN Classes c ON c.Id = ctu.ClassId
+      GROUP BY u.id, u.Name, u.Bio, ls.Name
       WHERE m.TutorID = $1 AND m.Status = 4`,
       [userData.id]
     );
     potentialmatches = await db.any(
-      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.LearningStyle, u.Profileimage
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes
       FROM Users u
       JOIN Matches m ON m.StudentID = u.Id
+      JOIN LearningStyles ls ON u.LearningStyle = ls.Id
+      LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
+      LEFT JOIN Classes c ON c.Id = ctu.ClassId
       WHERE m.TutorID = $1 AND m.Status = 2
+      GROUP BY u.id, u.Name, u.Bio, ls.Name
       LIMIT 3`,
       [userData.id]);
   }
