@@ -1,7 +1,52 @@
 # Tudr - CSCI 3308 Group 012-5
 
-## Project Overview
+## Application Description
 Tudr is an application that matches students to tutors. Both potential students and tutors will create a profile with select personal and academic information. Students will connect with recommended tutors, and tutors will accept students. Once a student/tutor pair is made, tutoring appointments can be scheduled with a calendar utility.
+
+## Information about the directory structure
+- ***Documentation***: Documentation regarding Calendar and Google Authorization development and research
+- ***MilestoneSubmission***: Project Presentation PDF, Project Plan file, Release Notes files
+- ***ProjectSourceCode*** - All source code:
+    - init_data: database setup/creation files
+    - src:
+        - resources:
+            - css: style.css
+            - img: images used in application
+            - js:
+                - glogin.js - register page for new Google logins
+                - register.js - register page to adapt to account type
+                - script.js - Calendar scipts
+        - views:
+          - layouts: message partial
+          - pages: (all website pages)
+            - home.hbs
+            - login.hbs
+            - logout.hbs
+            - matching.hbs
+            - profile.hbs
+            - register.hbs
+          - partials:
+            - cal.hbs
+            - footer.hbs
+            - gsignin.hbs
+            - header.hbs
+            - match.hbs
+            - matchProfile.hbs
+            - message.hbs
+            - nav.hbs
+            - title.hbs
+        - index.js: Import Dependencies, Connection to DB, API routes, Start Server, Test Users
+    - test:
+      - server.spec.js: unit tests
+    - .gitignore: ignore /uploads/
+    - .gitkeep: Create project structure
+    - docker-compose.yaml: functional docker compose file to run app
+    - package-lock.json: node_modules
+    - package.json: dependencies and scipts
+- ***TeamMeetingLogs***: Meeting notes
+- ***.gitignore***: Specifies intentionally untracked files to ignore
+- ***gen_ai_usage.txt***: Citations of Genenerative AI used in project
+- ***README.md***: Read Me - project description and information
 
 ## Contributors
 - Mason McGaffin
@@ -10,41 +55,47 @@ Tudr is an application that matches students to tutors. Both potential students 
 - Joe Hoertig-Paulus
 - Nick Meagher
 
-## Merge Request Process
-- git fetch origin
-- git merge origin/your-branch-name
-- RESOVLE MERGE CONFLICTS and RETEST
-- git add <files>
-- git commit -m "Resolved merge"
-- git push
-- open pull request in Github
-- In description add "closes #<ticket>"
-
 ## Technology Stack
-- Node.js
-- Express
-- PostgreSQL
-- etc
+- HTML + Handlebars - UI + Templating
+- PostgreSQL - Database
+- chai + mocha - Unit testing
+- Google Sign in API - User Authentication
+- node.js + express - Application Server + Web Framework
+- Render - Web Service Host
+- Nodemailer - Email Notifications
+- Bootstrap - styling
+- FullCalendar - Calendar UI
 
-## Prerequisites
+## Prerequisites to run the application
 Software that needs to be installed to run the application:
-- list
-- of
-- prereqs
+- Docker Desktop - Development Container
+- Visual Studio Code - IDE
 
-## Installation and Setup
-1. [First step]
-2. [Second step]
-3. [Additional steps]
+## How to run the application locally
+1. Clone the Github Repository from: [https://github.com/PreedomCL/csci3308-group-012-5]
+2. Navigate to the repository on your system/ IDE. 
+3. [user@host]$|cd CSCI3308-GROUP-012-5
+4. [user@host]$|cd ProjectSourceCode
+5. [user@host]$|docker compose down -v
+6. [user@host]$|docker compose up --build
+7. Navigate to [http://localhost:3000/]
 
-## Running the Application
-1. [Instructions on running the application locally]
+## Testing (how to run the tests)
+### Unit Testing
+1. Navigate to [https://github.com/PreedomCL/csci3308-group-012-5/tree/lab11] and clone the repository if you haven't already done so.
+3. Navigate to the repository on your system/ IDE. 
+4. If you already have it cloned:
+     - [user@host]$|git fetch origin
+     - [user@host]$|git checkout lab11
+     - [user@host]$|git pull
+     - [user@host]$|docker compose down -v
+     - [user@host]$|docker compose up --build
+5. Find test results in your terminal 
 
-## Testing
-1. [How to run the tests]
-2. [Any test configs]
+### User Acceptance Testing
+1. Navigate to [https://github.com/PreedomCL/csci3308-group-012-5/blob/lab11/MilestoneSubmission/uat_plan.md]
+2. Follow instructions in the uat_plan.md file.
+3. Run tests. 
 
 ## Deployment
-The application is deployed at: [link]
-
-## Additional Documentation
+Link to the deployed application: [https://csci3308-group-012-5.onrender.com/]
