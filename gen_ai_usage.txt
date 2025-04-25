@@ -1,3 +1,5 @@
+Features we used AI to help with: general routes, matching algorithm, calendar display, calendar download, Google sign-in, and some styling. 
+
 AI tools like ChatGPT and Claude were used as adaptive search engines for syntax and formatting
 use cases as well as the explicit examples shown below.
 
