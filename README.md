@@ -81,17 +81,6 @@ Software that needs to be installed to run the application:
 7. Navigate to [http://localhost:3000/]
 
 ## Testing (how to run the tests)
-### Unit Testing
-1. Navigate to [https://github.com/PreedomCL/csci3308-group-012-5/tree/lab11] and clone the repository if you haven't already done so.
-3. Navigate to the repository on your system/ IDE. 
-4. If you already have it cloned:
-     - [user@host]$|git fetch origin
-     - [user@host]$|git checkout lab11
-     - [user@host]$|git pull
-     - [user@host]$|docker compose down -v
-     - [user@host]$|docker compose up --build
-5. Find test results in your terminal 
-
 ### User Acceptance Testing
 1. Navigate to [https://github.com/PreedomCL/csci3308-group-012-5/blob/lab11/MilestoneSubmission/uat_plan.md]
 2. Follow instructions in the uat_plan.md file.
