@@ -4,7 +4,7 @@
 Tudr is an application that matches students to tutors. Both potential students and tutors will create a profile with select personal and academic information. Students will connect with recommended tutors, and tutors will accept students. Once a student/tutor pair is made, tutoring appointments can be scheduled with a calendar utility.
 
 ## Information about the directory structure
-- ***Documentation***: Documentation regarding Calendar and Google Authorization development and research
+- ***Documentation***: Documentation regarding Calendar, Google Authorization development and research, and file input image.
 - ***MilestoneSubmission***: Project Presentation PDF, Project Plan file, Release Notes files
 - ***ProjectSourceCode*** - All source code:
     - init_data: database setup/creation files
