@@ -1001,6 +1001,11 @@ app.get('/logout', (req, res) => {
 function sendEmail(toEmail, subject, message){
   const nodemailer = require('nodemailer');
 
+  if(toEmail.contains('@mail.com') || toEmail.contains('@example.com') || toEmail.contains('@me.com')) {
+    console.log('Skipping email to address: ', toEmail);
+    return;
+  }
+
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
