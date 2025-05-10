@@ -501,7 +501,7 @@ app.get('/profile', async(req, res) => {
   let allMatches, potentialmatches, matchRequests;    
   if(userData.usertype =='student'){
     allMatches = await db.any(
-      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes, u.Email as email
       FROM Users u
       JOIN Matches m ON u.Id = m.TutorID
       JOIN LearningStyles ls ON u.LearningStyle = ls.Id
@@ -512,7 +512,7 @@ app.get('/profile', async(req, res) => {
       [userData.id]
     );
     potentialmatches = await db.any(
-      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes, u.Email as email
       FROM Users u
       JOIN Matches m ON m.TutorID = u.Id
       JOIN LearningStyles ls ON u.LearningStyle = ls.Id
@@ -524,7 +524,7 @@ app.get('/profile', async(req, res) => {
       [userData.id]
     ); 
     matchRequests = await db.any(
-      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes, u.Email as email
       FROM Users u
       JOIN Matches m ON m.TutorID = u.Id
       JOIN LearningStyles ls ON u.LearningStyle = ls.Id
@@ -537,7 +537,7 @@ app.get('/profile', async(req, res) => {
   }
   else{
     allMatches = await db.any(
-      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes, u.Email as email
       FROM Users u
       JOIN Matches m ON u.Id = m.StudentID
       JOIN LearningStyles ls ON u.LearningStyle = ls.Id
@@ -548,7 +548,7 @@ app.get('/profile', async(req, res) => {
       [userData.id]
     );
     potentialmatches = await db.any(
-      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes
+      `SELECT u.Id, u.Name, u.Degree, u.Year, u.Bio, u.Profileimage, ls.Name as LearningStyle, array_agg(c.Name) AS classes, u.Email as email
       FROM Users u
       JOIN Matches m ON m.StudentID = u.Id
       JOIN LearningStyles ls ON u.LearningStyle = ls.Id
@@ -567,7 +567,7 @@ app.get('/profile', async(req, res) => {
     return;
   }
   const query = `
-  SELECT u.Id as userid, u.Name AS username, u.ProfileImage as Profileimage, u.Degree AS degree, u.Year AS year, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames, u.UserType as usertype
+  SELECT u.Id as userid, u.Name AS username, u.ProfileImage as Profileimage, u.Degree AS degree, u.Year AS year, u.Bio, ls.Name as LearningStyle, array_agg(c.Name) AS classnames, u.UserType as usertype, u.Email as email
   FROM Users u 
     JOIN LearningStyles ls ON u.LearningStyle = ls.Id
     LEFT JOIN ClassesToUsers ctu ON ctu.UserId = u.Id
@@ -579,7 +579,7 @@ app.get('/profile', async(req, res) => {
     const result = await db.one(query, [userData.email])
     console.log(result);
     res.render('pages/profile', {
-      student: result.usertype == 'student', userid: result.userid, name: result.username, degree: result.degree, year: result.year, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches, matchRequests: matchRequests, message: message
+      student: result.usertype == 'student', userid: result.userid, name: result.username, degree: result.degree, year: result.year, bio: result.bio, learningstyle: result.learningstyle, classes: result.classnames, profileimage: result.profileimage, allMatches: allMatches, potentialmatches: potentialmatches, matchRequests: matchRequests, message: message, email: result.email
     })
   }
   catch(error){
